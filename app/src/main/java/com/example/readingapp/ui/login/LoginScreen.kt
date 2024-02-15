@@ -12,14 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -34,14 +28,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
+import com.example.readingapp.ui.components.EmailInput
+import com.example.readingapp.ui.components.PasswordInput
 import com.example.readingapp.ui.components.ReadingAppButton
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.utils.keyboardAsState
@@ -72,10 +66,11 @@ fun LoginScreen(
     ) {
         Image(
             painter = painterResource(id = R.drawable.book_logo_two_no_bg),
-            contentDescription = "Book logo",
+            contentDescription = stringResource(R.string.cont_desc_book_logo),
             modifier = Modifier.size(80.dp)
         )
         LoginForm(
+            loading = uiState.value.loading,
             email = uiState.value.email,
             onEmailChange = viewModel::onEmailChange,
             password = uiState.value.password,
@@ -91,6 +86,7 @@ fun LoginScreen(
 
 @Composable
 fun LoginForm(
+    loading: Boolean,
     email: String,
     onEmailChange: (String) -> Unit,
     password: String,
@@ -117,49 +113,37 @@ fun LoginForm(
             .fillMaxWidth()
             .padding(AppTheme.spacing.mdSpacing)
     ) {
-        TextField(
-            value = email,
-            onValueChange = onEmailChange,
-            placeholder = { Text("Email") },
-            colors = textFieldColors,
+        EmailInput(
+            loading = loading,
+            email = email,
+            onEmailChange = onEmailChange,
+            textFieldColors = textFieldColors,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(
-                onNext = { focusManager.moveFocus(FocusDirection.Down) }
-            ),
-            singleLine = true,
+            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
             modifier = Modifier.padding(bottom = AppTheme.spacing.smSpacing)
         )
-        TextField(
-            value = password,
-            onValueChange = onPasswordChange,
-            placeholder = { Text("Password") },
-            colors = textFieldColors,
+
+        PasswordInput(
+            loading = loading,
+            password = password,
+            onPasswordChange = onPasswordChange,
+            passwordVisible = passwordVisible,
+            updatePasswordVisibility = updatePasswordVisibility,
+            textFieldColors = textFieldColors,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    keyboardController?.hide()
-                    onLoginClick()
-                }
-            ),
-            singleLine = true,
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                IconButton(onClick = { updatePasswordVisibility(!passwordVisible) }) {
-                    Icon(
-                        imageVector = if (passwordVisible) Icons.Rounded.Visibility else Icons.Filled.VisibilityOff,
-                        contentDescription = if (passwordVisible) stringResource(R.string.cont_desc_hide_password)
-                        else stringResource(R.string.cont_desc_show_password)
-                    )
-                }
-            },
+            keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
             modifier = Modifier.padding(bottom = AppTheme.spacing.mdSpacing)
         )
+
         ReadingAppButton(
             text = stringResource(R.string.login_btn),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = AppTheme.spacing.xxsmSpacing)
-        ) { onLoginClick() }
+        ) {
+            focusManager.clearFocus()
+            onLoginClick()
+        }
     }
 }
 
