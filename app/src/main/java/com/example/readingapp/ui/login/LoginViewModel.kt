@@ -1,8 +1,6 @@
 package com.example.readingapp.ui.login
 
 import com.example.readingapp.common.BaseViewModel
-import com.example.readingapp.nav.NavigateTo
-import com.example.readingapp.ui.destinations.SignUpScreenDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,11 +28,15 @@ class LoginViewModel @Inject constructor() : BaseViewModel() {
         _uiState.update { it.copy(passwordVisibility = visible) }
     }
 
+    fun onSwitchScreens(state: LoginScreenState) {
+        _uiState.update { it.copy(loginScreenState = state) }
+    }
+
     fun onLoginClick() {
         /* TODO */
     }
 
-    fun onSignUpClick() {
-        navigate(NavigateTo(SignUpScreenDestination))
+    fun onRegisterClick() {
+        /* TODO */
     }
 }

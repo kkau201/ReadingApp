@@ -26,8 +26,8 @@ fun ReadingAppButton(
     val buttonColors = ButtonDefaults.buttonColors(
         backgroundColor = AppTheme.colors.primary,
         contentColor = AppTheme.colors.onPrimary,
-        disabledBackgroundColor = AppTheme.colors.surface,
-        disabledContentColor = AppTheme.colors.surface
+        disabledBackgroundColor = AppTheme.colors.primary.copy(alpha = 0.6f),
+        disabledContentColor = AppTheme.colors.onPrimary.copy(alpha = 0.6f)
     )
 
     Button(
@@ -38,8 +38,8 @@ fun ReadingAppButton(
         modifier = Modifier.padding(padding)
     ) {
         Row(
-            modifier = modifier
-                .align(alignment = Alignment.CenterVertically),
+            modifier = modifier,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             val contentColor = buttonColors.contentColor(enabled).value
