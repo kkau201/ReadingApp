@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
@@ -37,6 +38,6 @@ fun SplashScreen(
 
 @Composable
 fun SplashLottie() {
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.splash_books))
-    LottieAnimation(composition = composition)
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.reading))
+    LottieAnimation(composition = composition, iterations = LottieConstants.IterateForever)
 }

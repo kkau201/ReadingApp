@@ -104,6 +104,7 @@ dependencies {
 
     // Material Icons
     implementation(Libs.Misc.MaterialIcons)
+    implementation(Libs.Misc.MaterialIconsExtended)
 
     // Lottie
     implementation (Libs.Misc.Lottie)

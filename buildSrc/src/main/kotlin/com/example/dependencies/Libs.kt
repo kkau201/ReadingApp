@@ -41,11 +41,13 @@ object Libs {
     }
 
     object Misc {
+        private const val composeVersion = "1.6.1"
         const val Coil = "io.coil-kt:coil-compose:2.4.0"
         const val Retrofit = "com.squareup.retrofit2:retrofit:2.9.0"
         const val Http = "com.squareup.okhttp3:okhttp:5.0.0-alpha.2"
         const val JsonConverter = "com.squareup.retrofit2:converter-gson:2.9.0"
-        const val MaterialIcons = "androidx.compose.material:material:1.6.1"
+        const val MaterialIcons = "androidx.compose.material:material:$composeVersion"
+        const val MaterialIconsExtended = "androidx.compose.material:material-icons-extended:$composeVersion"
         const val Lottie = "com.airbnb.android:lottie-compose:6.3.0"
     }
 
