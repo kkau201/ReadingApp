@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.ui.destinations.HomeScreenDestination
+import com.example.readingapp.ui.destinations.LoginScreenDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -18,8 +19,8 @@ class SplashViewModel @Inject constructor() : BaseViewModel() {
         viewModelScope.launch {
             // Show splash screen for 7 seconds
             delay(7000)
-            Log.d("Home", "Navigate to home")
-            navigate(NavigateTo(to = HomeScreenDestination, popCurrent = true))
+            Log.d("Home", "Navigate to login screen")
+            navigate(NavigateTo(to = LoginScreenDestination, popCurrent = true))
         }
     }
 }
