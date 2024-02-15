@@ -34,6 +34,12 @@ object Libs {
         const val RuntimeCompose = "androidx.lifecycle:lifecycle-runtime-compose:$version"
     }
 
+    object Firebase {
+        const val BoM = "com.google.firebase:firebase-bom:32.7.2"
+        const val Auth = "com.google.firebase:firebase-auth"
+        const val Firestore = "com.google.firebase:firebase-firestore"
+    }
+
     object Misc {
         const val Coil = "io.coil-kt:coil-compose:2.4.0"
         const val Retrofit = "com.squareup.retrofit2:retrofit:2.9.0"

@@ -6,6 +6,7 @@ plugins {
     id ("kotlin-kapt")
     id ("com.google.dagger.hilt.android")
     id ("com.google.devtools.ksp")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -106,5 +107,10 @@ dependencies {
 
     // Lottie
     implementation (Libs.Misc.Lottie)
+
+    // Firebase
+    implementation(platform(Libs.Firebase.BoM))
+    implementation(Libs.Firebase.Auth)
+    implementation(Libs.Firebase.Firestore)
 
 }
