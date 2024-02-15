@@ -1,3 +1,5 @@
+import com.example.dependencies.Libs
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -7,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.myapplication"
+    namespace = "com.example.readingapp"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.myapplication"
+        applicationId = "com.example.readingapp"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -41,7 +43,7 @@ android {
         buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.9"
     }
     packaging {
         resources {
@@ -53,7 +55,6 @@ android {
 dependencies {
 
     implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation(platform("androidx.compose:compose-bom:2023.08.00"))
     implementation("androidx.compose.ui:ui")
@@ -69,47 +70,41 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     //Hilt Dagger
-    val hiltVersion = "2.50"
-    implementation("com.google.dagger:hilt-android:$hiltVersion")
-    kapt("com.google.dagger:hilt-compiler:$hiltVersion")
+    implementation(Libs.Hilt.Android)
+    kapt(Libs.Hilt.KaptCompiler)
+    implementation(Libs.Hilt.Navigation)
 
     //Room
-    val roomVersion = "2.6.1"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    annotationProcessor("androidx.room:room-compiler:$roomVersion")
-    // To use Kotlin annotation processing tool (kapt)
-    ksp("androidx.room:room-compiler:$roomVersion")
-    // KTX for coroutines
-    implementation("androidx.room:room-ktx:2.6.1")
+    implementation(Libs.Room.Runtime)
+    annotationProcessor(Libs.Room.Compiler)
+    ksp(Libs.Room.KspCompiler)
+    implementation(Libs.Room.Ktx)
 
     //Compose Destination
-    val composeDestVersion = "1.10.0"
-    implementation("io.github.raamcosta.compose-destinations:core:$composeDestVersion")
-    ksp("io.github.raamcosta.compose-destinations:ksp:$composeDestVersion")
-
-    // Coroutine Lifecycle Scopes
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation(Libs.Destinations.Core)
+    ksp(Libs.Destinations.Ksp)
 
     //lifecycle
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation(Libs.Lifecycle.ViewModel)
+    implementation(Libs.Lifecycle.Runtime)
+    implementation(Libs.Lifecycle.RuntimeCompose)
 
     // Coil
-    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation(Libs.Misc.Coil)
 
     // Retrofit
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation(Libs.Misc.Retrofit)
 
     // OkHttp
-    implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.2")
+    implementation(Libs.Misc.Http)
 
     // JSON Converter
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation(Libs.Misc.JsonConverter)
 
     // Material Icons
-    implementation("androidx.compose.material:material:1.6.1")
+    implementation(Libs.Misc.MaterialIcons)
 
     // Lottie
-    implementation ("com.airbnb.android:lottie-compose:6.3.0")
+    implementation (Libs.Misc.Lottie)
 
 }
