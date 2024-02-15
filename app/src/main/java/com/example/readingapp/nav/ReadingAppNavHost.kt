@@ -1,7 +1,7 @@
 package com.example.readingapp.nav
 
 import androidx.compose.runtime.Composable
-import com.example.readingapp.ui.home.NavGraphs
+import com.example.readingapp.ui.NavGraphs
 import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.spec.Direction
 
