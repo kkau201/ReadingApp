@@ -11,6 +11,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import com.example.readingapp.ui.theme.AppTheme
 
@@ -20,14 +21,16 @@ fun ReadingAppButton(
     text: String,
     padding: PaddingValues = PaddingValues(AppTheme.spacing.smSpacing),
     enabled: Boolean = true,
+    backgroundColor: Color = AppTheme.colors.primary,
+    contentColor: Color = AppTheme.colors.onPrimary,
     onClick: () -> Unit
 ) {
 
     val buttonColors = ButtonDefaults.buttonColors(
-        backgroundColor = AppTheme.colors.primary,
-        contentColor = AppTheme.colors.onPrimary,
-        disabledBackgroundColor = AppTheme.colors.primary.copy(alpha = 0.6f),
-        disabledContentColor = AppTheme.colors.onPrimary.copy(alpha = 0.6f)
+        backgroundColor = backgroundColor,
+        contentColor = contentColor,
+        disabledBackgroundColor = backgroundColor.copy(alpha = 0.6f),
+        disabledContentColor = contentColor.copy(alpha = 0.6f)
     )
 
     Button(

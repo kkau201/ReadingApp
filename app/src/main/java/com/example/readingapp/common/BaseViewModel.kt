@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.example.readingapp.MainViewModel
 import com.example.readingapp.nav.NavigateBack
 import com.example.readingapp.nav.NavigationEvent
+import com.example.readingapp.ui.components.DialogState
 
 abstract class BaseViewModel() : ViewModel() {
     private lateinit var mainViewModel: MainViewModel
@@ -30,5 +31,13 @@ abstract class BaseViewModel() : ViewModel() {
 
     fun updateLoadingState(state: LoadingState) {
         mainViewModel.updateLoadingState(state)
+    }
+
+    fun showDialog(state: DialogState) {
+        mainViewModel.showDialog(state)
+    }
+
+    fun dismissDialog() {
+        mainViewModel.dismissDialog()
     }
 }

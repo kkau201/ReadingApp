@@ -14,6 +14,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.ReadingAppNavHost
 import com.example.readingapp.ui.components.LoadingLottie
+import com.example.readingapp.ui.components.ReadingAppDialog
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -34,4 +35,7 @@ fun MainContent(mainViewModel: MainViewModel = hiltViewModel(mainActivity())) {
 
     val loadingState by mainViewModel.loadingFlow.collectAsStateWithLifecycle()
     if (loadingState == LoadingState.LOADING) LoadingLottie()
+
+    val dialogState by mainViewModel.dialogFlow.collectAsStateWithLifecycle()
+    dialogState?.let { ReadingAppDialog(state = it) }
 }

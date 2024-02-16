@@ -6,7 +6,8 @@ data class LoginUiState(
     val password: String = "",
     val isPasswordValid: Boolean = false,
     val passwordVisibility: Boolean = false,
-    val loginScreenState: LoginScreenState = LoginScreenState.LOGIN
+    val loginScreenState: LoginScreenState = LoginScreenState.LOGIN,
+    val errorMessage: String? = null
 )
 
 enum class LoginScreenState {

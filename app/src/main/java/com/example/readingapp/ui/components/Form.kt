@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,6 +20,7 @@ import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.utils.keyboardAsState
@@ -35,7 +37,8 @@ fun InputForm(
     @StringRes submitText: Int,
     onSubmitClick: () -> Unit,
     submitEnabled: Boolean,
-    keyboardController: SoftwareKeyboardController?
+    keyboardController: SoftwareKeyboardController?,
+    errorMessage: String?
 ) {
     // Clear focus if keyboard was hidden by user
     val isKeyboardOpen by keyboardAsState()
@@ -73,7 +76,15 @@ fun InputForm(
             textFieldColors = textFieldColors,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
-            modifier = Modifier.padding(bottom = AppTheme.spacing.mdSpacing)
+            modifier = Modifier.padding(bottom = AppTheme.spacing.xsmSpacing)
+        )
+        Text(
+            text = errorMessage ?: "",
+            color = AppTheme.colors.primary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .padding(bottom = AppTheme.spacing.smSpacing)
+                .padding(horizontal = AppTheme.spacing.smSpacing)
         )
 
         ReadingAppButton(

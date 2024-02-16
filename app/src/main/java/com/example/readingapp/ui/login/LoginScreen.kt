@@ -1,6 +1,7 @@
 package com.example.readingapp.ui.login
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +46,7 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
+            .background(color = AppTheme.colors.background)
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTapGestures(onTap = {
@@ -73,7 +75,8 @@ fun LoginScreen(
             keyboardController = keyboardController,
             submitText = if (uiState.value.loginScreenState == LoginScreenState.LOGIN) R.string.login else R.string.register,
             submitEnabled = uiState.value.isEmailValid && uiState.value.isPasswordValid && loadingState.value != LoadingState.LOADING,
-            onSubmitClick = viewModel::onLoginClick
+            onSubmitClick = viewModel::onSubmitClick,
+            errorMessage = uiState.value.errorMessage
         )
         SwitchScreenSection(screenState = uiState.value.loginScreenState, onSwitchClick = viewModel::onSwitchScreens)
     }

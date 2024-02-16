@@ -17,7 +17,7 @@ private val LightColorScheme = lightColorScheme(
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.Black,
-    onBackground = Color.White,
+    onBackground = Color.DarkGray,
     onSurface = Color.White
 )
 

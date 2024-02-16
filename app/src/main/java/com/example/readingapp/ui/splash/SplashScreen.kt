@@ -1,5 +1,6 @@
 package com.example.readingapp.ui.splash
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +15,7 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
+import com.example.readingapp.ui.theme.AppTheme
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -30,7 +32,7 @@ fun SplashScreen(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().background(color = AppTheme.colors.background)
     ) {
         SplashLottie()
     }

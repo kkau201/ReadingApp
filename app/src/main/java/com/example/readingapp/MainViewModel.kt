@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.NavigationEvent
+import com.example.readingapp.ui.components.DialogState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -22,6 +23,7 @@ fun mainActivity() = LocalContext.current as MainActivity
 class MainViewModel @Inject constructor() : ViewModel(), DefaultLifecycleObserver {
     val navigationFlow: Flow<NavigationEvent?> = MutableSharedFlow()
     val loadingFlow: MutableStateFlow<LoadingState> = MutableStateFlow(LoadingState.IDLE)
+    val dialogFlow: MutableStateFlow<DialogState?> = MutableStateFlow(null)
 
     fun navigate(navigationEvent: NavigationEvent) {
         viewModelScope.launch {
@@ -30,4 +32,7 @@ class MainViewModel @Inject constructor() : ViewModel(), DefaultLifecycleObserve
     }
 
     fun updateLoadingState(state: LoadingState) = loadingFlow.update { state }
+
+    fun showDialog(state: DialogState) = dialogFlow.update { state }
+    fun dismissDialog() = dialogFlow.update { null }
 }

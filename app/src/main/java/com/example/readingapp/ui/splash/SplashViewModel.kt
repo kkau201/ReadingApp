@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.nav.NavigateTo
+import com.example.readingapp.ui.destinations.HomeScreenDestination
 import com.example.readingapp.ui.destinations.LoginScreenDestination
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -18,8 +20,13 @@ class SplashViewModel @Inject constructor() : BaseViewModel() {
         viewModelScope.launch {
             // Show splash screen for 5 seconds
             delay(5000)
-            Log.d("Home", "Navigate to login screen")
-            navigate(NavigateTo(to = LoginScreenDestination, popCurrent = true))
+            if(FirebaseAuth.getInstance().currentUser?.email.isNullOrEmpty()) {
+                Log.d("SplashViewModel", "Navigate to login screen")
+                navigate(NavigateTo(to = LoginScreenDestination, popCurrent = true))
+            } else {
+                Log.d("SplashViewModel", "Navigate to home screen")
+                navigate(NavigateTo(to = HomeScreenDestination, popCurrent = true))
+            }
         }
     }
 }
