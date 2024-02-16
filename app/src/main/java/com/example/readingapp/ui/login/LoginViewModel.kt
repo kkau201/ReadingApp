@@ -1,6 +1,7 @@
 package com.example.readingapp.ui.login
 
 import com.example.readingapp.common.BaseViewModel
+import com.example.readingapp.common.LoadingState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,9 +35,11 @@ class LoginViewModel @Inject constructor() : BaseViewModel() {
 
     fun onLoginClick() {
         /* TODO */
+        updateLoadingState(LoadingState.LOADING)
     }
 
     fun onRegisterClick() {
         /* TODO */
+        updateLoadingState(LoadingState.LOADING)
     }
 }

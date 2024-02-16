@@ -6,8 +6,7 @@ data class LoginUiState(
     val password: String = "",
     val isPasswordValid: Boolean = false,
     val passwordVisibility: Boolean = false,
-    val loginScreenState: LoginScreenState = LoginScreenState.LOGIN,
-    val loading: Boolean = false
+    val loginScreenState: LoginScreenState = LoginScreenState.LOGIN
 )
 
 enum class LoginScreenState {
@@ -15,7 +14,7 @@ enum class LoginScreenState {
 
     companion object {
         fun switch(state: LoginScreenState): LoginScreenState {
-            return when(state) {
+            return when (state) {
                 LOGIN -> SIGN_UP
                 SIGN_UP -> LOGIN
             }

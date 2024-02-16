@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
+import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.ui.components.InputForm
 import com.example.readingapp.ui.components.Title
@@ -37,6 +38,7 @@ fun LoginScreen(
 ) {
     ViewModelBinding(viewModel = viewModel, navigator = navigator)
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val loadingState = viewModel.getLoadingState().collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Column(
@@ -61,7 +63,7 @@ fun LoginScreen(
             modifier = Modifier.padding(top = AppTheme.spacing.xlgSpacing)
         )
         InputForm(
-            loading = uiState.value.loading,
+            loading = loadingState.value,
             email = uiState.value.email,
             onEmailChange = viewModel::onEmailChange,
             password = uiState.value.password,
@@ -70,7 +72,7 @@ fun LoginScreen(
             updatePasswordVisibility = viewModel::updatePasswordVisibility,
             keyboardController = keyboardController,
             submitText = if (uiState.value.loginScreenState == LoginScreenState.LOGIN) R.string.login else R.string.register,
-            submitEnabled = uiState.value.isEmailValid && uiState.value.isPasswordValid,
+            submitEnabled = uiState.value.isEmailValid && uiState.value.isPasswordValid && loadingState.value != LoadingState.LOADING,
             onSubmitClick = viewModel::onLoginClick
         )
         SwitchScreenSection(screenState = uiState.value.loginScreenState, onSwitchClick = viewModel::onSwitchScreens)

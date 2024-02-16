@@ -25,4 +25,10 @@ abstract class BaseViewModel() : ViewModel() {
     fun navigateBack() {
         mainViewModel.navigate(NavigateBack)
     }
+
+    fun getLoadingState() = mainViewModel.loadingFlow
+
+    fun updateLoadingState(state: LoadingState) {
+        mainViewModel.updateLoadingState(state)
+    }
 }

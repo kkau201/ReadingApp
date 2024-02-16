@@ -16,10 +16,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import com.example.readingapp.R
+import com.example.readingapp.common.LoadingState
 
 @Composable
 fun EmailInput(
-    loading: Boolean,
+    loading: LoadingState,
     email: String,
     onEmailChange: (String) -> Unit,
     textFieldColors: TextFieldColors,
@@ -35,7 +36,7 @@ fun EmailInput(
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         singleLine = true,
-        enabled = !loading,
+        enabled = loading == LoadingState.IDLE,
         modifier = modifier
     )
 }
@@ -43,7 +44,7 @@ fun EmailInput(
 
 @Composable
 fun PasswordInput(
-    loading: Boolean,
+    loading: LoadingState,
     password: String,
     onPasswordChange: (String) -> Unit,
     passwordVisible: Boolean,
@@ -71,7 +72,7 @@ fun PasswordInput(
                 )
             }
         },
-        enabled = !loading,
+        enabled = loading == LoadingState.IDLE,
         modifier = modifier
     )
 }

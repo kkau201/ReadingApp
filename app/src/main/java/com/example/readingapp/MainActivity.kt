@@ -7,9 +7,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.ReadingAppNavHost
+import com.example.readingapp.ui.components.LoadingLottie
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -27,4 +31,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainContent(mainViewModel: MainViewModel = hiltViewModel(mainActivity())) {
     ReadingAppNavHost()
+
+    val loadingState by mainViewModel.loadingFlow.collectAsStateWithLifecycle()
+    if (loadingState == LoadingState.LOADING) LoadingLottie()
 }

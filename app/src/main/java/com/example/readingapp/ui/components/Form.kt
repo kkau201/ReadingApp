@@ -19,12 +19,13 @@ import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import com.example.readingapp.common.LoadingState
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.utils.keyboardAsState
 
 @Composable
 fun InputForm(
-    loading: Boolean,
+    loading: LoadingState,
     email: String,
     onEmailChange: (String) -> Unit,
     password: String,
