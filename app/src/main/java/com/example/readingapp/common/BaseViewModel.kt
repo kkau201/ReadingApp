@@ -2,6 +2,7 @@ package com.example.readingapp.common
 
 import androidx.lifecycle.ViewModel
 import com.example.readingapp.MainViewModel
+import com.example.readingapp.model.MUser
 import com.example.readingapp.nav.NavigateBack
 import com.example.readingapp.nav.NavigationEvent
 import com.example.readingapp.ui.components.DialogState
@@ -40,4 +41,7 @@ abstract class BaseViewModel() : ViewModel() {
     fun dismissDialog() {
         mainViewModel.dismissDialog()
     }
+
+    fun getUser() = mainViewModel.userFlow
+    fun updateUser(user: MUser) = mainViewModel.updateUser(user)
 }

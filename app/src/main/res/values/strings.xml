@@ -14,4 +14,6 @@
     <string name="cont_desc_book_logo">Book logo</string>
     <string name="cont_desc_hide_password">Hide password</string>
     <string name="cont_desc_show_password">Show password</string>
+    <string name="cont_desc_add_a_book">Add a book</string>
+    <string name="cont_desc_profile_image">Profile image</string>
 </resources>
