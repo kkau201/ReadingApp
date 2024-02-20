@@ -45,7 +45,6 @@ fun ReadingAppButton(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            val contentColor = buttonColors.contentColor(enabled).value
             Text(
                 text = text,
                 style = AppTheme.typography.bodyMedium,
