@@ -49,6 +49,6 @@ class HomeViewModel @Inject constructor() : BaseViewModel(), DefaultLifecycleObs
     }
 
     fun onProfileClick() {
-        //TODO
+        navigate(NavigateTo(UserScreenDestination))
     }
 }
