@@ -9,6 +9,7 @@ import com.example.readingapp.mock.generateMockData
 import com.example.readingapp.model.MBook
 import com.example.readingapp.model.toModel
 import com.example.readingapp.nav.NavigateTo
+import com.example.readingapp.ui.destinations.SearchScreenDestination
 import com.example.readingapp.ui.destinations.UserScreenDestination
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -60,6 +61,10 @@ class HomeViewModel @Inject constructor() : BaseViewModel(), DefaultLifecycleObs
 
     fun onProfileClick() {
         navigate(NavigateTo(UserScreenDestination))
+    }
+
+    fun onFabClick() {
+        navigate(NavigateTo(SearchScreenDestination))
     }
 
     fun onBookClick(book: MBook) {

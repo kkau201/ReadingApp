@@ -45,7 +45,7 @@ fun HomeScreen(
     Scaffold(
         backgroundColor = AppTheme.colors.background,
         modifier = Modifier.fillMaxSize(),
-        floatingActionButton = { ReadingAppFab { } },
+        floatingActionButton = { ReadingAppFab { viewModel.onFabClick() } },
         topBar = {
             ReadingAppBar(
                 title = stringResource(id = R.string.app_name),

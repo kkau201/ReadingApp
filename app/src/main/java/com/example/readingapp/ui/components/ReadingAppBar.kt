@@ -8,6 +8,11 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,5 +61,28 @@ fun ReadingAppBar(
                 }
             }
         },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReadingAppBarNav(
+    backgroundColor: Color = Color.Transparent,
+    title: String? = null,
+    navIcon: ImageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+    navIconTint: Color = Color.White,
+    onNavIconClick: () -> Unit = {}
+) {
+    CenterAlignedTopAppBar(
+        modifier = Modifier.padding(vertical = AppTheme.spacing.smSpacing, horizontal = AppTheme.spacing.xsmSpacing),
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
+        title = {
+            title?.let { Text(text = title, style = AppTheme.typography.bodyLarge, color = navIconTint) }
+        },
+        navigationIcon = {
+            IconButton(onClick = onNavIconClick) {
+                Icon(imageVector = navIcon, contentDescription = null, tint = navIconTint)
+            }
+        }
     )
 }
