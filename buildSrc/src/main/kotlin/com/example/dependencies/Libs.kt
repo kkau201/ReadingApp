@@ -24,6 +24,7 @@ object Libs {
     object Destinations {
         private const val version = "1.10.0"
         const val Core = "io.github.raamcosta.compose-destinations:core:$version"
+        const val AnimationsCore = "io.github.raamcosta.compose-destinations:animations-core:$version"
         const val Ksp = "io.github.raamcosta.compose-destinations:ksp:$version"
     }
 

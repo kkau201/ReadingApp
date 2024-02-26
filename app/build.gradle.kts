@@ -82,7 +82,7 @@ dependencies {
     implementation(Libs.Room.Ktx)
 
     //Compose Destination
-    implementation(Libs.Destinations.Core)
+    implementation(Libs.Destinations.AnimationsCore)
     ksp(Libs.Destinations.Ksp)
 
     //lifecycle
