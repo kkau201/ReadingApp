@@ -20,7 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.readingapp.R
 import com.example.readingapp.model.MBook
-import com.example.readingapp.ui.components.BookItem
+import com.example.readingapp.ui.components.RowBookItem
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.allColors
 
@@ -60,7 +60,7 @@ fun HomeReadingRow(
             ) {
                 item { Spacer(modifier = Modifier.width(AppTheme.spacing.lgSpacing)) }
                 items(books) { book ->
-                    BookItem(
+                    RowBookItem(
                         title = book.title,
                         authors = book.authors,
                         imgUrl = book.imgUrl,

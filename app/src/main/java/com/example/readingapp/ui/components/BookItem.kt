@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
@@ -24,8 +26,9 @@ import androidx.compose.material.icons.rounded.StarRate
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,7 +48,7 @@ enum class BookProgress(val text: String) {
 }
 
 @Composable
-fun BookItem(
+fun RowBookItem(
     modifier: Modifier = Modifier,
     context: Context = mainActivity(),
     title: String? = null,
@@ -55,67 +58,134 @@ fun BookItem(
     progress: BookProgress = BookProgress.NOT_STARTED,
     onClick: () -> Unit = {}
 ) {
-    val displayMetrics = context.resources.displayMetrics
-    val screenWidth = displayMetrics.widthPixels / displayMetrics.density
-
-        Card(
-            backgroundColor = AppTheme.colors.surface,
-            shape = RoundedCornerShape(AppTheme.spacing.mdSpacing),
-            modifier = modifier
-                .padding(vertical = AppTheme.spacing.smSpacing)
-                .height(280.dp)
-                .width(200.dp)
-                .clickable { onClick() }
+    Card(
+        backgroundColor = Color.Transparent,
+        elevation = 0.dp,
+//        shape = RoundedCornerShape(AppTheme.spacing.mdSpacing),
+        modifier = modifier
+            .padding(vertical = AppTheme.spacing.smSpacing)
+            .height(300.dp)
+            .width(150.dp)
+            .clickable { onClick() }
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+//                .padding(AppTheme.spacing.mdSpacing)
         ) {
-            Column(
+            Box(
                 modifier = Modifier
+                    .height(210.dp)
                     .fillMaxWidth()
-                    .width(screenWidth.dp - AppTheme.spacing.smSpacing * 2)
-                    .padding(AppTheme.spacing.mdSpacing)
             ) {
-                Box {
-                    AsyncImage(
-                        model = ImageRequest.Builder(context).data(imgUrl).build(),
-                        contentScale = ContentScale.Crop,
-                        contentDescription = stringResource(R.string.cont_desc_book_image),
-                        modifier = Modifier
-                            .height(150.dp)
-                            .fillMaxWidth()
-                            .align(Alignment.Center)
-                            .clip(RoundedCornerShape(AppTheme.spacing.xsmSpacing))
-                    )
-                    Icon(
-                        imageVector = Icons.Rounded.FavoriteBorder,
-                        contentDescription = stringResource(R.string.cont_desc_favourite_icon),
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(AppTheme.spacing.xxsmSpacing)
-                    )
-                }
+                AsyncImage(
+                    model = ImageRequest.Builder(context).data(imgUrl).build(),
+                    contentScale = ContentScale.Crop,
+                    contentDescription = stringResource(R.string.cont_desc_book_image),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.Center)
+//                        .clip(RoundedCornerShape(AppTheme.spacing.xsmSpacing))
+                )
+                Icon(
+                    imageVector = Icons.Rounded.FavoriteBorder,
+                    contentDescription = stringResource(R.string.cont_desc_favourite_icon),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(AppTheme.spacing.xxsmSpacing)
+                )
+                BookProgressLabel(progress, Modifier.align(Alignment.BottomEnd))
+            }
+            title?.let {
+                Text(
+                    text = it,
+                    style = AppTheme.typography.titleSmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = AppTheme.spacing.smSpacing)
+                )
+            }
+            authors?.let {
+                Text(
+                    text = it,
+                    style = AppTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = AppTheme.spacing.xxsmSpacing)
+                )
+            }
+            BookRating(rating)
+        }
+    }
+}
+
+@Composable
+fun ColumnBookItem(
+    modifier: Modifier = Modifier,
+    context: Context = mainActivity(),
+    title: String? = null,
+    authors: String? = null,
+    imgUrl: String? = null,
+    date: String? = "24/02/2024",
+    genres: List<String>? = listOf("Computers"),
+    onClick: () -> Unit = {}
+) {
+    Card(
+        elevation = 0.dp,
+//        shape = RoundedCornerShape(AppTheme.spacing.mdSpacing),
+        modifier = modifier
+            .padding(vertical = AppTheme.spacing.smSpacing)
+            .wrapContentHeight()
+            .fillMaxWidth()
+            .clickable { onClick() }
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            AsyncImage(
+                model = ImageRequest.Builder(context).data(imgUrl).build(),
+                contentScale = ContentScale.Crop,
+                contentDescription = stringResource(R.string.cont_desc_book_image),
+                modifier = Modifier
+                    .width(120.dp)
+//                    .clip(RoundedCornerShape(AppTheme.spacing.xsmSpacing))
+            )
+            Column(modifier = Modifier.padding(start = AppTheme.spacing.mdSpacing)) {
                 title?.let {
                     Text(
                         text = it,
-                        style = AppTheme.typography.titleSmall,
+                        style = AppTheme.typography.titleMedium,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = AppTheme.spacing.smSpacing)
+                        modifier = Modifier.padding(bottom = AppTheme.spacing.xxsmSpacing)
                     )
                 }
                 authors?.let {
                     Text(
                         text = it,
-                        style = AppTheme.typography.bodySmall,
+                        style = AppTheme.typography.bodyMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = AppTheme.spacing.xxsmSpacing)
+                        modifier = Modifier.padding(bottom = AppTheme.spacing.xxsmSpacing)
                     )
                 }
-                BookRating(rating)
-            }
-            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.End) {
-                BookProgressLabel(progress)
+                date?.let {
+                    Text(
+                        text = it,
+                        style = AppTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(bottom = AppTheme.spacing.xxsmSpacing)
+                    )
+                }
+                genres?.let {
+                    Text(
+                        text = genres.first(),
+                        style = AppTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
+    }
 }
 
 @Composable
@@ -136,32 +206,32 @@ fun BookRating(
             Icon(
                 imageVector = Icons.Rounded.StarRate,
                 contentDescription = stringResource(R.string.cont_desc_filled_star_icon),
-                modifier = Modifier.size(15.dp)
+                modifier = Modifier.size(20.dp)
             )
         }
         if (halfStar) {
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.StarHalf,
                 contentDescription = stringResource(R.string.cont_desc_half_filled_star_icon),
-                modifier = Modifier.size(15.dp)
+                modifier = Modifier.size(20.dp)
             )
         }
         repeat(unfilledStars) {
             Icon(
                 imageVector = Icons.Rounded.StarBorder,
                 contentDescription = stringResource(R.string.cont_desc_unfilled_star_icon),
-                modifier = Modifier.size(15.dp)
+                modifier = Modifier.size(20.dp)
             )
         }
     }
 }
 
 @Composable
-fun BookProgressLabel(progress: BookProgress) {
+fun BookProgressLabel(progress: BookProgress, modifier: Modifier = Modifier) {
     Text(
         text = progress.text,
         style = AppTheme.typography.labelSmall,
-        modifier = Modifier
+        modifier = modifier
             .padding(top = AppTheme.spacing.xsmSpacing)
             .background(
                 color = AppTheme.colors.tertiary,
@@ -173,6 +243,14 @@ fun BookProgressLabel(progress: BookProgress) {
 
 @Preview
 @Composable
-fun BookItemPreview() {
-    BookItem(title = "Book title", authors = "Author Name", rating = 3.5)
+fun RowBookItemPreview() {
+    val context = LocalContext.current
+    RowBookItem(context = context, title = "Book title", authors = "Author Name", rating = 3.5)
+}
+
+@Preview
+@Composable
+fun ColumnBookItemPreview() {
+    val context = LocalContext.current
+    ColumnBookItem(context = context, title = "Book title", authors = "Author Name")
 }
