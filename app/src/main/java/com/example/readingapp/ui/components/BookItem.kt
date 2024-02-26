@@ -61,7 +61,6 @@ fun RowBookItem(
     Card(
         backgroundColor = Color.Transparent,
         elevation = 0.dp,
-//        shape = RoundedCornerShape(AppTheme.spacing.mdSpacing),
         modifier = modifier
             .padding(vertical = AppTheme.spacing.smSpacing)
             .height(300.dp)
@@ -70,7 +69,6 @@ fun RowBookItem(
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
-//                .padding(AppTheme.spacing.mdSpacing)
         ) {
             Box(
                 modifier = Modifier
@@ -84,7 +82,6 @@ fun RowBookItem(
                     modifier = Modifier
                         .fillMaxSize()
                         .align(Alignment.Center)
-//                        .clip(RoundedCornerShape(AppTheme.spacing.xsmSpacing))
                 )
                 Icon(
                     imageVector = Icons.Rounded.FavoriteBorder,
@@ -131,7 +128,6 @@ fun ColumnBookItem(
 ) {
     Card(
         elevation = 0.dp,
-//        shape = RoundedCornerShape(AppTheme.spacing.mdSpacing),
         modifier = modifier
             .padding(vertical = AppTheme.spacing.smSpacing)
             .wrapContentHeight()
@@ -145,7 +141,6 @@ fun ColumnBookItem(
                 contentDescription = stringResource(R.string.cont_desc_book_image),
                 modifier = Modifier
                     .width(120.dp)
-//                    .clip(RoundedCornerShape(AppTheme.spacing.xsmSpacing))
             )
             Column(modifier = Modifier.padding(start = AppTheme.spacing.mdSpacing)) {
                 title?.let {
