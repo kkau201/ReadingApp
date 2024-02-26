@@ -5,6 +5,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.LoadingState
+import com.example.readingapp.mock.generateMockData
 import com.example.readingapp.model.toModel
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.ui.destinations.UserScreenDestination
@@ -30,6 +31,8 @@ class HomeViewModel @Inject constructor() : BaseViewModel(), DefaultLifecycleObs
         get() = _uiState
 
     fun onLoad() {
+        val mockBooks = generateMockData()
+
         viewModelScope.launch(Dispatchers.IO) {
             updateLoadingState(LoadingState.LOADING)
             val user = FirebaseAuth.getInstance().currentUser
@@ -40,7 +43,13 @@ class HomeViewModel @Inject constructor() : BaseViewModel(), DefaultLifecycleObs
                         Log.d(TAG, "Found user by id: $document")
                         val mUser = document.toModel()
                         updateUser(mUser)
-                        _uiState.update { HomeUiState(displayName = mUser.displayName) }
+                        _uiState.update {
+                            HomeUiState(
+                                displayName = mUser.displayName,
+                                readingActivity = mockBooks,
+                                readingList = mockBooks
+                            )
+                        }
                         updateLoadingState(LoadingState.IDLE)
                     }
                 }

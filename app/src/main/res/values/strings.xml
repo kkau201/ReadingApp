@@ -24,4 +24,5 @@
     <string name="cont_desc_unfilled_star_icon">Unfilled star icon</string>
     <string name="cont_desc_book_image">Book Image</string>
     <string name="cont_desc_favourite_icon">Favourite Icon</string>
+    <string name="hello">"Hello, "</string>
 </resources>

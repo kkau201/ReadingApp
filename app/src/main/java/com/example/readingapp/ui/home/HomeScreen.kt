@@ -16,6 +16,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -24,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
+import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.ReadingAppBar
 import com.example.readingapp.ui.components.ReadingAppFab
 import com.example.readingapp.ui.theme.AppTheme
@@ -55,7 +57,9 @@ fun HomeScreen(
         uiState.value?.let { loadedState ->
             HomeContent(
                 padding = padding,
-                displayName = loadedState.displayName
+                displayName = loadedState.displayName,
+                readingActivity = loadedState.readingActivity,
+                readingList = loadedState.readingList
             )
         }
     }
@@ -77,18 +81,20 @@ fun HomeScreen(
 @Composable
 fun HomeContent(
     padding: PaddingValues,
-    displayName: String?
+    displayName: String?,
+    readingActivity: List<MBook>,
+    readingList: List<MBook>
 ) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
             .fillMaxSize()
             .padding(padding)
-            .padding(AppTheme.spacing.lgSpacing)
     ) {
         HomeUserIntro(displayName = displayName, modifier = Modifier.padding(bottom = AppTheme.spacing.mdSpacing))
-        HomeReadingRow(title = R.string.your_reading_activity, books = null)
+        HomeReadingRow(title = R.string.your_reading_activity, books = readingActivity)
         Spacer(modifier = Modifier.height(AppTheme.spacing.lgSpacing))
-        HomeReadingRow(title = R.string.reading_list, books = null)
+        HomeReadingRow(title = R.string.reading_list, books = readingList)
+        Spacer(modifier = Modifier.height(100.dp))
     }
 }

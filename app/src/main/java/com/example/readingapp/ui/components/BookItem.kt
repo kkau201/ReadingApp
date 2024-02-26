@@ -1,5 +1,6 @@
 package com.example.readingapp.ui.components
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,77 +46,76 @@ enum class BookProgress(val text: String) {
 
 @Composable
 fun BookItem(
+    modifier: Modifier = Modifier,
+    context: Context = mainActivity(),
     title: String? = null,
     authors: String? = null,
+    imgUrl: String? = null,
     rating: Double = 0.0,
     progress: BookProgress = BookProgress.NOT_STARTED,
     onClick: () -> Unit = {}
 ) {
-    val displayMetrics = LocalContext.current.resources.displayMetrics
+    val displayMetrics = context.resources.displayMetrics
     val screenWidth = displayMetrics.widthPixels / displayMetrics.density
 
-    val context = mainActivity()
-    val model = ImageRequest.Builder(context)
-        //TODO replace placeholder img url with book url from API
-        .data("http://books.google.com/books/content?id=ex-tDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api")
-        .build()
-
-    Card(
-        backgroundColor = AppTheme.colors.surface,
-        shape = RoundedCornerShape(AppTheme.spacing.mdSpacing),
-        modifier = Modifier
-            .padding(vertical = AppTheme.spacing.smSpacing)
-            .height(280.dp)
-            .width(200.dp)
-            .clickable { onClick() }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .width(screenWidth.dp - AppTheme.spacing.smSpacing * 2)
-                .padding(AppTheme.spacing.mdSpacing)
+        Card(
+            backgroundColor = AppTheme.colors.surface,
+            shape = RoundedCornerShape(AppTheme.spacing.mdSpacing),
+            modifier = modifier
+                .padding(vertical = AppTheme.spacing.smSpacing)
+                .height(280.dp)
+                .width(200.dp)
+                .clickable { onClick() }
         ) {
-            Box {
-                AsyncImage(
-                    model = model,
-                    contentScale = ContentScale.Crop,
-                    contentDescription = stringResource(R.string.cont_desc_book_image),
-                    modifier = Modifier
-                        .height(150.dp)
-                        .fillMaxWidth()
-                        .align(Alignment.Center)
-                        .clip(RoundedCornerShape(AppTheme.spacing.xsmSpacing))
-                )
-                Icon(
-                    imageVector = Icons.Rounded.FavoriteBorder,
-                    contentDescription = stringResource(R.string.cont_desc_favourite_icon),
-                    modifier = Modifier.align(Alignment.TopEnd).padding(AppTheme.spacing.xxsmSpacing)
-                )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .width(screenWidth.dp - AppTheme.spacing.smSpacing * 2)
+                    .padding(AppTheme.spacing.mdSpacing)
+            ) {
+                Box {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context).data(imgUrl).build(),
+                        contentScale = ContentScale.Crop,
+                        contentDescription = stringResource(R.string.cont_desc_book_image),
+                        modifier = Modifier
+                            .height(150.dp)
+                            .fillMaxWidth()
+                            .align(Alignment.Center)
+                            .clip(RoundedCornerShape(AppTheme.spacing.xsmSpacing))
+                    )
+                    Icon(
+                        imageVector = Icons.Rounded.FavoriteBorder,
+                        contentDescription = stringResource(R.string.cont_desc_favourite_icon),
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(AppTheme.spacing.xxsmSpacing)
+                    )
+                }
+                title?.let {
+                    Text(
+                        text = it,
+                        style = AppTheme.typography.titleSmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = AppTheme.spacing.smSpacing)
+                    )
+                }
+                authors?.let {
+                    Text(
+                        text = it,
+                        style = AppTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = AppTheme.spacing.xxsmSpacing)
+                    )
+                }
+                BookRating(rating)
             }
-            title?.let {
-                Text(
-                    text = it,
-                    style = AppTheme.typography.titleSmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = AppTheme.spacing.smSpacing)
-                )
+            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.End) {
+                BookProgressLabel(progress)
             }
-            authors?.let {
-                Text(
-                    text = it,
-                    style = AppTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = AppTheme.spacing.xxsmSpacing)
-                )
-            }
-            BookRating(rating)
         }
-        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.End) {
-            BookProgressLabel(progress)
-        }
-    }
 }
 
 @Composable
