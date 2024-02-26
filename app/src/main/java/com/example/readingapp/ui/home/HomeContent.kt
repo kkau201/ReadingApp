@@ -1,11 +1,13 @@
 package com.example.readingapp.ui.home
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -34,11 +36,12 @@ fun HomeUserIntro(displayName: String?, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun HomeReadingActivity(
+fun HomeReadingRow(
+    @StringRes title: Int,
     books: List<MBook>?
 ) {
     Column {
-        Text(text = "Your reading activity")
+        Text(text = stringResource(title), style = AppTheme.typography.titleLarge)
         books?.let {
             LazyRow {
                 items(books) {

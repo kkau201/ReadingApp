@@ -1,8 +1,9 @@
 package com.example.readingapp.ui.components
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,30 +23,50 @@ import androidx.compose.material.icons.rounded.StarRate
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.readingapp.R
+import com.example.readingapp.mainActivity
 import com.example.readingapp.ui.theme.AppTheme
 import kotlin.math.ceil
 import kotlin.math.floor
+
+enum class BookProgress(val text: String) {
+    NOT_STARTED("Not started"),
+    IN_PROGRESS("In progress"),
+    FINISHED("Finished")
+}
 
 @Composable
 fun BookItem(
     title: String? = null,
     authors: String? = null,
     rating: Double = 0.0,
+    progress: BookProgress = BookProgress.NOT_STARTED,
     onClick: () -> Unit = {}
 ) {
     val displayMetrics = LocalContext.current.resources.displayMetrics
     val screenWidth = displayMetrics.widthPixels / displayMetrics.density
 
+    val context = mainActivity()
+    val model = ImageRequest.Builder(context)
+        //TODO replace placeholder img url with book url from API
+        .data("http://books.google.com/books/content?id=ex-tDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api")
+        .build()
+
     Card(
         backgroundColor = AppTheme.colors.surface,
         shape = RoundedCornerShape(AppTheme.spacing.mdSpacing),
         modifier = Modifier
-            .padding(AppTheme.spacing.smSpacing)
-            .height(250.dp)
+            .padding(vertical = AppTheme.spacing.smSpacing)
+            .height(280.dp)
             .width(200.dp)
             .clickable { onClick() }
     ) {
@@ -55,21 +76,29 @@ fun BookItem(
                 .width(screenWidth.dp - AppTheme.spacing.smSpacing * 2)
                 .padding(AppTheme.spacing.mdSpacing)
         ) {
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Image(
-                    painter = rememberAsyncImagePainter(""),
-                    contentDescription = "Book Image",
+            Box {
+                AsyncImage(
+                    model = model,
+                    contentScale = ContentScale.Crop,
+                    contentDescription = stringResource(R.string.cont_desc_book_image),
                     modifier = Modifier
-                        .height(120.dp)
-                        .width(120.dp)
-                        .padding(AppTheme.spacing.xxsmSpacing)
+                        .height(150.dp)
+                        .fillMaxWidth()
+                        .align(Alignment.Center)
+                        .clip(RoundedCornerShape(AppTheme.spacing.xsmSpacing))
                 )
-                Icon(Icons.Rounded.FavoriteBorder, contentDescription = "Favourite Icon")
+                Icon(
+                    imageVector = Icons.Rounded.FavoriteBorder,
+                    contentDescription = stringResource(R.string.cont_desc_favourite_icon),
+                    modifier = Modifier.align(Alignment.TopEnd).padding(AppTheme.spacing.xxsmSpacing)
+                )
             }
             title?.let {
                 Text(
                     text = it,
                     style = AppTheme.typography.titleSmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = AppTheme.spacing.smSpacing)
                 )
             }
@@ -77,10 +106,15 @@ fun BookItem(
                 Text(
                     text = it,
                     style = AppTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = AppTheme.spacing.xxsmSpacing)
                 )
             }
             BookRating(rating)
+        }
+        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.End) {
+            BookProgressLabel(progress)
         }
     }
 }
@@ -102,29 +136,44 @@ fun BookRating(
         repeat(filledStars) {
             Icon(
                 imageVector = Icons.Rounded.StarRate,
-                contentDescription = "Filled star icon",
+                contentDescription = stringResource(R.string.cont_desc_filled_star_icon),
                 modifier = Modifier.size(15.dp)
             )
         }
         if (halfStar) {
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.StarHalf,
-                contentDescription = "Filled star icon",
+                contentDescription = stringResource(R.string.cont_desc_half_filled_star_icon),
                 modifier = Modifier.size(15.dp)
             )
         }
         repeat(unfilledStars) {
             Icon(
                 imageVector = Icons.Rounded.StarBorder,
-                contentDescription = "Unfilled star icon",
+                contentDescription = stringResource(R.string.cont_desc_unfilled_star_icon),
                 modifier = Modifier.size(15.dp)
             )
         }
     }
 }
 
+@Composable
+fun BookProgressLabel(progress: BookProgress) {
+    Text(
+        text = progress.text,
+        style = AppTheme.typography.labelSmall,
+        modifier = Modifier
+            .padding(top = AppTheme.spacing.xsmSpacing)
+            .background(
+                color = AppTheme.colors.tertiary,
+                shape = RoundedCornerShape(topStart = AppTheme.spacing.lgSpacing)
+            )
+            .padding(vertical = AppTheme.spacing.xxsmSpacing, horizontal = AppTheme.spacing.smSpacing)
+    )
+}
+
 @Preview
 @Composable
 fun BookItemPreview() {
-    BookItem(title = "The Hunger Games", authors = "Suzanne Collins", rating = 3.5)
+    BookItem(title = "Book title", authors = "Author Name", rating = 3.5)
 }

@@ -2,8 +2,12 @@ package com.example.readingapp.ui.home
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -77,11 +81,14 @@ fun HomeContent(
 ) {
     Column(
         modifier = Modifier
+            .verticalScroll(rememberScrollState())
             .fillMaxSize()
             .padding(padding)
             .padding(AppTheme.spacing.lgSpacing)
     ) {
         HomeUserIntro(displayName = displayName, modifier = Modifier.padding(bottom = AppTheme.spacing.mdSpacing))
-        HomeReadingActivity(null)
+        HomeReadingRow(title = R.string.your_reading_activity, books = null)
+        Spacer(modifier = Modifier.height(AppTheme.spacing.lgSpacing))
+        HomeReadingRow(title = R.string.reading_list, books = null)
     }
 }

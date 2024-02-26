@@ -11,9 +11,17 @@
     <string name="password">Password</string>
     <string name="already_user">Already have an account?</string>
 
+    <string name="your_reading_activity">Your reading activity</string>
+    <string name="reading_list">Reading List</string>
+
     <string name="cont_desc_book_logo">Book logo</string>
     <string name="cont_desc_hide_password">Hide password</string>
     <string name="cont_desc_show_password">Show password</string>
     <string name="cont_desc_add_a_book">Add a book</string>
     <string name="cont_desc_profile_image">Profile image</string>
+    <string name="cont_desc_filled_star_icon">Filled star icon</string>
+    <string name="cont_desc_half_filled_star_icon">Half filled star icon</string>
+    <string name="cont_desc_unfilled_star_icon">Unfilled star icon</string>
+    <string name="cont_desc_book_image">Book Image</string>
+    <string name="cont_desc_favourite_icon">Favourite Icon</string>
 </resources>
