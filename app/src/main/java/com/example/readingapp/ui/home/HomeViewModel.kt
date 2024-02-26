@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.mock.generateMockData
+import com.example.readingapp.model.MBook
 import com.example.readingapp.model.toModel
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.ui.destinations.UserScreenDestination
@@ -59,5 +60,10 @@ class HomeViewModel @Inject constructor() : BaseViewModel(), DefaultLifecycleObs
 
     fun onProfileClick() {
         navigate(NavigateTo(UserScreenDestination))
+    }
+
+    fun onBookClick(book: MBook) {
+        Log.d("ReadingAppTesting", "Book clicked with title: ${book.title}")
+        // TODO
     }
 }

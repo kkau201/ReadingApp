@@ -46,13 +46,14 @@ fun HomeUserIntro(displayName: String?, modifier: Modifier = Modifier) {
 @Composable
 fun HomeReadingRow(
     @StringRes title: Int,
-    books: List<MBook>?
+    books: List<MBook>,
+    onBookClick: (MBook) -> Unit
 ) {
     val listState = rememberLazyListState()
     val snap = rememberSnapFlingBehavior(lazyListState = listState)
     Column {
         Text(text = stringResource(title), style = AppTheme.typography.titleLarge, modifier = Modifier.padding(start = AppTheme.spacing.lgSpacing))
-        books?.let {
+        if(books.isNotEmpty()){
             LazyRow(
                 state = listState,
                 flingBehavior = snap
@@ -63,6 +64,7 @@ fun HomeReadingRow(
                         title = book.title,
                         authors = book.authors,
                         imgUrl = book.imgUrl,
+                        onClick = { onBookClick(book) },
                         modifier = Modifier.padding(end = AppTheme.spacing.smSpacing)
                     )
                 }

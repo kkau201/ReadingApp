@@ -59,7 +59,8 @@ fun HomeScreen(
                 padding = padding,
                 displayName = loadedState.displayName,
                 readingActivity = loadedState.readingActivity,
-                readingList = loadedState.readingList
+                readingList = loadedState.readingList,
+                onBookClick = viewModel::onBookClick
             )
         }
     }
@@ -83,7 +84,8 @@ fun HomeContent(
     padding: PaddingValues,
     displayName: String?,
     readingActivity: List<MBook>,
-    readingList: List<MBook>
+    readingList: List<MBook>,
+    onBookClick: (MBook) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -92,9 +94,9 @@ fun HomeContent(
             .padding(padding)
     ) {
         HomeUserIntro(displayName = displayName, modifier = Modifier.padding(bottom = AppTheme.spacing.mdSpacing))
-        HomeReadingRow(title = R.string.your_reading_activity, books = readingActivity)
+        HomeReadingRow(title = R.string.your_reading_activity, books = readingActivity, onBookClick = onBookClick)
         Spacer(modifier = Modifier.height(AppTheme.spacing.lgSpacing))
-        HomeReadingRow(title = R.string.reading_list, books = readingList)
+        HomeReadingRow(title = R.string.reading_list, books = readingList, onBookClick = onBookClick)
         Spacer(modifier = Modifier.height(100.dp))
     }
 }
