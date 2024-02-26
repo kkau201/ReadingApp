@@ -1,6 +1,7 @@
 package com.example.readingapp.di
 
 import com.example.readingapp.network.BookApi
+import com.example.readingapp.repo.BookRepo
 import com.example.readingapp.utils.Constants
 import dagger.Module
 import dagger.Provides
@@ -23,5 +24,11 @@ object ReadingAppModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create()
+    }
+
+    @Singleton
+    @Provides
+    fun providesBookRepo(bookApi: BookApi): BookRepo {
+        return BookRepo(bookApi)
     }
 }
