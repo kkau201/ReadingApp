@@ -39,6 +39,7 @@ fun SearchInput(
         value = currentInput,
         onValueChange = onInputChange,
         leadingIcon = { Icon(Icons.Rounded.Search, stringResource(id = R.string.cont_desc_search_icon)) },
+        placeholder = { Text(text = stringResource(R.string.start_searching_here))},
         shape = RoundedCornerShape(AppTheme.spacing.lgSpacing),
         colors = TextFieldDefaults.textFieldColors(
             backgroundColor = Color.White,
@@ -56,13 +57,13 @@ fun SearchInput(
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(AppTheme.spacing.mdSpacing)
+            .padding(horizontal = AppTheme.spacing.mdSpacing, vertical = AppTheme.spacing.smSpacing)
     )
 }
 
 @Composable
 fun SearchResults(
-    results: List<MBook>
+    results: List<MBook>?
 ) {
     Box(
         modifier = Modifier
@@ -71,14 +72,14 @@ fun SearchResults(
             .background(color = AppTheme.colors.onSurface, shape = RoundedCornerShape(AppTheme.spacing.lgSpacing))
             .padding(AppTheme.spacing.mdSpacing)
     ) {
-        if(results.isEmpty()) {
+        if(results.isNullOrEmpty()) {
             Text(text = "No Results", modifier = Modifier.align(Alignment.TopCenter))
         } else {
             LazyColumn {
                 items(results) { book ->
                     ColumnBookItem(
                         title = book.title,
-                        authors = book.authors,
+                        authors = book.authors?.first(), //TODO fix
                         imgUrl = book.imgUrl
                     )
                 }

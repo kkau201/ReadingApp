@@ -92,14 +92,14 @@ fun SearchScreen(
                     .padding(padding)
                     .fillMaxSize()
             ) {
-                Spacer(modifier = Modifier.height(220.dp))
+                Spacer(modifier = Modifier.height(235.dp))
                 SearchInput(
                     currentInput = uiState.searchInput,
                     keyboardController = keyboardController,
                     onInputChange = viewModel::onInputChange,
                     onDoneClick = viewModel::onDoneClick
                 )
-                SearchResults(results = uiState.results)
+                SearchResults(results = uiState.results.data)
             }
         }
     }

@@ -2,7 +2,7 @@ package com.example.readingapp.di
 
 import com.example.readingapp.network.BookApi
 import com.example.readingapp.repo.BookRepo
-import com.example.readingapp.utils.Constants
+import com.example.readingapp.config.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

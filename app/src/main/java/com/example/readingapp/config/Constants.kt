@@ -1,4 +1,4 @@
-package com.example.readingapp.utils
+package com.example.readingapp.config
 
 object Constants {
     // https://www.googleapis.com/books/v1/volumes?q=flutter

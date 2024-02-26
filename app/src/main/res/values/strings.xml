@@ -16,6 +16,7 @@
     <string name="reading_list">Reading List</string>
 
     <string name="search_title">Search books</string>
+    <string name="start_searching_here">Start searching here…</string>
 
     <string name="cont_desc_book_logo">Book logo</string>
     <string name="cont_desc_hide_password">Hide password</string>

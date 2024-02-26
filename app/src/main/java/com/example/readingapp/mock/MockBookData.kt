@@ -19,7 +19,7 @@ fun generateMockData(): List<MBook> {
             MBook(
                 id = index.toString(),
                 title = titles[index],
-                authors = authors[index],
+                authors = listOf(authors[index]),
                 imgUrl = imgUrls[index]
             )
         )

@@ -62,7 +62,7 @@ fun HomeReadingRow(
                 items(books) { book ->
                     RowBookItem(
                         title = book.title,
-                        authors = book.authors,
+                        authors = book.authors?.first(), // TODO fix
                         imgUrl = book.imgUrl,
                         onClick = { onBookClick(book) },
                         modifier = Modifier.padding(end = AppTheme.spacing.smSpacing)
