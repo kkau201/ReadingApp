@@ -29,6 +29,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
+import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.components.ReadingAppBarNav
@@ -99,7 +100,17 @@ fun SearchScreen(
                     onInputChange = viewModel::onInputChange,
                     onDoneClick = viewModel::onDoneClick
                 )
-                SearchResults(results = uiState.results.data)
+                when(val results = uiState.results) {
+                    is SearchResults.Success -> {
+                        viewModel.updateLoadingState(LoadingState.SUCCESS)
+                        SearchResults(results = results.books)
+                    }
+                    is SearchResults.Loading -> viewModel.updateLoadingState(LoadingState.LOADING)
+                    is SearchResults.Error -> {
+                        viewModel.updateLoadingState(LoadingState.FAILED)
+                        viewModel.showErrorDialog(results.exception)
+                    }
+                }
             }
         }
     }

@@ -3,6 +3,7 @@ package com.example.readingapp.ui.splash
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.BaseViewModel
+import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.ui.destinations.HomeScreenDestination
 import com.example.readingapp.ui.destinations.LoginScreenDestination
@@ -13,7 +14,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SplashViewModel @Inject constructor() : BaseViewModel() {
+class SplashViewModel @Inject constructor(
+    dependencyContextWrapper: DependencyContextWrapper
+) : BaseViewModel(dependencyContextWrapper) {
     override val isNavigationDestination: Boolean = true
 
     init {

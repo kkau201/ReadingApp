@@ -1,6 +1,8 @@
 package com.example.readingapp.ui.user
 
+import com.example.readingapp.R
 import com.example.readingapp.common.BaseViewModel
+import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.LoginScreenDestination
@@ -9,20 +11,22 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class UserViewModel @Inject constructor(): BaseViewModel() {
+class UserViewModel @Inject constructor(
+    dependencyContextWrapper: DependencyContextWrapper
+): BaseViewModel(dependencyContextWrapper) {
     override val isNavigationDestination: Boolean = true
 
     fun onLogoutClick() {
         showDialog(
             DialogState(
-                title = "Logout",
-                message = "Are you sure you want to log out?",
-                primaryButtonText = "Yes",
+                title = getString(R.string.logout_title),
+                message = getString(R.string.logout_message),
+                primaryButtonText = getString(R.string.logout_yes),
                 onPrimaryClick = {
                     logout()
                     dismissDialog()
                 },
-                secondaryButtonText = "No",
+                secondaryButtonText = getString(R.string.logout_no),
                 onSecondaryClick = { dismissDialog() }
             )
         )

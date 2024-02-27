@@ -3,6 +3,7 @@ package com.example.readingapp.ui.login
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.BaseViewModel
+import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.model.MUser
 import com.example.readingapp.nav.NavigateTo
@@ -21,7 +22,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor() : BaseViewModel() {
+class LoginViewModel @Inject constructor(
+    dependencyContextWrapper: DependencyContextWrapper
+) : BaseViewModel(dependencyContextWrapper) {
     override val isNavigationDestination: Boolean = true
 
     private val _uiState: MutableStateFlow<LoginUiState> = MutableStateFlow(LoginUiState())

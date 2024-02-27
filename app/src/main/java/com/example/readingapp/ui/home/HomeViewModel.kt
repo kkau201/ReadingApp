@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.BaseViewModel
+import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.mock.generateMockData
 import com.example.readingapp.model.MBook
@@ -25,7 +26,9 @@ import javax.inject.Inject
 const val TAG = "HomeViewModel"
 
 @HiltViewModel
-class HomeViewModel @Inject constructor() : BaseViewModel(), DefaultLifecycleObserver {
+class HomeViewModel @Inject constructor(
+    dependencyContextWrapper: DependencyContextWrapper
+) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
     override val isNavigationDestination: Boolean = true
 
     private val _uiState: MutableStateFlow<HomeUiState?> = MutableStateFlow(null)
