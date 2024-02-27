@@ -2,7 +2,9 @@ package com.example.readingapp.ui.search
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -70,17 +72,20 @@ fun SearchResults(
             .fillMaxWidth()
             .wrapContentHeight()
             .background(color = AppTheme.colors.onSurface, shape = RoundedCornerShape(AppTheme.spacing.lgSpacing))
-            .padding(AppTheme.spacing.mdSpacing)
+            .padding(horizontal = AppTheme.spacing.mdSpacing)
     ) {
         if(results.isNullOrEmpty()) {
             Text(text = "No Results", modifier = Modifier.align(Alignment.TopCenter))
         } else {
             LazyColumn {
+                item { Spacer(modifier = Modifier.height(AppTheme.spacing.mdSpacing)) }
                 items(results) { book ->
                     ColumnBookItem(
                         title = book.title,
-                        authors = book.authors?.first(), //TODO fix
-                        imgUrl = book.imgUrl
+                        authors = book.authors,
+                        imgUrl = book.imgUrl,
+                        date = book.pubDate,
+                        genres = book.genres
                     )
                 }
             }

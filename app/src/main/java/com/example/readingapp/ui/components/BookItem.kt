@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -121,10 +122,10 @@ fun ColumnBookItem(
     modifier: Modifier = Modifier,
     context: Context = mainActivity(),
     title: String? = null,
-    authors: String? = null,
+    authors: List<String>? = null,
     imgUrl: String? = null,
-    date: String? = "24/02/2024",
-    genres: List<String>? = listOf("Computers"),
+    date: String? = null,
+    genres: List<String>? = null,
     onClick: () -> Unit = {}
 ) {
     Card(
@@ -136,8 +137,12 @@ fun ColumnBookItem(
             .clickable { onClick() }
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Box(modifier = Modifier.width(120.dp).height(170.dp)) {
-                Box(modifier = Modifier.fillMaxSize().background(allColors.random()))
+            Box(modifier = Modifier
+                .width(80.dp)
+                .height(100.dp)) {
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .background(allColors.random()))
                 AsyncImage(
                     model = ImageRequest.Builder(context).data(imgUrl).build(),
                     contentScale = ContentScale.Crop,
@@ -157,7 +162,12 @@ fun ColumnBookItem(
                 }
                 authors?.let {
                     Text(
-                        text = it,
+                        text = buildAnnotatedString {
+                            authors.forEachIndexed { i, a ->
+                                if (i == 0) append(a)
+                                else append(", $a")
+                            }
+                        },
                         style = AppTheme.typography.bodyMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -175,7 +185,12 @@ fun ColumnBookItem(
                 }
                 genres?.let {
                     Text(
-                        text = genres.first(),
+                        text = buildAnnotatedString {
+                            genres.forEachIndexed { i, g ->
+                                if (i == 0) append(g)
+                                else append(", $g")
+                            }
+                        },
                         style = AppTheme.typography.bodyMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -250,5 +265,11 @@ fun RowBookItemPreview() {
 @Composable
 fun ColumnBookItemPreview() {
     val context = LocalContext.current
-    ColumnBookItem(context = context, title = "Book title", authors = "Author Name")
+    ColumnBookItem(
+        context = context,
+        title = "Book title",
+        authors = listOf("Author Name"),
+        date = "24-02-2024",
+        genres = listOf("Computers")
+    )
 }

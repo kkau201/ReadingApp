@@ -6,7 +6,9 @@ data class MBook(
     var authors: List<String>? = null,
     var notes: String? = null,
     var imgUrl: String? = null,
-    var rating: Double? = null
+    var rating: Double? = null,
+    var pubDate: String? = null,
+    var genres: List<String>? = null,
 )
 
 fun List<Item>.toModels(): List<MBook> {
@@ -18,6 +20,9 @@ fun Item.toModel(): MBook {
         id = this.id,
         title = this.volumeInfo.title,
         authors = this.volumeInfo.authors,
-        imgUrl = this.volumeInfo.imageLinks?.thumbnail
+        imgUrl = this.volumeInfo.imageLinks?.thumbnail,
+        rating = this.volumeInfo.averageRating,
+        pubDate = this.volumeInfo.publishedDate,
+        genres = this.volumeInfo.categories
     )
 }

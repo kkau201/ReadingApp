@@ -49,17 +49,23 @@ class SearchViewModel @Inject constructor(
     private fun searchBooks(q: String) {
         viewModelScope.launch(Dispatchers.IO) {
             if (q.isEmpty()) return@launch
-            bookRepo.getBooksByQuery(q).collect { result ->
-                Log.d("ReadingAppTesting", "Result collected from book flow: $result")
-                _uiState.update { state ->
-                    state.copy(
-                        results = when (result) {
-                            is RemoteResult.Success -> SearchResults.Success(result.data)
-                            is RemoteResult.Loading -> SearchResults.Loading
-                            is RemoteResult.Error -> SearchResults.Error(result.exception)
-                        }
-                    )
+
+            try {
+                bookRepo.getBooksByQuery(q).collect { result ->
+                    Log.d("ReadingAppTesting", "Result collected from book flow: $result")
+                    _uiState.update { state ->
+                        state.copy(
+                            results = when (result) {
+                                is RemoteResult.Success -> SearchResults.Success(result.data)
+                                is RemoteResult.Loading -> SearchResults.Loading
+                                is RemoteResult.Error -> SearchResults.Error(result.exception)
+                            }
+                        )
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e("ReadingAppTesting", "Failed to get books by query: $e")
+                _uiState.update { it.copy(results = SearchResults.Error(e)) }
             }
         }
     }
