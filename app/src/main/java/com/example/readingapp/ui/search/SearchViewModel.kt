@@ -7,7 +7,6 @@ import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
 import com.example.readingapp.data.RemoteResult
-import com.example.readingapp.data.asResult
 import com.example.readingapp.config.Constants.DEFAULT_SEARCH
 import com.example.readingapp.repo.BookRepo
 import com.example.readingapp.ui.components.DialogState
@@ -50,7 +49,7 @@ class SearchViewModel @Inject constructor(
     private fun searchBooks(q: String) {
         viewModelScope.launch(Dispatchers.IO) {
             if (q.isEmpty()) return@launch
-            bookRepo.getBooksByQuery(q).asResult().collect { result ->
+            bookRepo.getBooksByQuery(q).collect { result ->
                 Log.d("ReadingAppTesting", "Result collected from book flow: $result")
                 _uiState.update { state ->
                     state.copy(
