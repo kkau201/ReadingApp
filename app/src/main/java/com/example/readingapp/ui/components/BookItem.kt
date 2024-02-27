@@ -38,6 +38,7 @@ import coil.request.ImageRequest
 import com.example.readingapp.R
 import com.example.readingapp.mainActivity
 import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.allColors
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -135,13 +136,15 @@ fun ColumnBookItem(
             .clickable { onClick() }
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            AsyncImage(
-                model = ImageRequest.Builder(context).data(imgUrl).build(),
-                contentScale = ContentScale.Crop,
-                contentDescription = stringResource(R.string.cont_desc_book_image),
-                modifier = Modifier
-                    .width(120.dp)
-            )
+            Box(modifier = Modifier.width(120.dp).height(170.dp)) {
+                Box(modifier = Modifier.fillMaxSize().background(allColors.random()))
+                AsyncImage(
+                    model = ImageRequest.Builder(context).data(imgUrl).build(),
+                    contentScale = ContentScale.Crop,
+                    contentDescription = stringResource(R.string.cont_desc_book_image),
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
             Column(modifier = Modifier.padding(start = AppTheme.spacing.mdSpacing)) {
                 title?.let {
                     Text(
