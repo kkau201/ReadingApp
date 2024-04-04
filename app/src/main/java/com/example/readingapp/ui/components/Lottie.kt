@@ -29,3 +29,19 @@ fun LoadingLottie() {
         )
     }
 }
+
+
+@Composable
+fun NoResultsLottie(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .wrapContentWidth(Alignment.CenterHorizontally)
+            .wrapContentHeight(Alignment.CenterVertically)
+    ) {
+        val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.no_result))
+        LottieAnimation(
+            composition = composition,
+            iterations = LottieConstants.IterateForever
+        )
+    }
+}

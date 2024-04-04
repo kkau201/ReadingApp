@@ -45,4 +45,5 @@
     <string name="logout_message">Are you sure you want to log out?</string>
     <string name="logout_yes">Yes</string>
     <string name="logout_no">No</string>
+    <string name="no_results">No Results</string>
 </resources>
