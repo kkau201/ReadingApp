@@ -85,7 +85,7 @@ fun HomeContent(
     displayName: String?,
     readingActivity: List<MBook>,
     readingList: List<MBook>,
-    onBookClick: (MBook) -> Unit
+    onBookClick: (String) -> Unit
 ) {
     Column(
         modifier = Modifier

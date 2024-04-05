@@ -8,8 +8,10 @@ import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
 import com.example.readingapp.data.RemoteResult
 import com.example.readingapp.config.Constants.DEFAULT_SEARCH
+import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.BookRepo
 import com.example.readingapp.ui.components.DialogState
+import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,4 +87,6 @@ class SearchViewModel @Inject constructor(
             )
         )
     }
+
+    fun onBookClick(bookId: String) = navigate(NavigateTo(DetailsScreenDestination(bookId)))
 }

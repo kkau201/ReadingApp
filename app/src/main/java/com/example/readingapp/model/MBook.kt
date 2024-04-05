@@ -1,7 +1,7 @@
 package com.example.readingapp.model
 
 data class MBook(
-    var id: String? = null,
+    var id: String,
     var title: String? = null,
     var authors: List<String>? = null,
     var notes: String? = null,

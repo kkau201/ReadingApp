@@ -71,7 +71,8 @@ fun SearchInput(
 
 @Composable
 fun SearchResults(
-    results: List<MBook>?
+    results: List<MBook>?,
+    onBookClick: (String) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -105,13 +106,17 @@ fun SearchResults(
         else {
             LazyColumn {
                 item { Spacer(modifier = Modifier.height(AppTheme.spacing.mdSpacing)) }
-                items(results) { book ->
+                items(
+                    items = results,
+                    key = { it.id }
+                ) { book ->
                     ColumnBookItem(
                         title = book.title,
                         authors = book.authors,
                         imgUrl = book.imgUrl,
                         date = book.pubDate,
-                        genres = book.genres
+                        genres = book.genres,
+                        onClick = { onBookClick(book.id) }
                     )
                 }
             }

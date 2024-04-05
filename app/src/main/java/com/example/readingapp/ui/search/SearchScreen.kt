@@ -103,7 +103,10 @@ fun SearchScreen(
                 when(val results = uiState.results) {
                     is SearchResults.Success -> {
                         viewModel.updateLoadingState(LoadingState.SUCCESS)
-                        SearchResults(results = results.books)
+                        SearchResults(
+                            results = results.books,
+                            onBookClick = viewModel::onBookClick
+                        )
                     }
                     is SearchResults.Loading -> viewModel.updateLoadingState(LoadingState.LOADING)
                     is SearchResults.Error -> {

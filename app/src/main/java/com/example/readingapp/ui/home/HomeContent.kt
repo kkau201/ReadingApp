@@ -47,7 +47,7 @@ fun HomeUserIntro(displayName: String?, modifier: Modifier = Modifier) {
 fun HomeReadingRow(
     @StringRes title: Int,
     books: List<MBook>,
-    onBookClick: (MBook) -> Unit
+    onBookClick: (String) -> Unit
 ) {
     val listState = rememberLazyListState()
     val snap = rememberSnapFlingBehavior(lazyListState = listState)
@@ -64,7 +64,7 @@ fun HomeReadingRow(
                         title = book.title,
                         authors = book.authors?.first(), // TODO fix
                         imgUrl = book.imgUrl,
-                        onClick = { onBookClick(book) },
+                        onClick = { onBookClick(book.id) },
                         modifier = Modifier.padding(end = AppTheme.spacing.smSpacing)
                     )
                 }

@@ -7,9 +7,9 @@ import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.mock.generateMockData
-import com.example.readingapp.model.MBook
 import com.example.readingapp.model.toModel
 import com.example.readingapp.nav.NavigateTo
+import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import com.example.readingapp.ui.destinations.SearchScreenDestination
 import com.example.readingapp.ui.destinations.UserScreenDestination
 import com.google.firebase.Firebase
@@ -70,8 +70,6 @@ class HomeViewModel @Inject constructor(
         navigate(NavigateTo(SearchScreenDestination))
     }
 
-    fun onBookClick(book: MBook) {
-        Log.d("ReadingAppTesting", "Book clicked with title: ${book.title}")
-        // TODO
-    }
+    fun onBookClick(bookId: String) = navigate(NavigateTo(DetailsScreenDestination(bookId)))
+
 }
