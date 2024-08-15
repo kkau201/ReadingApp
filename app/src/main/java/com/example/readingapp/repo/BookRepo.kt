@@ -14,7 +14,7 @@ import javax.inject.Inject
 class BookRepo @Inject constructor(private val bookApi: BookApi) {
     suspend fun getBooksByQuery(q: String): Flow<RemoteResult<List<MBook>>> {
         return flow {
-            emit(bookApi.getBooksByQuery(q).items.toModels())
+            emit(bookApi.getBooksByQuery(q).items?.toModels() ?: emptyList())
         }.asResult()
     }
 
