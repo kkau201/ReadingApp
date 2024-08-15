@@ -38,10 +38,9 @@ fun ReadingAppButton(
         shape = RoundedCornerShape(AppTheme.spacing.lgSpacing),
         colors = buttonColors,
         enabled = enabled,
-        modifier = Modifier.padding(padding)
+        modifier = modifier.padding(padding)
     ) {
         Row(
-            modifier = modifier,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {

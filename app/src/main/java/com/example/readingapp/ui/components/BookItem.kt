@@ -26,6 +26,7 @@ import androidx.compose.material.icons.rounded.StarRate
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -139,7 +140,9 @@ fun ColumnBookItem(
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Box(modifier = Modifier
                 .width(80.dp)
-                .height(100.dp)) {
+                .height(100.dp)
+                .clip(RoundedCornerShape(AppTheme.spacing.xxsmSpacing))
+            ) {
                 Box(modifier = Modifier
                     .fillMaxSize()
                     .background(allColors.random()))
