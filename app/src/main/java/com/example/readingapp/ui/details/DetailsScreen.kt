@@ -5,15 +5,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -33,6 +36,7 @@ import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.mainActivity
 import com.example.readingapp.model.MBookDetails
 import com.example.readingapp.ui.components.ReadingAppBarNav
+import com.example.readingapp.ui.components.ReadingAppButton
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.allColors
 import com.example.readingapp.utils.fromHtmlToSpanned
@@ -67,7 +71,13 @@ fun DetailsScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = { ReadingAppBarNav(navIconTint = Color.Black, onNavIconClick = viewModel::navigateBack) }
     ) { padding ->
-        uiState.book?.let { DetailsScreenContent(it, Modifier.padding(padding)) }
+        uiState.book?.let {
+            DetailsScreenContent(
+                book = it,
+                modifier = Modifier.padding(padding),
+                onSaveBookClick = viewModel::saveBook
+            )
+        }
     }
 }
 
@@ -76,6 +86,7 @@ fun DetailsScreenContent(
     book: MBookDetails,
     modifier: Modifier = Modifier,
     context: Context = mainActivity(),
+    onSaveBookClick: () -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -87,8 +98,8 @@ fun DetailsScreenContent(
                 .width(160.dp)
                 .height(280.dp)
                 .padding(bottom = AppTheme.spacing.lgSpacing)
-        )
-        {
+                .clip(RoundedCornerShape(AppTheme.spacing.smSpacing))
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -99,6 +110,7 @@ fun DetailsScreenContent(
                 contentScale = ContentScale.Crop,
                 contentDescription = stringResource(R.string.cont_desc_book_image),
                 modifier = Modifier.fillMaxSize()
+                    .background(shape = RoundedCornerShape(AppTheme.spacing.smSpacing), color = Color.Transparent)
             )
         }
         book.authors?.let {
@@ -128,5 +140,11 @@ fun DetailsScreenContent(
                 modifier = Modifier.padding(bottom = AppTheme.spacing.xxsmSpacing)
             )
         }
+
+        ReadingAppButton(
+            text = stringResource(R.string.save_button),
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onSaveBookClick
+        )
     }
 }
