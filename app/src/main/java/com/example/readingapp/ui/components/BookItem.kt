@@ -66,7 +66,7 @@ fun RowBookItem(
         elevation = 0.dp,
         modifier = modifier
             .padding(vertical = AppTheme.spacing.smSpacing)
-            .height(300.dp)
+            .wrapContentHeight()
             .width(150.dp)
             .clickable { onClick() }
     ) {
@@ -75,7 +75,7 @@ fun RowBookItem(
         ) {
             Box(
                 modifier = Modifier
-                    .height(210.dp)
+                    .height(200.dp)
                     .fillMaxWidth()
             ) {
                 AsyncImage(

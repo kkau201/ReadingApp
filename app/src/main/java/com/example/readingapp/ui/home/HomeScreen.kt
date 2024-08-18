@@ -25,7 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
-import com.example.readingapp.model.MBook
+import com.example.readingapp.model.MBookDetails
 import com.example.readingapp.ui.components.ReadingAppBar
 import com.example.readingapp.ui.components.ReadingAppFab
 import com.example.readingapp.ui.theme.AppTheme
@@ -58,7 +58,6 @@ fun HomeScreen(
             HomeContent(
                 padding = padding,
                 displayName = loadedState.displayName,
-                readingActivity = loadedState.readingActivity,
                 readingList = loadedState.readingList,
                 onBookClick = viewModel::onBookClick
             )
@@ -83,8 +82,7 @@ fun HomeScreen(
 fun HomeContent(
     padding: PaddingValues,
     displayName: String?,
-    readingActivity: List<MBook>,
-    readingList: List<MBook>,
+    readingList: List<MBookDetails>,
     onBookClick: (String) -> Unit
 ) {
     Column(
@@ -94,8 +92,6 @@ fun HomeContent(
             .padding(padding)
     ) {
         HomeUserIntro(displayName = displayName, modifier = Modifier.padding(bottom = AppTheme.spacing.mdSpacing))
-        HomeReadingRow(title = R.string.your_reading_activity, books = readingActivity, onBookClick = onBookClick)
-        Spacer(modifier = Modifier.height(AppTheme.spacing.lgSpacing))
         HomeReadingRow(title = R.string.reading_list, books = readingList, onBookClick = onBookClick)
         Spacer(modifier = Modifier.height(100.dp))
     }

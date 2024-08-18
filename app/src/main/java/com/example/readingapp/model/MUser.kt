@@ -1,6 +1,6 @@
 package com.example.readingapp.model
 
-import com.google.firebase.firestore.QueryDocumentSnapshot
+import com.google.firebase.firestore.DocumentSnapshot
 
 const val USER_ID = "user_id"
 const val DISPLAY_NAME = "display_name"
@@ -27,7 +27,7 @@ data class MUser(
     }
 }
 
-fun QueryDocumentSnapshot.toModel(): MUser {
+fun DocumentSnapshot.toModel(): MUser {
     return MUser(
         id = this.id,
         userId = this.get(USER_ID).toString(),

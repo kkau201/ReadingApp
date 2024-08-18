@@ -15,6 +15,7 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
+import com.example.readingapp.common.collectWithLifecycle
 import com.example.readingapp.ui.theme.AppTheme
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
@@ -29,10 +30,17 @@ fun SplashScreen(
 ) {
     ViewModelBinding(viewModel = viewModel, navigator = navigator)
 
+    viewModel.userData.collectWithLifecycle {
+        if (it.loading == false && it.data != null) viewModel.navigateToHomeScreen()
+        if (it.e != null) viewModel.showErrorLoadingUser()
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxSize().background(color = AppTheme.colors.background)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = AppTheme.colors.background)
     ) {
         SplashLottie()
     }

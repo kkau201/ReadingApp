@@ -1,20 +1,17 @@
 package com.example.readingapp.ui.home
 
-import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.mock.generateMockData
-import com.example.readingapp.model.toModel
 import com.example.readingapp.nav.NavigateTo
+import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import com.example.readingapp.ui.destinations.SearchScreenDestination
 import com.example.readingapp.ui.destinations.UserScreenDestination
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.firestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,10 +20,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-const val TAG = "HomeViewModel"
-
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    private val fireRepository: FireRepository,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
     override val isNavigationDestination: Boolean = true
@@ -40,25 +36,25 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             updateLoadingState(LoadingState.LOADING)
-            val user = FirebaseAuth.getInstance().currentUser
-            val db = Firebase.firestore
-            db.collection("users").get().addOnSuccessListener { documents ->
-                for (document in documents) {
-                    if (document.get("user_id")?.equals(user?.uid) == true) {
-                        Log.d(TAG, "Found user by id: $document")
-                        val mUser = document.toModel()
-                        updateUser(mUser)
-                        _uiState.update {
-                            HomeUiState(
-                                displayName = mUser.displayName,
-                                readingActivity = mockBooks,
-                                readingList = mockBooks
-                            )
-                        }
-                        updateLoadingState(LoadingState.IDLE)
-                    }
+
+            var firebaseUser = getUser().value
+            if (firebaseUser == null) {
+                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+                fireRepository.getUserDetailsFromDatabase(currentUserId).data?.let {
+                    updateUser(it)
+                    firebaseUser = it
                 }
             }
+
+            _uiState.update {
+                HomeUiState(
+                    displayName = firebaseUser?.displayName,
+                    readingActivity = mockBooks,
+                    readingList = fireRepository.getAllBooksFromDatabase().data?.filter { it.userId == getUser().value?.userId }
+                        ?: emptyList()
+                )
+            }
+            updateLoadingState(LoadingState.IDLE)
         }
     }
 

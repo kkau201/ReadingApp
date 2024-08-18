@@ -7,6 +7,8 @@ import com.example.readingapp.network.BookApi
 import com.example.readingapp.repo.BookRepo
 import com.example.readingapp.config.Constants
 import com.example.readingapp.network.NetworkInterceptor
+import com.example.readingapp.repo.FireRepository
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -50,5 +52,15 @@ object ReadingAppModule {
     @Provides
     fun providesBookRepo(bookApi: BookApi): BookRepo {
         return BookRepo(bookApi)
+    }
+
+    @Singleton
+    @Provides
+    fun providesFireBookRepo(): FireRepository {
+        val firestore = FirebaseFirestore.getInstance()
+        return FireRepository(
+            queryBook = firestore.collection("books"),
+            queryUser = firestore.collection("users")
+        )
     }
 }
