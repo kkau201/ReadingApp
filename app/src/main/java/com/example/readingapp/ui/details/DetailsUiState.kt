@@ -1,7 +1,7 @@
 package com.example.readingapp.ui.details
 
-import com.example.readingapp.model.MBookDetails
+import com.example.readingapp.model.MBook
 
 data class DetailsUiState(
-    val book: MBookDetails? = null
+    val book: MBook? = null
 )

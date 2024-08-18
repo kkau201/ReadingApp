@@ -34,7 +34,7 @@ import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.mainActivity
-import com.example.readingapp.model.MBookDetails
+import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.ReadingAppBarNav
 import com.example.readingapp.ui.components.ReadingAppButton
 import com.example.readingapp.ui.theme.AppTheme
@@ -83,7 +83,7 @@ fun DetailsScreen(
 
 @Composable
 fun DetailsScreenContent(
-    book: MBookDetails,
+    book: MBook,
     modifier: Modifier = Modifier,
     context: Context = mainActivity(),
     onSaveBookClick: () -> Unit = {}

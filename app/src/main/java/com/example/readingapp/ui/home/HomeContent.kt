@@ -19,7 +19,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.readingapp.R
-import com.example.readingapp.model.MBookDetails
+import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.RowBookItem
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.allColors
@@ -46,7 +46,7 @@ fun HomeUserIntro(displayName: String?, modifier: Modifier = Modifier) {
 @Composable
 fun HomeReadingRow(
     @StringRes title: Int,
-    books: List<MBookDetails>,
+    books: List<MBook>,
     onBookClick: (String) -> Unit
 ) {
     val listState = rememberLazyListState()

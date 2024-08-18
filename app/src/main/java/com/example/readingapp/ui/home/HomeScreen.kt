@@ -25,7 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
-import com.example.readingapp.model.MBookDetails
+import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.ReadingAppBar
 import com.example.readingapp.ui.components.ReadingAppFab
 import com.example.readingapp.ui.theme.AppTheme
@@ -82,7 +82,7 @@ fun HomeScreen(
 fun HomeContent(
     padding: PaddingValues,
     displayName: String?,
-    readingList: List<MBookDetails>,
+    readingList: List<MBook>,
     onBookClick: (String) -> Unit
 ) {
     Column(

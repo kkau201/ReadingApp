@@ -18,6 +18,7 @@ fun generateMockData(): List<MBook> {
         books.add(
             MBook(
                 id = index.toString(),
+                googleBookId = index.toString(),
                 title = titles[index],
                 authors = listOf(authors[index]),
                 imgUrl = imgUrls[index]

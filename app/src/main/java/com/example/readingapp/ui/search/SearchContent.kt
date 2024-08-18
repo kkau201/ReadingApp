@@ -122,7 +122,7 @@ fun SearchResults(
                     imgUrl = book.imgUrl,
                     date = book.pubDate,
                     genres = book.genres,
-                    onClick = { onBookClick(book.id) }
+                    onClick = { book.googleBookId?.let(onBookClick) }
                 )
             }
         }

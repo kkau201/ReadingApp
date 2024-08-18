@@ -3,8 +3,7 @@ package com.example.readingapp.repo
 import com.example.readingapp.data.RemoteResult
 import com.example.readingapp.data.asResult
 import com.example.readingapp.model.MBook
-import com.example.readingapp.model.MBookDetails
-import com.example.readingapp.model.toDetailsModel
+import com.example.readingapp.model.toModel
 import com.example.readingapp.model.toModels
 import com.example.readingapp.network.BookApi
 import kotlinx.coroutines.flow.Flow
@@ -18,9 +17,9 @@ class BookRepo @Inject constructor(private val bookApi: BookApi) {
         }.asResult()
     }
 
-    suspend fun getBookInfo(bookId: String): Flow<RemoteResult<MBookDetails>> {
+    suspend fun getBookInfo(bookId: String): Flow<RemoteResult<MBook>> {
         return flow {
-            emit(bookApi.getBookById(bookId).toDetailsModel())
+            emit(bookApi.getBookById(bookId).toModel())
         }.asResult()
     }
 }
