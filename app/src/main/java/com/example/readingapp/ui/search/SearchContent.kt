@@ -80,7 +80,12 @@ fun SearchResults(
     if (books.isEmpty()) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxHeight()
+            modifier = Modifier
+                .fillMaxSize()
+                .offset {
+                    IntOffset(0, offset.roundToInt())
+                }
+                .padding(horizontal = AppTheme.spacing.mdSpacing)
         ) {
             NoResultsLottie(
                 modifier = Modifier
