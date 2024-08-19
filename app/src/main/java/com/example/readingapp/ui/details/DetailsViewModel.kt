@@ -9,9 +9,11 @@ import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.data.RemoteResult
+import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.BookRepo
 import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
+import com.example.readingapp.ui.destinations.UpdateScreenDestination
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -104,5 +106,9 @@ class DetailsViewModel @Inject constructor(
                     }
             }
         }
+    }
+
+    fun updateBook() {
+        navigate(NavigateTo(UpdateScreenDestination(args.bookId)))
     }
 }

@@ -47,7 +47,9 @@
     <string name="logout_no">No</string>
     <string name="no_results">No Results</string>
     <string name="save_button">Save</string>
+    <string name="update_button">Update</string>
     <string name="login_error_title">Login error</string>
     <string name="login_error_message">Sorry, unable to get your account to log in</string>
     <string name="login_error_primary_btn">Try again</string>
+    <string name="update_book_title">Update book</string>
 </resources>

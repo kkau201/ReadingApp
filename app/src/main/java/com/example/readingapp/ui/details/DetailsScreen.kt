@@ -2,13 +2,18 @@ package com.example.readingapp.ui.details
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
@@ -75,7 +80,8 @@ fun DetailsScreen(
             DetailsScreenContent(
                 book = it,
                 modifier = Modifier.padding(padding),
-                onSaveBookClick = viewModel::saveBook
+                onSaveBookClick = viewModel::saveBook,
+                onUpdateBookClick = viewModel::updateBook,
             )
         }
     }
@@ -86,12 +92,16 @@ fun DetailsScreenContent(
     book: MBook,
     modifier: Modifier = Modifier,
     context: Context = mainActivity(),
-    onSaveBookClick: () -> Unit = {}
+    onSaveBookClick: () -> Unit = {},
+    onUpdateBookClick: () -> Unit = {}
 ) {
+    val scrollState = rememberScrollState()
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .padding(AppTheme.spacing.lgSpacing)
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(horizontal = AppTheme.spacing.lgSpacing)
+            .scrollable(scrollState, Orientation.Vertical)
     ) {
         Box(
             modifier = Modifier
@@ -143,8 +153,15 @@ fun DetailsScreenContent(
 
         ReadingAppButton(
             text = stringResource(R.string.save_button),
-            modifier = Modifier.fillMaxWidth(),
+            padding = PaddingValues(horizontal = AppTheme.spacing.smSpacing),
+            modifier = Modifier.fillMaxWidth().padding(top = AppTheme.spacing.lgSpacing),
             onClick = onSaveBookClick
+        )
+        ReadingAppButton(
+            text = stringResource(R.string.update_button),
+            padding = PaddingValues(horizontal = AppTheme.spacing.smSpacing),
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onUpdateBookClick
         )
     }
 }
