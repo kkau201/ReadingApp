@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,20 +23,40 @@ fun mainActivity() = LocalContext.current as MainActivity
 
 @HiltViewModel
 class MainViewModel @Inject constructor() : ViewModel(), DefaultLifecycleObserver {
-    val navigationFlow: Flow<NavigationEvent?> = MutableSharedFlow()
-    val loadingFlow: MutableStateFlow<LoadingState> = MutableStateFlow(LoadingState.IDLE)
-    val dialogFlow: MutableStateFlow<DialogState?> = MutableStateFlow(null)
-    val userFlow: MutableStateFlow<MUser?> = MutableStateFlow(null)
+    private val _navigationFlow: Flow<NavigationEvent?> = MutableSharedFlow()
+    val navigationFlow: Flow<NavigationEvent?>
+        get() = _navigationFlow
+
+    private val _loadingFlow: MutableStateFlow<LoadingState> = MutableStateFlow(LoadingState.IDLE)
+    val loadingFlow: StateFlow<LoadingState>
+        get() = _loadingFlow
+
+    private val _dialogFlow: MutableStateFlow<DialogState?> = MutableStateFlow(null)
+    val dialogFlow: StateFlow<DialogState?>
+        get() = _dialogFlow
+
+    private val _toastFlow: MutableStateFlow<String?> = MutableStateFlow(null)
+    val toastFlow: StateFlow<String?>
+        get() = _toastFlow
+
+
+    private val _userFlow: MutableStateFlow<MUser?> = MutableStateFlow(null)
+    val userFlow: StateFlow<MUser?>
+        get() = _userFlow
 
     fun navigate(navigationEvent: NavigationEvent) {
         viewModelScope.launch {
-            (navigationFlow as MutableSharedFlow).emit(navigationEvent)
+            (_navigationFlow as MutableSharedFlow).emit(navigationEvent)
         }
     }
 
-    fun updateLoadingState(state: LoadingState) = loadingFlow.update { state }
+    fun updateLoadingState(state: LoadingState) = _loadingFlow.update { state }
 
-    fun showDialog(state: DialogState) = dialogFlow.update { state }
-    fun dismissDialog() = dialogFlow.update { null }
-    fun updateUser(user: MUser?) = userFlow.update { user }
+    fun showDialog(state: DialogState) = _dialogFlow.update { state }
+    fun dismissDialog() = _dialogFlow.update { null }
+
+    fun showToast(text: String) = _toastFlow.update { text }
+    fun resetToast() { _toastFlow.value = null }
+
+    fun updateUser(user: MUser?) = _userFlow.update { user }
 }

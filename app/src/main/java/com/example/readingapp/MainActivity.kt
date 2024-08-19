@@ -1,6 +1,7 @@
 package com.example.readingapp
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,4 +39,12 @@ fun MainContent(mainViewModel: MainViewModel = hiltViewModel(mainActivity())) {
 
     val dialogState by mainViewModel.dialogFlow.collectAsStateWithLifecycle()
     dialogState?.let { ReadingAppDialog(state = it) }
+
+    val context = mainActivity()
+    val toastFlow by mainViewModel.toastFlow.collectAsStateWithLifecycle()
+    toastFlow?.let {
+        Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        mainViewModel.resetToast()
+    }
+
 }

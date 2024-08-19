@@ -45,6 +45,10 @@ abstract class BaseViewModel(
         mainViewModel.dismissDialog()
     }
 
+    fun showToast(text: String) {
+        mainViewModel.showToast(text)
+    }
+
     fun getUser() = mainViewModel.userFlow
     fun updateUser(user: MUser) = mainViewModel.updateUser(user)
 
