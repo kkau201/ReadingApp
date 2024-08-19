@@ -32,8 +32,6 @@ class HomeViewModel @Inject constructor(
         get() = _uiState
 
     fun onLoad() {
-        val mockBooks = generateMockData()
-
         viewModelScope.launch(Dispatchers.IO) {
             updateLoadingState(LoadingState.LOADING)
 
@@ -43,15 +41,16 @@ class HomeViewModel @Inject constructor(
                 fireRepository.getUserDetailsFromDatabase(currentUserId).data?.let {
                     updateUser(it)
                     firebaseUser = it
+                    fireRepository.updateSavedBooksByUser(it.userId)
                 }
+            } else {
+                fireRepository.updateSavedBooksByUser(firebaseUser!!.userId)
             }
 
             _uiState.update {
                 HomeUiState(
                     displayName = firebaseUser?.displayName,
-                    readingActivity = mockBooks,
-                    readingList = fireRepository.getAllBooksFromDatabase().data?.filter { it.userId == getUser().value?.userId }
-                        ?: emptyList()
+                    readingList = fireRepository.savedBooks.value
                 )
             }
             updateLoadingState(LoadingState.IDLE)

@@ -117,10 +117,7 @@ fun SearchResults(
                 .background(Color.White, shape = RoundedCornerShape(AppTheme.spacing.lgSpacing))
                 .padding(horizontal = AppTheme.spacing.mdSpacing)
         ) {
-            items(
-                items = books,
-                key = { it.id }
-            ) { book ->
+            items(items = books) { book ->
                 ColumnBookItem(
                     title = book.title,
                     authors = book.authors,

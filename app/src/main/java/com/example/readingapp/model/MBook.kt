@@ -1,12 +1,10 @@
 package com.example.readingapp.model
 
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
-import java.util.UUID
 
 data class MBook(
-    @Exclude var id: String = UUID .randomUUID().toString(),
+    var id: String? = null,
 
     var title: String? = null,
     var subtitle: String? = null,
@@ -52,7 +50,6 @@ fun List<Item>.toModels(): List<MBook> {
 
 fun Item.toModel(): MBook {
     return MBook(
-        id = this.id,
         title = this.volumeInfo.title,
         subtitle = this.volumeInfo.subtitle,
         authors = this.volumeInfo.authors,

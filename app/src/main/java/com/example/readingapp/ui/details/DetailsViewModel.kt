@@ -10,7 +10,8 @@ import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.data.RemoteResult
 import com.example.readingapp.nav.NavigateTo
-import com.example.readingapp.repo.BookRepo
+import com.example.readingapp.repo.BookRepository
+import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import com.example.readingapp.ui.destinations.UpdateScreenDestination
@@ -26,7 +27,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
-    private val bookRepo: BookRepo,
+    private val bookRepository: BookRepository,
+    private val fireRepository: FireRepository,
     savedStateHandle: SavedStateHandle,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
@@ -40,12 +42,14 @@ class DetailsViewModel @Inject constructor(
     fun loadBook() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                bookRepo.getBookInfo(args.bookId).collect { result ->
+                bookRepository.getBookInfo(args.bookId).collect { result ->
                     when (result) {
                         is RemoteResult.Loading -> updateLoadingState(LoadingState.LOADING)
                         is RemoteResult.Success -> {
                             updateLoadingState(LoadingState.SUCCESS)
-                            _uiState.update { it.copy(book = result.data) }
+                            _uiState.update { state ->
+                                state.copy(book = result.data)
+                            }
                         }
                         is RemoteResult.Error -> {
                             updateLoadingState(LoadingState.FAILED)
@@ -56,6 +60,17 @@ class DetailsViewModel @Inject constructor(
             } catch (e: Exception) {
                 showErrorDialog(e)
             }
+
+            fireRepository.savedBooks.collect { allSavedBooks ->
+                val savedBook = allSavedBooks.find { it.googleBookId == args.bookId }
+                _uiState.update { state ->
+                    state.copy(
+                        bookId = savedBook?.id,
+                        isSaved = savedBook != null
+                    )
+                }
+            }
+
         }
     }
 
@@ -75,7 +90,14 @@ class DetailsViewModel @Inject constructor(
         )
     }
 
-    fun saveBook() {
+    fun onSaveBookClick() = viewModelScope.launch {
+        if (uiState.value.isSaved) removeBook()
+        else saveBook()
+
+        fireRepository.updateSavedBooksByUser(getUser().value?.userId.toString())
+    }
+
+    private fun saveBook() {
         uiState.value.book?.let { book ->
             val db = FirebaseFirestore.getInstance()
             val bookWithId = book.copy(
@@ -105,6 +127,13 @@ class DetailsViewModel @Inject constructor(
                             }
                     }
             }
+        }
+    }
+
+    private fun removeBook() {
+        uiState.value.bookId?.let { bookId ->
+            val db = FirebaseFirestore.getInstance()
+            db.collection("books").document(bookId).delete()
         }
     }
 

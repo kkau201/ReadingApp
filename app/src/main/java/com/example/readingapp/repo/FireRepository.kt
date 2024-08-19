@@ -6,6 +6,9 @@ import com.example.readingapp.model.MUser
 import com.example.readingapp.model.toModel
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -16,6 +19,18 @@ class FireRepository @Inject constructor(
 
     companion object {
         const val USER_ID = "user_id"
+    }
+
+    private val _savedBooks = MutableStateFlow<List<MBook>>(emptyList())
+    val savedBooks: StateFlow<List<MBook>>
+        get() = _savedBooks
+
+    suspend fun updateSavedBooksByUser(userId: String): DataOrException<List<MBook>, Boolean, Exception> {
+        val result = getAllBooksFromDatabase()
+        val savedBooks = result.data?.filter {  it.userId == userId } ?: emptyList()
+        _savedBooks.update { savedBooks }
+
+        return result
     }
 
     suspend fun getAllBooksFromDatabase(): DataOrException<List<MBook>, Boolean, Exception> {

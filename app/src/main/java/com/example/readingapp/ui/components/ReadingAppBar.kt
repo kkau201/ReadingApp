@@ -70,8 +70,11 @@ fun ReadingAppBarNav(
     backgroundColor: Color = Color.Transparent,
     title: String? = null,
     navIcon: ImageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+    actionIcon: ImageVector? = null,
     navIconTint: Color = Color.White,
-    onNavIconClick: () -> Unit = {}
+    actionIconTint: Color = Color.White,
+    onNavIconClick: () -> Unit = {},
+    onActionIconClick: () -> Unit = {}
 ) {
     CenterAlignedTopAppBar(
         modifier = Modifier.padding(vertical = AppTheme.spacing.smSpacing, horizontal = AppTheme.spacing.xsmSpacing),
@@ -82,6 +85,13 @@ fun ReadingAppBarNav(
         navigationIcon = {
             IconButton(onClick = onNavIconClick) {
                 Icon(imageVector = navIcon, contentDescription = null, tint = navIconTint)
+            }
+        },
+        actions = {
+            actionIcon?.let {
+                IconButton(onClick = onActionIconClick) {
+                    Icon(imageVector = actionIcon, contentDescription = null, tint = actionIconTint)
+                }
             }
         }
     )

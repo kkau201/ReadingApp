@@ -9,7 +9,7 @@ import com.example.readingapp.common.ErrorType
 import com.example.readingapp.data.RemoteResult
 import com.example.readingapp.config.Constants.DEFAULT_SEARCH
 import com.example.readingapp.nav.NavigateTo
-import com.example.readingapp.repo.BookRepo
+import com.example.readingapp.repo.BookRepository
 import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     dependencyContextWrapper: DependencyContextWrapper,
-    private val bookRepo: BookRepo
+    private val bookRepository: BookRepository
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
     override val isNavigationDestination = true
 
@@ -53,7 +53,7 @@ class SearchViewModel @Inject constructor(
             if (q.isEmpty()) return@launch
 
             try {
-                bookRepo.getBooksByQuery(q).collect { result ->
+                bookRepository.getBooksByQuery(q).collect { result ->
                     Log.d("ReadingAppTesting", "Result collected from book flow: $result")
                     _uiState.update { state ->
                         state.copy(

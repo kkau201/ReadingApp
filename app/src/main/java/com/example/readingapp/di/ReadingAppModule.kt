@@ -4,7 +4,7 @@ import android.content.Context
 import com.example.readingapp.ReadingApp
 import com.example.readingapp.common.ActivityProvider
 import com.example.readingapp.network.BookApi
-import com.example.readingapp.repo.BookRepo
+import com.example.readingapp.repo.BookRepository
 import com.example.readingapp.config.Constants
 import com.example.readingapp.network.NetworkInterceptor
 import com.example.readingapp.repo.FireRepository
@@ -50,8 +50,8 @@ object ReadingAppModule {
 
     @Singleton
     @Provides
-    fun providesBookRepo(bookApi: BookApi): BookRepo {
-        return BookRepo(bookApi)
+    fun providesBookRepo(bookApi: BookApi): BookRepository {
+        return BookRepository(bookApi)
     }
 
     @Singleton
