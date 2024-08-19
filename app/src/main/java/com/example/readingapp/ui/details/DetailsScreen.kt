@@ -4,6 +4,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.outlined.Bookmark
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.Composable
@@ -19,8 +23,10 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
+import com.example.readingapp.ui.components.ActionButton
 import com.example.readingapp.ui.components.ReadingAppBarNav
 import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.Purple
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
@@ -45,9 +51,19 @@ fun DetailsScreen(
             ReadingAppBarNav(
                 navIconTint = Color.Black,
                 onNavIconClick = viewModel::navigateBack,
-                actionIcon = if (uiState.isSaved) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
-                actionIconTint = Color.Black,
-                onActionIconClick = viewModel::onSaveBookClick
+                actionButtons = listOf(
+                    ActionButton(
+                        icon = if (uiState.isSaved) Icons.Outlined.Bookmark else Icons.Outlined.BookmarkBorder,
+                        tint = Color.Black,
+//                        backgroundColor = Purple,
+                        onClick = viewModel::toggleSavedBook
+                    ),
+                    ActionButton(
+                        icon = Icons.Outlined.Edit,
+                        tint = Color.Black,
+                        onClick = viewModel::navToUpdateScreen
+                    ),
+                ),
             )
         }
     ) { padding ->
@@ -55,7 +71,7 @@ fun DetailsScreen(
             DetailsScreenContent(
                 book = it,
                 modifier = Modifier.padding(padding),
-                onUpdateBookClick = viewModel::updateBook,
+                onUpdateBookClick = viewModel::navToUpdateScreen,
             )
         }
     }

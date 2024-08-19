@@ -4,11 +4,13 @@ import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.example.readingapp.R
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.data.RemoteResult
+import com.example.readingapp.di.ReadingAppModule
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.BookRepository
 import com.example.readingapp.repo.FireRepository
@@ -90,7 +92,7 @@ class DetailsViewModel @Inject constructor(
         )
     }
 
-    fun onSaveBookClick() = viewModelScope.launch {
+    fun toggleSavedBook() = viewModelScope.launch {
         if (uiState.value.isSaved) removeBook()
         else saveBook()
 
@@ -112,14 +114,7 @@ class DetailsViewModel @Inject constructor(
                             .update(hashMapOf("id" to docId) as Map<String, Any>)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
-                                    showDialog(
-                                        state = DialogState(
-                                            title = "Success",
-                                            message = "Book saved successfully",
-                                            primaryButtonText = "OK",
-                                            onPrimaryClick = { dismissDialog() }
-                                        )
-                                    )
+                                    showToast(getString(R.string.book_saved_toast))
                                 }
                             }
                             .addOnFailureListener {
@@ -133,11 +128,20 @@ class DetailsViewModel @Inject constructor(
     private fun removeBook() {
         uiState.value.bookId?.let { bookId ->
             val db = FirebaseFirestore.getInstance()
-            db.collection("books").document(bookId).delete()
+            db.collection("books").document(bookId)
+                .delete()
+                .addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        showToast(getString(R.string.book_removed_toast))
+                    }
+                }
+                .addOnFailureListener {
+                    Log.e("Error", "saveBook: Error deleting doc", it)
+                }
         }
     }
 
-    fun updateBook() {
+    fun navToUpdateScreen() {
         navigate(NavigateTo(UpdateScreenDestination(args.bookId)))
     }
 }

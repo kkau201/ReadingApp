@@ -52,4 +52,6 @@
     <string name="login_error_message">Sorry, unable to get your account to log in</string>
     <string name="login_error_primary_btn">Try again</string>
     <string name="update_book_title">Update book</string>
+    <string name="book_saved_toast">Book saved successfully</string>
+    <string name="book_removed_toast">Book removed successfully</string>
 </resources>

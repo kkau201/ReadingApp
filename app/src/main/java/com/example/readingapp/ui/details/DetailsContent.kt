@@ -101,11 +101,5 @@ fun DetailsScreenContent(
                 modifier = Modifier.padding(bottom = AppTheme.spacing.xxsmSpacing)
             )
         }
-        ReadingAppButton(
-            text = stringResource(R.string.update_button),
-            padding = PaddingValues(horizontal = AppTheme.spacing.smSpacing),
-            modifier = Modifier.fillMaxWidth(),
-            onClick = onUpdateBookClick
-        )
     }
 }

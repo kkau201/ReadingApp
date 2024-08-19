@@ -88,7 +88,10 @@ fun SearchScreen(
                 val delta = available.y
                 coroutineScope.launch(Dispatchers.Main) {
                     listOffset = (listOffset + delta).coerceIn(marginTopInPx, imageHeightInPx.toFloat())
-                    searchBarOffset = (listOffset - SEARCHBAR_OFFSET_MARGIN).coerceIn(SEARCHBAR_MIN_Y_OFFSET, DEFAULT_SEARCHBAR_Y_OFFSET)
+                    searchBarOffset = (listOffset - SEARCHBAR_OFFSET_MARGIN).coerceIn(
+                        SEARCHBAR_MIN_Y_OFFSET,
+                        DEFAULT_SEARCHBAR_Y_OFFSET
+                    )
                 }
                 return Offset(
                     0f,
@@ -119,7 +122,7 @@ fun SearchScreen(
                     listOffset = imageHeightInPx.toFloat()
                 }
         )
-        ReadingAppBarNav(title = stringResource(id = R.string.search_title)) { viewModel.navigateBack() }
+        ReadingAppBarNav(title = stringResource(id = R.string.search_title), onNavIconClick = viewModel::navigateBack)
         SearchInput(
             currentInput = uiState.searchInput,
             keyboardController = keyboardController,

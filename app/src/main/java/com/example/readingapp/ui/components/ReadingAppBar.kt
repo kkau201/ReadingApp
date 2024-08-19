@@ -1,15 +1,18 @@
 package com.example.readingapp.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.outlined.ArrowBackIosNew
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarDefaults
@@ -69,12 +72,10 @@ fun ReadingAppBar(
 fun ReadingAppBarNav(
     backgroundColor: Color = Color.Transparent,
     title: String? = null,
-    navIcon: ImageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-    actionIcon: ImageVector? = null,
+    navIcon: ImageVector = Icons.Outlined.ArrowBackIosNew,
     navIconTint: Color = Color.White,
-    actionIconTint: Color = Color.White,
     onNavIconClick: () -> Unit = {},
-    onActionIconClick: () -> Unit = {}
+    actionButtons: List<ActionButton>? = null
 ) {
     CenterAlignedTopAppBar(
         modifier = Modifier.padding(vertical = AppTheme.spacing.smSpacing, horizontal = AppTheme.spacing.xsmSpacing),
@@ -88,11 +89,21 @@ fun ReadingAppBarNav(
             }
         },
         actions = {
-            actionIcon?.let {
-                IconButton(onClick = onActionIconClick) {
-                    Icon(imageVector = actionIcon, contentDescription = null, tint = actionIconTint)
+            actionButtons?.forEach { button ->
+                IconButton(
+                    modifier = Modifier.background(color = button.backgroundColor, shape = CircleShape),
+                    onClick = button.onClick
+                ) {
+                    Icon(imageVector = button.icon, contentDescription = null, tint = button.tint)
                 }
             }
         }
     )
 }
+
+data class ActionButton(
+    val icon: ImageVector,
+    val tint: Color = Color.Black,
+    val backgroundColor: Color = Color.Transparent,
+    val onClick: () -> Unit
+)
