@@ -4,6 +4,7 @@ import com.example.readingapp.data.DataOrException
 import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MUser
 import com.example.readingapp.model.toModel
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +26,7 @@ class FireRepository @Inject constructor(
     val savedBooks: StateFlow<List<MBook>>
         get() = _savedBooks
 
-    suspend fun updateSavedBooksByUser(userId: String): DataOrException<List<MBook>, Boolean, Exception> {
+    suspend fun fetchSavedBooksByUser(userId: String): DataOrException<List<MBook>, Boolean, Exception> {
         val result = getAllBooksFromDatabase()
         val savedBooks = result.data?.filter {  it.userId == userId } ?: emptyList()
         _savedBooks.update { savedBooks }
@@ -63,5 +64,21 @@ class FireRepository @Inject constructor(
         }
 
         return dataOrException
+    }
+
+    fun updateBook(
+        bookId: String,
+        bookUpdates: Map<String, Any?>,
+        onCompleteListener: (Boolean) -> Unit,
+        onErrorListener: (Exception) -> Unit
+    ) {
+        FirebaseFirestore.getInstance()
+            .collection("books")
+            .document(bookId)
+            .update(bookUpdates)
+            .addOnCompleteListener {
+                onCompleteListener(it.isSuccessful)
+            }
+            .addOnFailureListener { onErrorListener(it) }
     }
 }

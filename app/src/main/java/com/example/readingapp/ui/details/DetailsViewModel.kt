@@ -10,7 +10,6 @@ import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.data.RemoteResult
-import com.example.readingapp.di.ReadingAppModule
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.BookRepository
 import com.example.readingapp.repo.FireRepository
@@ -95,7 +94,7 @@ class DetailsViewModel @Inject constructor(
         if (uiState.value.isSaved) removeBook()
         else saveBook()
 
-        fireRepository.updateSavedBooksByUser(getUser().value?.userId.toString())
+        fireRepository.fetchSavedBooksByUser(getUser().value?.userId.toString())
     }
 
     private fun saveBook() {

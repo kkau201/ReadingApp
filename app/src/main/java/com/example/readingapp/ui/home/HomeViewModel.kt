@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
-import com.example.readingapp.mock.generateMockData
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
@@ -41,10 +40,10 @@ class HomeViewModel @Inject constructor(
                 fireRepository.getUserDetailsFromDatabase(currentUserId).data?.let {
                     updateUser(it)
                     firebaseUser = it
-                    fireRepository.updateSavedBooksByUser(it.userId)
+                    fireRepository.fetchSavedBooksByUser(it.userId)
                 }
             } else {
-                fireRepository.updateSavedBooksByUser(firebaseUser!!.userId)
+                fireRepository.fetchSavedBooksByUser(firebaseUser!!.userId)
             }
 
             _uiState.update {

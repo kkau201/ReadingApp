@@ -39,17 +39,17 @@ import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.AppTheme.spacing
 import com.example.readingapp.ui.theme.Blue
 import com.example.readingapp.ui.theme.Pink
-import kotlin.math.floor
 
 @Composable
 fun UpdateScreenContent(
     modifier: Modifier = Modifier,
     book: MBook,
     selectedStatus: BookStatus,
+    selectedRating: Int,
     noteInput: String,
     onNoteInputChanged: (String) -> Unit,
     onStatusChanged: (BookStatus) -> Unit,
-    onRatingChanged: (Double) -> Unit,
+    onRatingChanged: (Int) -> Unit,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
@@ -63,7 +63,8 @@ fun UpdateScreenContent(
                 textAlign = TextAlign.Center,
                 style = AppTheme.typography.titleLarge,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(bottom = spacing.mdSpacing)
             )
         }
 
@@ -78,7 +79,7 @@ fun UpdateScreenContent(
 
             UpdateBookStatus(selectedStatus, onStatusChanged)
 
-            UpdateRating(selectedRating = book.rating ?: 0.0, onRatingChanged = onRatingChanged)
+            UpdateRating(selectedRating = selectedRating, onRatingChanged = onRatingChanged)
 
             Divider(color = Color.White.copy(alpha = 0.5f), modifier = Modifier.padding(top = spacing.mdSpacing))
 
@@ -94,6 +95,7 @@ fun UpdateInputField(
     onNoteInputChanged: (String) -> Unit
 ) {
     val textFieldColors = TextFieldDefaults.outlinedTextFieldColors(
+        textColor = Pink,
         unfocusedLabelColor = Pink.copy(alpha = 0.5f),
         unfocusedBorderColor = Pink.copy(alpha = 0.5f),
         focusedBorderColor = Pink,
@@ -138,11 +140,9 @@ fun UpdateBookStatus(
 @Composable
 fun UpdateRating(
     stars: Int = 5,
-    selectedRating: Double = 0.0,
-    onRatingChanged: (Double) -> Unit
+    selectedRating: Int = 0,
+    onRatingChanged: (Int) -> Unit
 ) {
-    val filledStars = floor(selectedRating).toInt()
-
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
@@ -151,9 +151,9 @@ fun UpdateRating(
             .padding(spacing.smSpacing)
     ) {
         for (i in 1..stars) {
-            IconButton(onClick = { onRatingChanged(i.toDouble()) }) {
+            IconButton(onClick = { onRatingChanged(i) }) {
                 Icon(
-                    imageVector = if (i <= filledStars) Icons.Rounded.StarRate else Icons.Rounded.StarBorder,
+                    imageVector = if (i <= selectedRating) Icons.Rounded.StarRate else Icons.Rounded.StarBorder,
                     contentDescription = stringResource(id = R.string.cont_desc_star_number, i),
                     tint = Pink,
                     modifier = Modifier.size(40.dp)

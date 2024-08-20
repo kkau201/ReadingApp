@@ -10,5 +10,6 @@ data class UpdateUiState(
     val book: MBook? = null,
     val isSaved: Boolean = false,
     val noteInput: String = "",
-    val selectedStatus: BookStatus = BookStatus.LIBRARY
+    val selectedStatus: BookStatus = BookStatus.LIBRARY,
+    val selectedRating: Int = 0
 )

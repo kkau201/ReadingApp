@@ -57,4 +57,7 @@
     <string name="book_removed_toast">Book removed successfully</string>
     <string name="update_cancel">Cancel</string>
     <string name="update_save">Save</string>
+    <string name="update_book_success">Book updated</string>
+    <string name="update_book_error">Error updating book</string>
+    <string name="update_no_changes_made">No changes made</string>
 </resources>

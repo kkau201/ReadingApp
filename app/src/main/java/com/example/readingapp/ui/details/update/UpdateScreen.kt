@@ -74,8 +74,9 @@ fun UpdateScreen(
                     UpdateScreenContent(
                         modifier = Modifier.padding(padding),
                         book = it,
-                        selectedStatus = uiState.selectedStatus,
                         noteInput = uiState.noteInput,
+                        selectedStatus = uiState.selectedStatus,
+                        selectedRating = uiState.selectedRating,
                         onNoteInputChanged = viewModel::onNoteInputChanged,
                         onStatusChanged = viewModel::onStatusChanged,
                         onRatingChanged = viewModel::onRatingChanged,

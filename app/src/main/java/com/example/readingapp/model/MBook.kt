@@ -7,26 +7,23 @@ import com.google.firebase.firestore.PropertyName
 data class MBook(
     var id: String? = null,
 
-    var title: String? = null,
-    var subtitle: String? = null,
-    var authors: List<String>? = null,
-    var description: String? = null,
-    var notes: String? = null,
-    var genres: List<String>? = null,
-    var rating: Double? = null,
-    var infoLink: String? = null,
+    val title: String? = null,
+    val subtitle: String? = null,
+    val authors: List<String>? = null,
+    val description: String? = null,
+    val notes: String? = null,
+    val genres: List<String>? = null,
+    val rating: Double? = null,
+    val infoLink: String? = null,
 
     @get: PropertyName("book_photo_url")
-    @set: PropertyName("book_photo_url")
-    var imgUrl: String? = null,
+    val imgUrl: String? = null,
 
     @get: PropertyName("published_date")
-    @set: PropertyName("published_date")
-    var pubDate: String? = null,
+    val pubDate: String? = null,
 
     @get: PropertyName("page_count")
-    @set: PropertyName("page_count")
-    var pageCount: Int? = null,
+    val pageCount: Int? = null,
 
     @get: PropertyName("started_reading")
     @set: PropertyName("started_reading")
