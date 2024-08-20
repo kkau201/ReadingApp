@@ -41,8 +41,7 @@ import com.example.readingapp.utils.toAnnotatedString
 fun DetailsScreenContent(
     book: MBook,
     modifier: Modifier = Modifier,
-    context: Context = mainActivity(),
-    onUpdateBookClick: () -> Unit = {}
+    context: Context = mainActivity()
 ) {
     val scrollState = rememberScrollState()
     Column(
@@ -55,8 +54,8 @@ fun DetailsScreenContent(
     ) {
         Box(
             modifier = Modifier
-                .width(160.dp)
-                .height(280.dp)
+                .width(200.dp)
+                .height(360.dp)
                 .padding(bottom = AppTheme.spacing.lgSpacing)
                 .clip(RoundedCornerShape(AppTheme.spacing.smSpacing))
         ) {
@@ -77,7 +76,7 @@ fun DetailsScreenContent(
             Text(
                 text = it,
                 textAlign = TextAlign.Center,
-                style = AppTheme.typography.headlineMedium,
+                style = AppTheme.typography.headlineSmall,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(bottom = AppTheme.spacing.xxsmSpacing)
@@ -95,6 +94,7 @@ fun DetailsScreenContent(
         book.description?.let {
             Text(
                 text = it.fromHtmlToSpanned().toAnnotatedString(),
+                textAlign = TextAlign.Justify,
                 style = AppTheme.typography.bodyMedium,
                 maxLines = 7,
                 overflow = TextOverflow.Ellipsis,

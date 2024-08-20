@@ -35,6 +35,7 @@
     <string name="cont_desc_show_password">Show password</string>
     <string name="cont_desc_add_a_book">Add a book</string>
     <string name="cont_desc_profile_image">Profile image</string>
+    <string name="cont_desc_star_number">Star number %d</string>
     <string name="cont_desc_filled_star_icon">Filled star icon</string>
     <string name="cont_desc_half_filled_star_icon">Half filled star icon</string>
     <string name="cont_desc_unfilled_star_icon">Unfilled star icon</string>
@@ -54,4 +55,6 @@
     <string name="update_book_title">Update book</string>
     <string name="book_saved_toast">Book saved successfully</string>
     <string name="book_removed_toast">Book removed successfully</string>
+    <string name="update_cancel">Cancel</string>
+    <string name="update_save">Save</string>
 </resources>

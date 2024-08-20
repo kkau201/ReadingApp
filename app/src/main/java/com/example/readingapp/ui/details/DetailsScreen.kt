@@ -55,7 +55,6 @@ fun DetailsScreen(
                     ActionButton(
                         icon = if (uiState.isSaved) Icons.Outlined.Bookmark else Icons.Outlined.BookmarkBorder,
                         tint = Color.Black,
-//                        backgroundColor = Purple,
                         onClick = viewModel::toggleSavedBook
                     ),
                     ActionButton(
@@ -70,8 +69,7 @@ fun DetailsScreen(
         uiState.book?.let {
             DetailsScreenContent(
                 book = it,
-                modifier = Modifier.padding(padding),
-                onUpdateBookClick = viewModel::navToUpdateScreen,
+                modifier = Modifier.padding(padding)
             )
         }
     }

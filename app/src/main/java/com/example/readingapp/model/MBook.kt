@@ -1,5 +1,6 @@
 package com.example.readingapp.model
 
+import com.example.readingapp.ui.components.BookStatus
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.PropertyName
 
@@ -42,7 +43,12 @@ data class MBook(
     @get: PropertyName("google_book_id")
     @set: PropertyName("google_book_id")
     var googleBookId: String? = null
-)
+) {
+    val bookStatus: BookStatus
+        get() = if (startedReading == null) BookStatus.LIBRARY
+        else if (finishedReading == null) BookStatus.READING
+        else BookStatus.FINISHED
+}
 
 fun List<Item>.toModels(): List<MBook> {
     return this.map { it.toModel() }
