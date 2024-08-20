@@ -47,6 +47,7 @@ fun HomeUserIntro(displayName: String?, modifier: Modifier = Modifier) {
 fun HomeReadingRow(
     @StringRes title: Int,
     books: List<MBook>,
+    savedBooks: List<MBook>,
     onBookClick: (String) -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -64,6 +65,9 @@ fun HomeReadingRow(
                         title = book.title,
                         authors = book.authors?.first(), // TODO fix
                         imgUrl = book.imgUrl,
+                        progress = book.bookStatus,
+                        rating = book.rating ?: 0.0,
+                        isSaved = savedBooks.find { it.id == book.id } != null,
                         onClick = { book.googleBookId?.let { onBookClick(it) } },
                         modifier = Modifier.padding(end = AppTheme.spacing.smSpacing)
                     )

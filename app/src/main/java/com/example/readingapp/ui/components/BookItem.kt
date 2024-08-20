@@ -20,7 +20,8 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.StarHalf
-import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material.icons.rounded.StarRate
 import androidx.compose.runtime.Composable
@@ -40,15 +41,11 @@ import coil.request.ImageRequest
 import com.example.readingapp.R
 import com.example.readingapp.mainActivity
 import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.Pink
+import com.example.readingapp.ui.theme.Purple
 import com.example.readingapp.ui.theme.allColors
 import kotlin.math.ceil
 import kotlin.math.floor
-
-enum class BookProgress(val text: String) {
-    NOT_STARTED("Not started"),
-    IN_PROGRESS("In progress"),
-    FINISHED("Finished")
-}
 
 @Composable
 fun RowBookItem(
@@ -58,7 +55,8 @@ fun RowBookItem(
     authors: String? = null,
     imgUrl: String? = null,
     rating: Double = 0.0,
-    progress: BookProgress = BookProgress.NOT_STARTED,
+    progress: BookStatus = BookStatus.LIBRARY,
+    isSaved: Boolean = false,
     onClick: () -> Unit = {}
 ) {
     Card(
@@ -87,9 +85,12 @@ fun RowBookItem(
                         .align(Alignment.Center)
                 )
                 Icon(
-                    imageVector = Icons.Rounded.FavoriteBorder,
+                    imageVector = if (isSaved) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
                     contentDescription = stringResource(R.string.cont_desc_favourite_icon),
+                    tint = Pink,
                     modifier = Modifier
+                        .size(40.dp)
+                        .background(color = Purple)
                         .align(Alignment.TopEnd)
                         .padding(AppTheme.spacing.xxsmSpacing)
                 )
@@ -243,9 +244,9 @@ fun BookRating(
 }
 
 @Composable
-fun BookProgressLabel(progress: BookProgress, modifier: Modifier = Modifier) {
+fun BookProgressLabel(progress: BookStatus, modifier: Modifier = Modifier) {
     Text(
-        text = progress.text,
+        text = progress.statusText,
         style = AppTheme.typography.labelSmall,
         modifier = modifier
             .padding(top = AppTheme.spacing.xsmSpacing)

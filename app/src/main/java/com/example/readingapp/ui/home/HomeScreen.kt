@@ -92,7 +92,7 @@ fun HomeContent(
             .padding(padding)
     ) {
         HomeUserIntro(displayName = displayName, modifier = Modifier.padding(bottom = AppTheme.spacing.mdSpacing))
-        HomeReadingRow(title = R.string.reading_list, books = readingList, onBookClick = onBookClick)
+        HomeReadingRow(title = R.string.reading_list, books = readingList, savedBooks = readingList, onBookClick = onBookClick)
         Spacer(modifier = Modifier.height(100.dp))
     }
 }
