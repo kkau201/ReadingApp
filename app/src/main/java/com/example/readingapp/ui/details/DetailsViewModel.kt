@@ -91,10 +91,20 @@ class DetailsViewModel @Inject constructor(
     }
 
     fun toggleSavedBook() = viewModelScope.launch {
-        if (uiState.value.isSaved) removeBook()
+        if (uiState.value.isSaved) showDialog(
+            DialogState(
+                title = getString(R.string.remove_book_title),
+                message = getString(R.string.remove_book_message),
+                primaryButtonText = getString(R.string.remove_book_primary_button),
+                secondaryButtonText = getString(R.string.remove_book_secondary_button),
+                onPrimaryClick = {
+                    dismissDialog()
+                    removeBook()
+                },
+                onSecondaryClick = { dismissDialog() }
+            )
+        )
         else saveBook()
-
-        fireRepository.fetchSavedBooksByUser(getUser().value?.userId.toString())
     }
 
     private fun saveBook() {
@@ -113,6 +123,7 @@ class DetailsViewModel @Inject constructor(
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
                                     showToast(getString(R.string.book_saved_toast))
+                                    fetchSavedBooks()
                                 }
                             }
                             .addOnFailureListener {
@@ -131,12 +142,17 @@ class DetailsViewModel @Inject constructor(
                 .addOnCompleteListener {
                     if (it.isSuccessful) {
                         showToast(getString(R.string.book_removed_toast))
+                        fetchSavedBooks()
                     }
                 }
                 .addOnFailureListener {
                     Log.e("Error", "saveBook: Error deleting doc", it)
                 }
         }
+    }
+
+    private fun fetchSavedBooks() = viewModelScope.launch {
+        fireRepository.fetchSavedBooksByUser(getUser().value?.userId.toString())
     }
 
     fun navToUpdateScreen() {

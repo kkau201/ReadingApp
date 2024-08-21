@@ -53,9 +53,15 @@
     <string name="login_error_title">Login error</string>
     <string name="login_error_message">Sorry, unable to get your account to log in</string>
     <string name="login_error_primary_btn">Try again</string>
-    <string name="update_book_title">Update book</string>
+
     <string name="book_saved_toast">Book saved successfully</string>
     <string name="book_removed_toast">Book removed successfully</string>
+    <string name="remove_book_title">Remove book?</string>
+    <string name="remove_book_message">Are you sure you want to remove this book? This will delete all data associated with it.</string>
+    <string name="remove_book_primary_button">Yes</string>
+    <string name="remove_book_secondary_button">No</string>
+
+    <string name="update_book_title">Update book</string>
     <string name="update_cancel">Cancel</string>
     <string name="update_save">Save</string>
     <string name="update_book_success">Book updated</string>
