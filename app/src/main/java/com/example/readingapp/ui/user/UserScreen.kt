@@ -1,13 +1,14 @@
 package com.example.readingapp.ui.user
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -35,7 +36,7 @@ import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.components.ReadingAppBarNav
-import com.example.readingapp.ui.components.ReadingAppButton
+import com.example.readingapp.ui.components.ReadingAppTab
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.AppTheme.spacing
 import com.example.readingapp.ui.theme.Purple
@@ -110,20 +111,25 @@ fun UserContent(
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = spacing.smSpacing, bottom = spacing.lgSpacing)
         )
-        ReadingAppButton(
-            text = "Update Details",
-            padding = PaddingValues(horizontal = spacing.mdSpacing),
-            backgroundColor = Purple,
-            onClick = onUpdateClick,
-            modifier = Modifier.fillMaxWidth()
-        )
-        ReadingAppButton(
-            text = "Logout",
-            padding = PaddingValues(horizontal = spacing.mdSpacing),
-            backgroundColor = Purple,
-            onClick = onLogoutClick,
-            modifier = Modifier.fillMaxWidth()
-        )
+        Column(
+            modifier = Modifier.background(
+                color = Purple.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(spacing.smSpacing)
+            ).padding(spacing.xsmSpacing)
+        ) {
+            ReadingAppTab(
+                text = "Update Details",
+                backgroundColor = Purple,
+                onClick = onUpdateClick,
+                modifier = Modifier.fillMaxWidth()
+            )
+            ReadingAppTab(
+                text = "Logout",
+                backgroundColor = Purple,
+                onClick = onLogoutClick,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
