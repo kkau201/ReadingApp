@@ -125,7 +125,6 @@ fun SearchScreen(
                     listOffset = imageHeightInPx.toFloat()
                 }
         )
-        ReadingAppBarNav(title = stringResource(id = R.string.search_title), onNavIconClick = viewModel::navigateBack)
         SearchInput(
             currentInput = uiState.searchInput,
             keyboardController = keyboardController,
