@@ -1,5 +1,6 @@
 package com.example.readingapp.model
 
+import com.example.readingapp.ui.user.update.Avatar
 import com.google.firebase.firestore.DocumentSnapshot
 
 const val USER_ID = "user_id"
@@ -25,6 +26,9 @@ data class MUser(
             PROFESSION to this.profession,
         )
     }
+
+    val avatar: Avatar
+        get() = Avatar.entries.find { it.id == avatarUrl } ?: Avatar.AVATAR_1
 }
 
 fun DocumentSnapshot.toModel(): MUser {

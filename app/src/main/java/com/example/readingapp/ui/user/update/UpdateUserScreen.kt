@@ -1,12 +1,8 @@
 package com.example.readingapp.ui.user.update
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -24,13 +20,12 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
+import com.example.readingapp.common.ErrorType
+import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.components.ReadingAppBarNav
-import com.example.readingapp.ui.details.update.UpdateButtons
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.AppTheme.spacing
-import com.example.readingapp.ui.theme.Blue
 import com.example.readingapp.utils.keyboardAsState
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -44,6 +39,7 @@ fun UpdateUserScreen(
 ) {
     ViewModelBinding(viewModel = viewModel, navigator = navigator)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val loadingState by viewModel.getLoadingState().collectAsStateWithLifecycle()
 
     ObserveUpdateUserLifecycle(lifecycleOwner, viewModel)
 
@@ -70,35 +66,28 @@ fun UpdateUserScreen(
             )
         }
     ) { padding ->
-        Column(
-            Modifier
-                .padding(padding)
-                .padding(horizontal = spacing.lgSpacing)
-                .background(shape = RoundedCornerShape(spacing.smSpacing), color = Blue)
-                .fillMaxWidth()
-                .padding(spacing.smSpacing)
-        ) {
-            UpdateUserInputField(
-                label = stringResource(id = R.string.update_user_name_label),
-                input = uiState.displayNameInput,
-                onInputChange = viewModel::onDisplayNameInputChange
-            )
-            UpdateUserInputField(
-                label = stringResource(id = R.string.update_user_bio_label),
-                input = uiState.bioInput,
-                onInputChange = viewModel::onBioInputChange
-            )
-
-            UpdateButtons(
-                onSaveClick = {
-                    keyboardController?.hide()
-                    viewModel.onUpdateClick()
-                },
-                onCancelClick = {
-                    keyboardController?.hide()
-                    viewModel.navigateBack()
-                }
-            )
+        when (loadingState) {
+            LoadingState.SUCCESS -> {
+                UpdateUserContent(
+                    modifier = Modifier.padding(padding),
+                    uiState = uiState,
+                    onDisplayNameInputChange = viewModel::onDisplayNameInputChange,
+                    onBioInputChange = viewModel::onBioInputChange,
+                    onAvatarChange = viewModel::onAvatarChange,
+                    onSaveClick = {
+                        keyboardController?.hide()
+                        viewModel.onUpdateClick()
+                    },
+                    onCancelClick = {
+                        keyboardController?.hide()
+                        viewModel.navigateBack()
+                    }
+                )
+            }
+            LoadingState.FAILED -> {
+                viewModel.showErrorDialog(ErrorType.UnknownUserException)
+            }
+            else -> {}
         }
     }
 }

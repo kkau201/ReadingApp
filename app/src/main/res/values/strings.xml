@@ -21,6 +21,7 @@
     <string name="error_title">Error</string>
     <string name="error_unknown">Something went wrong</string>
     <string name="error_unknown_book">Sorry, we cannot find this book</string>
+    <string name="error_unknown_user">Sorry, we cannot find your user details</string>
     <string name="error_no_internet">Connection not available</string>
     <string name="error_network">Cannot connect to server</string>
     <string name="error_http">Internal error</string>

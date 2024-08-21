@@ -52,4 +52,10 @@ sealed interface ErrorType {
         override val body: Int = R.string.error_unknown_book
         override val primaryBtn: Int = R.string.error_ok
     }
+
+    data object UnknownUserException : IOException(), ErrorType {
+        private fun readResolve(): Any = UnknownUserException
+        override val body: Int = R.string.error_unknown_user
+        override val primaryBtn: Int = R.string.error_ok
+    }
 }

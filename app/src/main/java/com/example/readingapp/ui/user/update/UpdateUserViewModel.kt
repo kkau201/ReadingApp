@@ -4,6 +4,8 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
+import com.example.readingapp.common.LoadingState
+import com.example.readingapp.model.AVATAR_URL
 import com.example.readingapp.model.DISPLAY_NAME
 import com.example.readingapp.model.QUOTE
 import com.example.readingapp.repo.FireRepository
@@ -27,15 +29,25 @@ class UpdateUserViewModel @Inject constructor(
         get() = _uiState
 
     fun loadUser() = viewModelScope.launch {
+        updateLoadingState(LoadingState.LOADING)
         FirebaseAuth.getInstance().currentUser?.uid?.let { currentUserId ->
-            fireRepository.fetchUser(currentUserId)
+            val result = fireRepository.fetchUser(currentUserId)
+            result.data?.let {
+                updateLoadingState(LoadingState.SUCCESS)
+            }
+            result.e?.let {
+                updateLoadingState(LoadingState.FAILED)
+            }
         }
         fireRepository.user.collect { user ->
-            _uiState.update { it.copy(
-                userId = user?.id,
-                displayNameInput = user?.displayName ?: "",
-                bioInput = user?.quote ?: ""
-            )}
+            _uiState.update {
+                it.copy(
+                    userId = user?.id,
+                    displayNameInput = user?.displayName ?: "",
+                    bioInput = user?.quote ?: "",
+                    selectedAvatarId = user?.avatarUrl ?: Avatar.AVATAR_1.id
+                )
+            }
         }
     }
 
@@ -47,16 +59,24 @@ class UpdateUserViewModel @Inject constructor(
         _uiState.update { it.copy(bioInput = input) }
     }
 
+    fun onAvatarChange(id: String) {
+        if (uiState.value.selectedAvatarId != id) {
+            _uiState.update { it.copy(selectedAvatarId = id) }
+        }
+    }
+
     fun onUpdateClick() = uiState.value.userId?.let { id ->
         fireRepository.updateUser(
             userId = id,
             userUpdates = mapOf(
                 DISPLAY_NAME to uiState.value.displayNameInput,
-                QUOTE to uiState.value.bioInput
+                QUOTE to uiState.value.bioInput,
+                AVATAR_URL to uiState.value.selectedAvatarId
             ),
             onCompleteListener = {
                 showToast("Your details have successfully updated")
                 loadUser()
+                navigateBack()
             },
             onErrorListener = {
                 showToast("Error updating your details")

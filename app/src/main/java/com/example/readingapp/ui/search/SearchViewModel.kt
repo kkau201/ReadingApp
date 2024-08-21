@@ -72,21 +72,5 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun showErrorDialog(e: Throwable?) {
-        val error = if (e is ErrorType) e else ErrorType.UnknownNetworkException(e)
-
-        showDialog(
-            DialogState(
-                title = getString(error.title),
-                message = getString(error.body),
-                primaryButtonText = getString(error.primaryBtn),
-                onPrimaryClick = {
-                    dismissDialog()
-                    _uiState.update { it.copy(results = SearchResults.Success(emptyList())) }
-                }
-            )
-        )
-    }
-
     fun onBookClick(bookId: String) = navigate(NavigateTo(DetailsScreenDestination(bookId)))
 }

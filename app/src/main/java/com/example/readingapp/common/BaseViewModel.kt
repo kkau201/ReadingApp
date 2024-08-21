@@ -45,6 +45,22 @@ abstract class BaseViewModel(
         mainViewModel.dismissDialog()
     }
 
+    fun showErrorDialog(e: Throwable?) {
+        val error = if (e is ErrorType) e else ErrorType.UnknownNetworkException(e)
+
+        showDialog(
+            DialogState(
+                title = getString(error.title),
+                message = getString(error.body),
+                primaryButtonText = getString(error.primaryBtn),
+                onPrimaryClick = {
+                    dismissDialog()
+                    navigateBack()
+                }
+            )
+        )
+    }
+
     fun showToast(text: String) {
         mainViewModel.showToast(text)
     }

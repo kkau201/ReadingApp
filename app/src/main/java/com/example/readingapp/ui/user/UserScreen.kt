@@ -1,5 +1,6 @@
 package com.example.readingapp.ui.user
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -33,6 +35,7 @@ import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.components.ReadingAppButton
 import com.example.readingapp.ui.details.ObserveDetailsLifecycleEvents
 import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.user.update.Avatar
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
@@ -51,7 +54,7 @@ fun UserScreen(
     UserContent(
         userDisplayName = uiState.user?.displayName ?: "",
         userBio = uiState.user?.quote ?: "",
-        userAvatarUrl = uiState.user?.avatarUrl?.ifBlank { null },
+        userAvatar = uiState.user?.avatar,
         viewModel::navigateToUpdateUser,
         viewModel::onLogoutClick
     )
@@ -61,7 +64,7 @@ fun UserScreen(
 fun UserContent(
     userDisplayName: String,
     userBio: String,
-    userAvatarUrl: String? = null,
+    userAvatar: Avatar? = null,
     onUpdateClick: () -> Unit,
     onLogoutClick: () -> Unit
 ) {
@@ -69,9 +72,9 @@ fun UserContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(vertical = AppTheme.spacing.lgSpacing, horizontal = AppTheme.spacing.mdSpacing)
     ) {
-        userAvatarUrl?.let {
-            AsyncImage(
-                model = userAvatarUrl,
+        userAvatar?.let {
+            Image(
+                painter = painterResource(id = userAvatar.img),
                 contentDescription = stringResource(R.string.cont_desc_profile_image),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.clip(CircleShape).size(200.dp)
