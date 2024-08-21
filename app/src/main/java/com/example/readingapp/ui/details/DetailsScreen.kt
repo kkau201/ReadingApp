@@ -59,7 +59,8 @@ fun DetailsScreen(
                     ),
                     ActionButton(
                         icon = Icons.Outlined.Edit,
-                        tint = Color.Black,
+                        tint = if(uiState.isSaved) Color.Black else Color.Black.copy(alpha = 0.1f),
+                        isEnabled = uiState.isSaved,
                         onClick = viewModel::navToUpdateScreen
                     ),
                 ),

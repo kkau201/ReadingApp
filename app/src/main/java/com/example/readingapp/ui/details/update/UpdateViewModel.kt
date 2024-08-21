@@ -7,9 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.readingapp.R
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
+import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.components.BookStatus
+import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -141,5 +143,21 @@ class UpdateViewModel @Inject constructor(
 
     fun onCancelClick() {
         navigateBack()
+    }
+
+    fun showErrorDialog(e: Throwable?) {
+        val error = if (e is ErrorType) e else ErrorType.UnknownNetworkException(e)
+
+        showDialog(
+            DialogState(
+                title = getString(error.title),
+                message = getString(error.body),
+                primaryButtonText = getString(error.primaryBtn),
+                onPrimaryClick = {
+                    dismissDialog()
+                    navigateBack()
+                }
+            )
+        )
     }
 }

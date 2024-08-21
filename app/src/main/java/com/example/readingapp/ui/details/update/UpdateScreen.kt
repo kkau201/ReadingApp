@@ -20,6 +20,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
+import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
@@ -69,6 +70,9 @@ fun UpdateScreen(
     ) { padding ->
         when(uiState.loadingState) {
             LoadingState.LOADING -> LoadingLottie()
+            LoadingState.FAILED -> {
+                viewModel.showErrorDialog(ErrorType.UnknownBookException)
+            }
             LoadingState.SUCCESS -> {
                 uiState.book?.let {
                     UpdateScreenContent(

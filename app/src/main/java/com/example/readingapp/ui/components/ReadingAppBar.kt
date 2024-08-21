@@ -92,6 +92,7 @@ fun ReadingAppBarNav(
             actionButtons?.forEach { button ->
                 IconButton(
                     modifier = Modifier.background(color = button.backgroundColor, shape = CircleShape),
+                    enabled = button.isEnabled,
                     onClick = button.onClick
                 ) {
                     Icon(imageVector = button.icon, contentDescription = null, tint = button.tint)
@@ -105,5 +106,6 @@ data class ActionButton(
     val icon: ImageVector,
     val tint: Color = Color.Black,
     val backgroundColor: Color = Color.Transparent,
+    val isEnabled: Boolean = true,
     val onClick: () -> Unit
 )

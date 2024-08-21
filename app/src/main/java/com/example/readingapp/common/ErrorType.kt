@@ -17,6 +17,7 @@ sealed interface ErrorType {
 
 
     data object NoInternetException : IOException(), ErrorType {
+        private fun readResolve(): Any = NoInternetException
         override val body = R.string.error_no_internet
         override val primaryBtn = R.string.error_ok
     }
@@ -44,5 +45,11 @@ sealed interface ErrorType {
     data class UnknownNetworkException(override val cause: Throwable?) : IOException(), ErrorType {
         override val body: Int = R.string.error_unknown
         override val primaryBtn: Int = R.string.error_try_again
+    }
+
+    data object UnknownBookException : IOException(), ErrorType {
+        private fun readResolve(): Any = UnknownBookException
+        override val body: Int = R.string.error_unknown_book
+        override val primaryBtn: Int = R.string.error_ok
     }
 }
