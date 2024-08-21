@@ -25,8 +25,6 @@ class SearchViewModel @Inject constructor(
     dependencyContextWrapper: DependencyContextWrapper,
     private val bookRepository: BookRepository
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
-    override val isNavigationDestination = true
-
     private val _uiState: MutableStateFlow<SearchUiState> = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState>
         get() = _uiState

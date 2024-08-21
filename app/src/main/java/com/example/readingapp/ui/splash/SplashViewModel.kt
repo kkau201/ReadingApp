@@ -10,7 +10,7 @@ import com.example.readingapp.model.MUser
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.components.DialogState
-import com.example.readingapp.ui.destinations.HomeScreenDestination
+import com.example.readingapp.ui.destinations.DashboardScreenDestination
 import com.example.readingapp.ui.destinations.LoginScreenDestination
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -48,7 +48,7 @@ class SplashViewModel @Inject constructor(
     }
 
     fun navigateToHomeScreen() {
-        navigate(NavigateTo(to = HomeScreenDestination, popCurrent = true))
+        navigate(NavigateTo(to = DashboardScreenDestination, popCurrent = true))
     }
 
     fun showErrorLoadingUser() {

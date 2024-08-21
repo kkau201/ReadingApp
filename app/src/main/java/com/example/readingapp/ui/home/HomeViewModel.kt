@@ -9,8 +9,6 @@ import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
-import com.example.readingapp.ui.destinations.SearchScreenDestination
-import com.example.readingapp.ui.destinations.UserScreenDestination
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +24,6 @@ class HomeViewModel @Inject constructor(
     private val fireRepository: FireRepository,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
-    override val isNavigationDestination: Boolean = true
 
     private val _uiState: MutableStateFlow<HomeUiState?> = MutableStateFlow(null)
     val uiState: StateFlow<HomeUiState?>
@@ -55,14 +52,6 @@ class HomeViewModel @Inject constructor(
                 showErrorDialog(e)
             }
         }
-    }
-
-    fun onProfileClick() {
-        navigate(NavigateTo(UserScreenDestination))
-    }
-
-    fun onFabClick() {
-        navigate(NavigateTo(SearchScreenDestination))
     }
 
     fun onBookClick(bookId: String) = navigate(NavigateTo(DetailsScreenDestination(bookId)))

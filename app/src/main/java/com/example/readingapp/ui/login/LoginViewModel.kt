@@ -9,7 +9,7 @@ import com.example.readingapp.model.MUser
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.FireRepository.Companion.USERS_COLLECTION
 import com.example.readingapp.ui.components.DialogState
-import com.example.readingapp.ui.destinations.HomeScreenDestination
+import com.example.readingapp.ui.destinations.DashboardScreenDestination
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -76,7 +76,7 @@ class LoginViewModel @Inject constructor(
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
                                 updateLoadingState(LoadingState.IDLE)
-                                navigate(NavigateTo(to = HomeScreenDestination, popCurrent = true))
+                                navigate(NavigateTo(to = DashboardScreenDestination, popCurrent = true))
                             }
                             else {
                                 updateLoadingState(LoadingState.FAILED)

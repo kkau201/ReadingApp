@@ -43,8 +43,6 @@ import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.components.ReadingAppBarNav
 import com.example.readingapp.utils.keyboardAsState
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -54,14 +52,12 @@ private const val SEARCHBAR_MIN_Y_OFFSET = 50f
 private const val DEFAULT_SEARCHBAR_Y_OFFSET = 900f
 private const val TOP_MARGIN = 100
 
-@Destination
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
-    navigator: DestinationsNavigator,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 ) {
-    ViewModelBinding(viewModel = viewModel, navigator = navigator)
+    ViewModelBinding(viewModel)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
 

@@ -25,32 +25,24 @@ import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.ReadingAppBar
-import com.example.readingapp.ui.components.ReadingAppFab
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.AppTheme.spacing
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
-@Destination
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    navigator: DestinationsNavigator,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 ) {
-    ViewModelBinding(viewModel = viewModel, navigator = navigator)
+    ViewModelBinding(viewModel)
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val loadingState = viewModel.getLoadingState().collectAsStateWithLifecycle()
 
     Scaffold(
         backgroundColor = AppTheme.colors.background,
         modifier = Modifier.fillMaxSize(),
-        floatingActionButton = { ReadingAppFab { viewModel.onFabClick() } },
         topBar = {
             ReadingAppBar(
-                title = stringResource(id = R.string.app_name),
-                actionImgRes = uiState.value?.userAvatar?.img,
-                onActionIconClick = viewModel::onProfileClick
+                title = stringResource(id = R.string.app_name)
             )
         }
     ) { padding ->

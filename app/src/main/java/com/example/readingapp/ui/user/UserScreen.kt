@@ -19,7 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -41,17 +40,13 @@ import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.AppTheme.spacing
 import com.example.readingapp.ui.theme.Purple
 import com.example.readingapp.ui.user.update.Avatar
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
-@Destination
 @Composable
 fun UserScreen(
     viewModel: UserViewModel = hiltViewModel(),
-    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
-    navigator: DestinationsNavigator
+    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 ) {
-    ViewModelBinding(viewModel = viewModel, navigator = navigator)
+    ViewModelBinding(viewModel)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     ObserveUserLifecycleEvents(lifecycleOwner, viewModel)
@@ -60,10 +55,7 @@ fun UserScreen(
         modifier = Modifier.fillMaxSize(),
         containerColor = AppTheme.colors.background,
         topBar = {
-            ReadingAppBarNav(
-                navIconTint = Color.Black,
-                onNavIconClick = viewModel::navigateBack
-            )
+            ReadingAppBarNav()
         }
     ) { padding ->
         UserContent(
