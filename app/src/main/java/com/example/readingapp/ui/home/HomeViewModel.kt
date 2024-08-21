@@ -47,6 +47,7 @@ class HomeViewModel @Inject constructor(
             _uiState.update {
                 HomeUiState(
                     displayName = fireRepository.user.value?.displayName,
+                    userAvatar = fireRepository.user.value?.avatar,
                     readingList = fireRepository.savedBooks.value
                 )
             }

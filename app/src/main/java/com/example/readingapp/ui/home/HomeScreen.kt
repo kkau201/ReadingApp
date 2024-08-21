@@ -50,7 +50,7 @@ fun HomeScreen(
         topBar = {
             ReadingAppBar(
                 title = stringResource(id = R.string.app_name),
-                actionIcon = Icons.Filled.AccountCircle,
+                actionImgRes = uiState.value?.userAvatar?.img,
                 onActionIconClick = viewModel::onProfileClick
             )
         }

@@ -30,8 +30,7 @@ import com.example.readingapp.ui.theme.AppTheme
 @Composable
 fun ReadingAppBar(
     title: String? = null,
-    actionIcon: ImageVector? = null,
-    actionIconTint: Color = Color.Black,
+    actionImgRes: Int? = null,
     onActionIconClick: () -> Unit = {}
 ) {
     TopAppBar(
@@ -53,13 +52,14 @@ fun ReadingAppBar(
             }
         },
         actions = {
-            actionIcon?.let {
-                IconButton(onClick = onActionIconClick) {
-                    Icon(
-                        imageVector = it,
-                        contentDescription = null,
-                        tint = actionIconTint,
-                        modifier = Modifier.size(35.dp)
+            actionImgRes?.let {
+                IconButton(
+                    modifier = Modifier.size(48.dp),
+                    onClick = onActionIconClick
+                ) {
+                    Image(
+                        painter = painterResource(id = actionImgRes),
+                        contentDescription = stringResource(id = R.string.cont_desc_profile_image)
                     )
                 }
             }
