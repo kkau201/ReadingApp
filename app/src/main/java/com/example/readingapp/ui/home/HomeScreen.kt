@@ -9,20 +9,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
+import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.model.MBook
@@ -42,6 +40,7 @@ fun HomeScreen(
 ) {
     ViewModelBinding(viewModel = viewModel, navigator = navigator)
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val loadingState = viewModel.getLoadingState().collectAsStateWithLifecycle()
 
     Scaffold(
         backgroundColor = AppTheme.colors.background,
@@ -55,14 +54,19 @@ fun HomeScreen(
             )
         }
     ) { padding ->
-        uiState.value?.let { loadedState ->
-            HomeContent(
-                padding = padding,
-                displayName = loadedState.displayName,
-                readingList = loadedState.readingList,
-                currentReadingList = loadedState.currentReadingList,
-                onBookClick = viewModel::onBookClick
-            )
+        when (loadingState.value) {
+            LoadingState.SUCCESS -> {
+                uiState.value?.let { loadedState ->
+                    HomeContent(
+                        padding = padding,
+                        displayName = loadedState.displayName,
+                        readingList = loadedState.readingList,
+                        currentReadingList = loadedState.currentReadingList,
+                        onBookClick = viewModel::onBookClick
+                    )
+                }
+            }
+            else -> {}
         }
     }
 

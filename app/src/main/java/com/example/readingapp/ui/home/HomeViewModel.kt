@@ -4,6 +4,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
+import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.FireRepository
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,26 +34,26 @@ class HomeViewModel @Inject constructor(
 
     fun onLoad() {
         viewModelScope.launch(Dispatchers.IO) {
-            updateLoadingState(LoadingState.LOADING)
+            try {
+                updateLoadingState(LoadingState.LOADING)
+                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: throw ErrorType.UnknownUserException
+                val user = fireRepository.user.value ?: fireRepository.fetchUser(currentUserId).getOrThrow()
+                val books = fireRepository.fetchSavedBooksByUser().getOrThrow()
 
-            FirebaseAuth.getInstance().currentUser?.uid?.let { currentUserId ->
-                if (fireRepository.user.value == null) {
-                    fireRepository.fetchUser(currentUserId)
+                withContext(Dispatchers.Main) {
+                    _uiState.update {
+                        HomeUiState(
+                            displayName = user?.displayName,
+                            userAvatar = user?.avatar,
+                            readingList = books
+                        )
+                    }
+                    updateLoadingState(LoadingState.SUCCESS)
                 }
-
-                fireRepository.fetchSavedBooksByUser(currentUserId)
-            } ?: run {
+            } catch (e: Exception) {
                 updateLoadingState(LoadingState.FAILED)
+                showErrorDialog(e)
             }
-
-            _uiState.update {
-                HomeUiState(
-                    displayName = fireRepository.user.value?.displayName,
-                    userAvatar = fireRepository.user.value?.avatar,
-                    readingList = fireRepository.savedBooks.value
-                )
-            }
-            updateLoadingState(LoadingState.IDLE)
         }
     }
 
