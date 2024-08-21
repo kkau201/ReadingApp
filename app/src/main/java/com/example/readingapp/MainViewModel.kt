@@ -6,7 +6,6 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.LoadingState
-import com.example.readingapp.model.MUser
 import com.example.readingapp.nav.NavigationEvent
 import com.example.readingapp.ui.components.DialogState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,11 +38,6 @@ class MainViewModel @Inject constructor() : ViewModel(), DefaultLifecycleObserve
     val toastFlow: StateFlow<String?>
         get() = _toastFlow
 
-
-    private val _userFlow: MutableStateFlow<MUser?> = MutableStateFlow(null)
-    val userFlow: StateFlow<MUser?>
-        get() = _userFlow
-
     fun navigate(navigationEvent: NavigationEvent) {
         viewModelScope.launch {
             (_navigationFlow as MutableSharedFlow).emit(navigationEvent)
@@ -57,6 +51,4 @@ class MainViewModel @Inject constructor() : ViewModel(), DefaultLifecycleObserve
 
     fun showToast(text: String) = _toastFlow.update { text }
     fun resetToast() { _toastFlow.value = null }
-
-    fun updateUser(user: MUser?) = _userFlow.update { user }
 }

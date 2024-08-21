@@ -37,7 +37,7 @@ class UpdateViewModel @Inject constructor(
 
     fun loadBook() {
         viewModelScope.launch(Dispatchers.IO) {
-            fireRepository.fetchSavedBooksByUser(getUser().value?.userId.toString())
+            fireRepository.fetchSavedBooksByUser()
             fireRepository.savedBooks.collect { allSavedBooks ->
                 val savedBook = allSavedBooks.find { it.googleBookId == args.bookId }
                 _uiState.update { state ->

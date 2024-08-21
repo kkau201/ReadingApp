@@ -67,4 +67,10 @@
     <string name="update_book_success">Book updated</string>
     <string name="update_book_error">Error updating book</string>
     <string name="update_no_changes_made">No changes made</string>
+
+    <string name="update_user_title">Update your details</string>
+    <string name="update_user_name_label">Name</string>
+    <string name="update_user_bio_label">Bio</string>
+    <string name="update_user_avatar_label">Avatar</string>
+
 </resources>

@@ -49,9 +49,6 @@ abstract class BaseViewModel(
         mainViewModel.showToast(text)
     }
 
-    fun getUser() = mainViewModel.userFlow
-    fun updateUser(user: MUser) = mainViewModel.updateUser(user)
-
     fun getString(@StringRes resId: Int): String {
         return dependencyContextWrapper.context.getString(resId)
     }

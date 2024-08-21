@@ -20,11 +20,29 @@ class FireRepository @Inject constructor(
 
     companion object {
         const val USER_ID = "user_id"
+        const val USERS_COLLECTION = "users"
+        const val BOOKS_COLLECTION = "books"
     }
+
+    private val _user = MutableStateFlow<MUser?>(null)
+    val user: StateFlow<MUser?>
+        get() = _user
 
     private val _savedBooks = MutableStateFlow<List<MBook>>(emptyList())
     val savedBooks: StateFlow<List<MBook>>
         get() = _savedBooks
+
+    suspend fun fetchUser(userId: String?): DataOrException<MUser?, Boolean, Exception> {
+        val result = getUserDetailsFromDatabase(userId)
+
+        _user.update { result.data }
+
+        return result
+    }
+
+    suspend fun fetchSavedBooksByUser(): DataOrException<List<MBook>, Boolean, Exception> {
+        return fetchSavedBooksByUser(user.value?.userId.toString())
+    }
 
     suspend fun fetchSavedBooksByUser(userId: String): DataOrException<List<MBook>, Boolean, Exception> {
         val result = getAllBooksFromDatabase()
@@ -50,7 +68,7 @@ class FireRepository @Inject constructor(
         return dataOrException
     }
 
-    suspend fun getUserDetailsFromDatabase(currentUserId: String?): DataOrException<MUser?, Boolean, Exception> {
+    private suspend fun getUserDetailsFromDatabase(currentUserId: String?): DataOrException<MUser?, Boolean, Exception> {
         val dataOrException = DataOrException<MUser?, Boolean, Exception>()
         try {
             dataOrException.loading = true
@@ -73,9 +91,25 @@ class FireRepository @Inject constructor(
         onErrorListener: (Exception) -> Unit
     ) {
         FirebaseFirestore.getInstance()
-            .collection("books")
+            .collection(BOOKS_COLLECTION)
             .document(bookId)
             .update(bookUpdates)
+            .addOnCompleteListener {
+                onCompleteListener(it.isSuccessful)
+            }
+            .addOnFailureListener { onErrorListener(it) }
+    }
+
+    fun updateUser(
+        userId: String,
+        userUpdates: Map<String, Any?>,
+        onCompleteListener: (Boolean) -> Unit,
+        onErrorListener: (Exception) -> Unit
+    ) {
+        FirebaseFirestore.getInstance()
+            .collection(USERS_COLLECTION)
+            .document(userId)
+            .update(userUpdates)
             .addOnCompleteListener {
                 onCompleteListener(it.isSuccessful)
             }

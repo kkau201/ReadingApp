@@ -7,6 +7,7 @@ import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.model.MUser
 import com.example.readingapp.nav.NavigateTo
+import com.example.readingapp.repo.FireRepository.Companion.USERS_COLLECTION
 import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.HomeScreenDestination
 import com.google.firebase.Firebase
@@ -145,6 +146,6 @@ class LoginViewModel @Inject constructor(
             displayName = displayName
         ).toMap()
 
-        FirebaseFirestore.getInstance().collection("users").add(user)
+        FirebaseFirestore.getInstance().collection(USERS_COLLECTION).add(user)
     }
 }

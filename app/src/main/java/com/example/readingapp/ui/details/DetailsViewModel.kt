@@ -13,6 +13,7 @@ import com.example.readingapp.data.RemoteResult
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.BookRepository
 import com.example.readingapp.repo.FireRepository
+import com.example.readingapp.repo.FireRepository.Companion.BOOKS_COLLECTION
 import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import com.example.readingapp.ui.destinations.UpdateScreenDestination
@@ -113,7 +114,7 @@ class DetailsViewModel @Inject constructor(
             val bookWithId = book.copy(
                 userId = FirebaseAuth.getInstance().currentUser?.uid.toString()
             )
-            val dbCollection = db.collection("books")
+            val dbCollection = db.collection(BOOKS_COLLECTION)
             if (bookWithId.toString().isNotEmpty()) {
                 dbCollection.add(bookWithId)
                     .addOnSuccessListener { documentRef ->
@@ -137,7 +138,7 @@ class DetailsViewModel @Inject constructor(
     private fun removeBook() {
         uiState.value.bookId?.let { bookId ->
             val db = FirebaseFirestore.getInstance()
-            db.collection("books").document(bookId)
+            db.collection(BOOKS_COLLECTION).document(bookId)
                 .delete()
                 .addOnCompleteListener {
                     if (it.isSuccessful) {
@@ -152,7 +153,7 @@ class DetailsViewModel @Inject constructor(
     }
 
     private fun fetchSavedBooks() = viewModelScope.launch {
-        fireRepository.fetchSavedBooksByUser(getUser().value?.userId.toString())
+        fireRepository.fetchSavedBooksByUser()
     }
 
     fun navToUpdateScreen() {

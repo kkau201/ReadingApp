@@ -42,8 +42,7 @@ class SplashViewModel @Inject constructor(
             }
             else {
                 Log.d("SplashViewModel", "Navigate to home screen")
-                userData.update { fireRepository.getUserDetailsFromDatabase(user?.uid) }
-                userData.value.data?.let { updateUser(it) }
+                userData.update { fireRepository.fetchUser(user?.uid) }
             }
         }
     }

@@ -34,21 +34,19 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             updateLoadingState(LoadingState.LOADING)
 
-            var firebaseUser = getUser().value
-            if (firebaseUser == null) {
-                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-                fireRepository.getUserDetailsFromDatabase(currentUserId).data?.let {
-                    updateUser(it)
-                    firebaseUser = it
-                    fireRepository.fetchSavedBooksByUser(it.userId)
+            FirebaseAuth.getInstance().currentUser?.uid?.let { currentUserId ->
+                if (fireRepository.user.value == null) {
+                    fireRepository.fetchUser(currentUserId)
                 }
-            } else {
-                fireRepository.fetchSavedBooksByUser(firebaseUser!!.userId)
+
+                fireRepository.fetchSavedBooksByUser(currentUserId)
+            } ?: run {
+                updateLoadingState(LoadingState.FAILED)
             }
 
             _uiState.update {
                 HomeUiState(
-                    displayName = firebaseUser?.displayName,
+                    displayName = fireRepository.user.value?.displayName,
                     readingList = fireRepository.savedBooks.value
                 )
             }

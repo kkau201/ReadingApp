@@ -52,6 +52,7 @@ fun UserScreen(
         userDisplayName = uiState.user?.displayName ?: "",
         userBio = uiState.user?.quote ?: "",
         userAvatarUrl = uiState.user?.avatarUrl?.ifBlank { null },
+        viewModel::navigateToUpdateUser,
         viewModel::onLogoutClick
     )
 }
@@ -61,6 +62,7 @@ fun UserContent(
     userDisplayName: String,
     userBio: String,
     userAvatarUrl: String? = null,
+    onUpdateClick: () -> Unit,
     onLogoutClick: () -> Unit
 ) {
     Column(
@@ -92,6 +94,11 @@ fun UserContent(
             style = AppTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = AppTheme.spacing.smSpacing, bottom = AppTheme.spacing.lgSpacing)
+        )
+        ReadingAppButton(
+            text = "Update Details",
+            onClick = onUpdateClick,
+            modifier = Modifier.fillMaxWidth()
         )
         ReadingAppButton(
             text = "Logout",
