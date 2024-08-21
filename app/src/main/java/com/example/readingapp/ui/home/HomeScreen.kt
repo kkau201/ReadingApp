@@ -29,6 +29,7 @@ import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.ReadingAppBar
 import com.example.readingapp.ui.components.ReadingAppFab
 import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.AppTheme.spacing
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
@@ -59,6 +60,7 @@ fun HomeScreen(
                 padding = padding,
                 displayName = loadedState.displayName,
                 readingList = loadedState.readingList,
+                currentReadingList = loadedState.currentReadingList,
                 onBookClick = viewModel::onBookClick
             )
         }
@@ -83,6 +85,7 @@ fun HomeContent(
     padding: PaddingValues,
     displayName: String?,
     readingList: List<MBook>,
+    currentReadingList: List<MBook>,
     onBookClick: (String) -> Unit
 ) {
     Column(
@@ -91,8 +94,24 @@ fun HomeContent(
             .fillMaxSize()
             .padding(padding)
     ) {
-        HomeUserIntro(displayName = displayName, modifier = Modifier.padding(bottom = AppTheme.spacing.mdSpacing))
-        HomeReadingRow(title = R.string.reading_list, books = readingList, savedBooks = readingList, onBookClick = onBookClick)
-        Spacer(modifier = Modifier.height(100.dp))
+        HomeUserIntro(displayName = displayName, modifier = Modifier.padding(bottom = spacing.mdSpacing))
+        if (currentReadingList.isNotEmpty()) {
+            HomeReadingRow(
+                title = R.string.currently_reading,
+                books = currentReadingList,
+                savedBooks = readingList,
+                onBookClick = onBookClick,
+                modifier = Modifier.padding(bottom = spacing.mdSpacing)
+            )
+        }
+        if (readingList.isNotEmpty()) {
+            HomeReadingRow(
+                title = R.string.reading_list,
+                books = readingList,
+                savedBooks = readingList,
+                onBookClick = onBookClick
+            )
+        }
+        Spacer(modifier = Modifier.height(spacing.lgSpacing))
     }
 }

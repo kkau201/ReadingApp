@@ -12,7 +12,7 @@
     <string name="already_user">Already have an account?</string>
 
     <string name="hello">"Hello, "</string>
-    <string name="your_reading_activity">Your reading activity</string>
+    <string name="currently_reading">Currently reading...</string>
     <string name="reading_list">Reading List</string>
 
     <string name="search_title">Search books</string>

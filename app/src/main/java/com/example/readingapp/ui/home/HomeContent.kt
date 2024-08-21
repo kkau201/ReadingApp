@@ -45,6 +45,7 @@ fun HomeUserIntro(displayName: String?, modifier: Modifier = Modifier) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeReadingRow(
+    modifier: Modifier = Modifier,
     @StringRes title: Int,
     books: List<MBook>,
     savedBooks: List<MBook>,
@@ -52,7 +53,7 @@ fun HomeReadingRow(
 ) {
     val listState = rememberLazyListState()
     val snap = rememberSnapFlingBehavior(lazyListState = listState)
-    Column {
+    Column(modifier) {
         Text(text = stringResource(title), style = AppTheme.typography.titleLarge, modifier = Modifier.padding(start = AppTheme.spacing.lgSpacing))
         if(books.isNotEmpty()){
             LazyRow(
