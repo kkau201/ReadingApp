@@ -41,7 +41,7 @@ import coil.request.ImageRequest
 import com.example.readingapp.R
 import com.example.readingapp.mainActivity
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.Pink
+import com.example.readingapp.ui.theme.Beige
 import com.example.readingapp.ui.theme.Purple
 import com.example.readingapp.ui.theme.allColors
 import kotlin.math.ceil
@@ -87,10 +87,10 @@ fun RowBookItem(
                 Icon(
                     imageVector = if (isSaved) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
                     contentDescription = stringResource(R.string.cont_desc_favourite_icon),
-                    tint = Pink,
+                    tint = Beige,
                     modifier = Modifier
                         .size(40.dp)
-                        .background(color = Purple)
+                        .background(color = Purple.copy(alpha = 0.9f))
                         .align(Alignment.TopEnd)
                         .padding(AppTheme.spacing.xxsmSpacing)
                 )

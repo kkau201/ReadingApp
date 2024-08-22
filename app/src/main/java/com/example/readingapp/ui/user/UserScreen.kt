@@ -113,19 +113,19 @@ fun UserContent(
         )
         Column(
             modifier = Modifier.background(
-                color = Purple.copy(alpha = 0.3f),
+                color = userAvatar?.color?.copy(alpha = 0.3f) ?: Purple.copy(alpha = 0.3f),
                 shape = RoundedCornerShape(spacing.smSpacing)
             ).padding(spacing.xsmSpacing)
         ) {
             ReadingAppTab(
                 text = "Update Details",
-                backgroundColor = Purple,
+                backgroundColor = userAvatar?.color ?: Purple,
                 onClick = onUpdateClick,
                 modifier = Modifier.fillMaxWidth()
             )
             ReadingAppTab(
                 text = "Logout",
-                backgroundColor = Purple,
+                backgroundColor = userAvatar?.color ?: Purple,
                 onClick = onLogoutClick,
                 modifier = Modifier.fillMaxWidth()
             )

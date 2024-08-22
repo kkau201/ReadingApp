@@ -9,14 +9,14 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 private val LightColorScheme = lightColorScheme(
-    primary = Orange,
-    secondary = Green,
+    primary = Pink,
+    secondary = Blue,
     tertiary = Yellow,
-    background = Pink,
-    surface = Blue,
+    background = Beige,
+    surface = Orange,
     onPrimary = Color.White,
     onSecondary = Color.White,
-    onTertiary = Color.Black,
+    onTertiary = Color.DarkGray,
     onBackground = Color.DarkGray,
     onSurface = Color.White
 )

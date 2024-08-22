@@ -83,7 +83,7 @@ fun UpdateScreenContent(
 
             Divider(color = Color.White.copy(alpha = 0.5f), modifier = Modifier.padding(top = spacing.mdSpacing))
 
-            UpdateButtons(onSaveClick, onCancelClick)
+            UpdateButtons(onSaveClick = onSaveClick, onCancelClick = onCancelClick)
 
         }
     }
@@ -165,12 +165,16 @@ fun UpdateRating(
 
 @Composable
 fun UpdateButtons(
+    modifier: Modifier = Modifier,
+    saveColor: Color = Pink,
+    cancelColor: Color = Pink.copy(alpha = 0.7f),
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.SpaceEvenly,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
     Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier
+        horizontalArrangement = horizontalArrangement,
+        modifier = modifier
             .fillMaxWidth()
             .padding(top = spacing.xsmSpacing)
     ) {
@@ -182,12 +186,12 @@ fun UpdateButtons(
             Icon(
                 imageVector = Icons.Rounded.Close,
                 contentDescription = null,
-                tint = Pink,
+                tint = cancelColor,
                 modifier = Modifier
                     .padding(end = spacing.xsmSpacing)
                     .alpha(0.7f)
             )
-            Text(text = stringResource(R.string.update_cancel), color = Pink.copy(alpha = 0.7f))
+            Text(text = stringResource(R.string.update_cancel), color = cancelColor)
         }
         Button(
             colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
@@ -197,10 +201,10 @@ fun UpdateButtons(
             Icon(
                 imageVector = Icons.Rounded.Check,
                 contentDescription = null,
-                tint = Pink,
+                tint = saveColor,
                 modifier = Modifier.padding(end = spacing.xsmSpacing)
             )
-            Text(text = stringResource(R.string.update_save), fontWeight = FontWeight.Bold, color = Pink)
+            Text(text = stringResource(R.string.update_save), fontWeight = FontWeight.Bold, color = saveColor)
         }
     }
 }
