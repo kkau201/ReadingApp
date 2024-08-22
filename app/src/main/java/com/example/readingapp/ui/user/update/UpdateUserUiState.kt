@@ -12,7 +12,7 @@ data class UpdateUserUiState(
     val userId: String? = null,
     val displayNameInput: String = "",
     val bioInput: String = "",
-    val selectedAvatarId: String = "",
+    val selectedAvatar: Avatar? = null,
     val avatarImgList: List<Avatar> = Avatar.entries
 )
 

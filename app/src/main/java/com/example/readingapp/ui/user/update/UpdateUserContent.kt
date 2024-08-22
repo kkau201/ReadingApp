@@ -39,7 +39,9 @@ import com.example.readingapp.ui.details.update.UpdateButtons
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.AppTheme.spacing
 import com.example.readingapp.ui.theme.Blue
+import com.example.readingapp.ui.theme.Purple
 import kotlin.math.absoluteValue
+import kotlin.math.truncate
 
 @Composable
 fun UpdateUserContent(
@@ -47,11 +49,14 @@ fun UpdateUserContent(
     uiState: UpdateUserUiState,
     onDisplayNameInputChange: (String) -> Unit,
     onBioInputChange: (String) -> Unit,
-    onAvatarChange: (String) -> Unit,
+    onAvatarChange: (Avatar) -> Unit,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
-    Box(modifier = modifier.fillMaxSize().padding(bottom = spacing.mdSpacing)) {
+    val color = uiState.selectedAvatar?.color ?: Purple
+    Box(modifier = modifier
+        .fillMaxSize()
+        .padding(bottom = spacing.mdSpacing)) {
         Column(
             Modifier
                 .align(Alignment.TopCenter)
@@ -61,7 +66,7 @@ fun UpdateUserContent(
                 .padding(vertical = spacing.mdSpacing)
         ) {
             UpdateAvatarPager(
-                selectedAvatarId = uiState.selectedAvatarId,
+                selectedAvatar = uiState.selectedAvatar,
                 avatarList = uiState.avatarImgList,
                 onAvatarChange = onAvatarChange,
                 modifier = Modifier.padding(vertical = spacing.lgSpacing)
@@ -69,12 +74,14 @@ fun UpdateUserContent(
 
             UpdateUserInputField(
                 label = stringResource(id = R.string.update_user_name_label),
+                color = color,
                 input = uiState.displayNameInput,
                 onInputChange = onDisplayNameInputChange,
                 modifier = Modifier.padding(horizontal = spacing.lgSpacing)
             )
             UpdateUserInputField(
                 label = stringResource(id = R.string.update_user_bio_label),
+                color = color,
                 input = uiState.bioInput,
                 onInputChange = onBioInputChange,
                 modifier = Modifier.padding(horizontal = spacing.lgSpacing)
@@ -82,7 +89,7 @@ fun UpdateUserContent(
         }
 
         Divider(
-            color = Blue.copy(alpha = 0.5f),
+            color = color.copy(alpha = 0.5f),
             modifier = Modifier
                 .padding(spacing.lgSpacing)
                 .padding(bottom = spacing.mdSpacing)
@@ -90,12 +97,14 @@ fun UpdateUserContent(
         )
 
         UpdateButtons(
-            saveColor = Blue,
-            cancelColor = Blue.copy(alpha = 0.7f),
+            saveColor = color,
+            cancelColor = color.copy(alpha = 0.7f),
             onSaveClick = onSaveClick,
             onCancelClick = onCancelClick,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.align(Alignment.BottomCenter).padding(horizontal = spacing.mdSpacing)
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = spacing.mdSpacing)
         )
     }
 }
@@ -105,15 +114,16 @@ fun UpdateUserInputField(
     modifier: Modifier = Modifier,
     label: String,
     input: String,
+    color: Color = Purple,
     onInputChange: (String) -> Unit
 ) {
     val textFieldColors = TextFieldDefaults.outlinedTextFieldColors(
         textColor = AppTheme.colors.onBackground,
-        unfocusedLabelColor = Blue.copy(alpha = 0.5f),
-        unfocusedBorderColor = Blue.copy(alpha = 0.5f),
-        focusedBorderColor = Blue,
-        focusedLabelColor = Blue,
-        cursorColor = Blue
+        unfocusedLabelColor = color.copy(alpha = 0.5f),
+        unfocusedBorderColor = color.copy(alpha = 0.5f),
+        focusedBorderColor = color,
+        focusedLabelColor = color,
+        cursorColor = color
     )
 
     OutlinedTextField(
@@ -121,6 +131,7 @@ fun UpdateUserInputField(
         value = input,
         shape = RoundedCornerShape(spacing.smSpacing),
         colors = textFieldColors,
+        singleLine = true,
         onValueChange = onInputChange,
         modifier = modifier
             .fillMaxWidth()
@@ -132,16 +143,16 @@ fun UpdateUserInputField(
 @Composable
 fun UpdateAvatarPager(
     modifier: Modifier = Modifier,
-    selectedAvatarId: String,
+    selectedAvatar: Avatar?,
     avatarList: List<Avatar>,
-    onAvatarChange: (String) -> Unit
+    onAvatarChange: (Avatar) -> Unit
 ) {
-    val initSelectedIndex = avatarList.indexOfFirst { it.id == selectedAvatarId }.coerceAtLeast(0)
+    val initSelectedIndex = avatarList.indexOfFirst { it.id == selectedAvatar?.id }.coerceAtLeast(0)
     val pagerState = rememberPagerState(initialPage = initSelectedIndex, pageCount = { avatarList.size })
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
-            onAvatarChange(avatarList[page].id)
+            onAvatarChange(avatarList[page])
         }
     }
 

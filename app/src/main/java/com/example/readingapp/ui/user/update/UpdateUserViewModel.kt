@@ -40,12 +40,12 @@ class UpdateUserViewModel @Inject constructor(
             }
         }
         fireRepository.user.collect { user ->
-            _uiState.update {
-                it.copy(
+            _uiState.update { state ->
+                state.copy(
                     userId = user?.id,
                     displayNameInput = user?.displayName ?: "",
                     bioInput = user?.quote ?: "",
-                    selectedAvatarId = user?.avatarUrl ?: Avatar.AVATAR_1.id
+                    selectedAvatar = Avatar.entries.find { avatar -> avatar.id == user?.avatarUrl } ?: Avatar.AVATAR_1
                 )
             }
         }
@@ -59,9 +59,9 @@ class UpdateUserViewModel @Inject constructor(
         _uiState.update { it.copy(bioInput = input) }
     }
 
-    fun onAvatarChange(id: String) {
-        if (uiState.value.selectedAvatarId != id) {
-            _uiState.update { it.copy(selectedAvatarId = id) }
+    fun onAvatarChange(avatar: Avatar) {
+        if (uiState.value.selectedAvatar != avatar) {
+            _uiState.update { it.copy(selectedAvatar = avatar) }
         }
     }
 
@@ -71,7 +71,7 @@ class UpdateUserViewModel @Inject constructor(
             userUpdates = mapOf(
                 DISPLAY_NAME to uiState.value.displayNameInput,
                 QUOTE to uiState.value.bioInput,
-                AVATAR_URL to uiState.value.selectedAvatarId
+                AVATAR_URL to uiState.value.selectedAvatar?.id
             ),
             onCompleteListener = {
                 showToast("Your details have successfully updated")
