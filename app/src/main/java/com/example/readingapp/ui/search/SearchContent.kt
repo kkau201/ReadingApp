@@ -3,7 +3,6 @@ package com.example.readingapp.ui.search
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -52,7 +51,8 @@ fun SearchInput(
         placeholder = { Text(text = stringResource(R.string.start_searching_here)) },
         shape = RoundedCornerShape(AppTheme.spacing.lgSpacing),
         colors = TextFieldDefaults.textFieldColors(
-            backgroundColor = Color.White,
+            textColor = AppTheme.colors.onBackground,
+            backgroundColor = AppTheme.colors.background,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent
@@ -114,11 +114,12 @@ fun SearchResults(
                 .offset {
                     IntOffset(0, offset.roundToInt())
                 }
-                .background(Color.White, shape = RoundedCornerShape(AppTheme.spacing.lgSpacing))
+                .background(color = AppTheme.colors.background, shape = RoundedCornerShape(AppTheme.spacing.lgSpacing))
                 .padding(horizontal = AppTheme.spacing.mdSpacing)
         ) {
             items(items = books) { book ->
                 ColumnBookItem(
+                    backgroundColor = AppTheme.colors.background,
                     title = book.title,
                     authors = book.authors,
                     imgUrl = book.imgUrl,

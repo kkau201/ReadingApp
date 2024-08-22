@@ -123,6 +123,7 @@ fun RowBookItem(
 fun ColumnBookItem(
     modifier: Modifier = Modifier,
     context: Context = mainActivity(),
+    backgroundColor: Color = Color.White,
     title: String? = null,
     authors: List<String>? = null,
     imgUrl: String? = null,
@@ -132,6 +133,7 @@ fun ColumnBookItem(
 ) {
     Card(
         elevation = 0.dp,
+        backgroundColor = backgroundColor,
         modifier = modifier
             .padding(vertical = AppTheme.spacing.smSpacing)
             .wrapContentHeight()

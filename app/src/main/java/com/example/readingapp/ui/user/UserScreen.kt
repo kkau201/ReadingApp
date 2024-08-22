@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -39,11 +40,11 @@ import com.example.readingapp.ui.components.ReadingAppBar
 import com.example.readingapp.ui.components.ReadingAppTab
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.AppTheme.spacing
-import com.example.readingapp.ui.theme.Purple
 import com.example.readingapp.ui.user.update.Avatar
 
 @Composable
 fun UserScreen(
+    themeColor: Color,
     viewModel: UserViewModel = hiltViewModel(),
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 ) {
@@ -61,6 +62,7 @@ fun UserScreen(
     ) { padding ->
         UserContent(
             modifier = Modifier.padding(padding),
+            themeColor = themeColor,
             userDisplayName = uiState.user?.displayName ?: "",
             userBio = uiState.user?.quote ?: "",
             userAvatar = uiState.user?.avatar,
@@ -73,6 +75,7 @@ fun UserScreen(
 @Composable
 fun UserContent(
     modifier: Modifier = Modifier,
+    themeColor: Color,
     userDisplayName: String,
     userBio: String,
     userAvatar: Avatar? = null,
@@ -114,20 +117,20 @@ fun UserContent(
         Column(
             modifier = Modifier
                 .background(
-                    color = userAvatar?.color?.copy(alpha = 0.3f) ?: Purple.copy(alpha = 0.3f),
+                    color = themeColor.copy(alpha = 0.3f),
                     shape = RoundedCornerShape(spacing.smSpacing)
                 )
                 .padding(spacing.xsmSpacing)
         ) {
             ReadingAppTab(
                 text = "Update Details",
-                backgroundColor = userAvatar?.color ?: Purple,
+                backgroundColor = themeColor,
                 onClick = onUpdateClick,
                 modifier = Modifier.fillMaxWidth()
             )
             ReadingAppTab(
                 text = "Logout",
-                backgroundColor = userAvatar?.color ?: Purple,
+                backgroundColor = themeColor,
                 onClick = onLogoutClick,
                 modifier = Modifier.fillMaxWidth()
             )

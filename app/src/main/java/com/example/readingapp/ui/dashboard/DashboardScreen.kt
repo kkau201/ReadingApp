@@ -56,8 +56,8 @@ fun DashboardScreen(
             when (uiState.currentTab) {
                 DashboardTab.Home -> HomeScreen()
                 DashboardTab.Session -> HomeScreen()
-                DashboardTab.Search -> SearchScreen()
-                DashboardTab.Profile -> UserScreen()
+                DashboardTab.Search -> SearchScreen(uiState.avatarColor)
+                DashboardTab.Profile -> UserScreen(uiState.avatarColor)
             }
             Spacer(modifier = Modifier.height(BOTTOM_NAV_HEIGHT.dp))
         }
