@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -22,9 +23,10 @@ import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.model.MBook
-import com.example.readingapp.ui.components.ReadingAppBar
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.AppTheme.spacing
+
+const val TOP_MARGIN = 50
 
 @Composable
 fun HomeScreen(
@@ -37,9 +39,6 @@ fun HomeScreen(
     Scaffold(
         backgroundColor = AppTheme.colors.background,
         modifier = Modifier.fillMaxSize(),
-        topBar = {
-            ReadingAppBar()
-        }
     ) { padding ->
         uiState.value?.let { loadedState ->
             HomeContent(
@@ -80,6 +79,7 @@ fun HomeContent(
             .fillMaxSize()
             .padding(padding)
     ) {
+        Spacer(modifier = Modifier.height(TOP_MARGIN.dp))
         HomeUserIntro(displayName = displayName, modifier = Modifier.padding(bottom = spacing.mdSpacing))
         if (currentReadingList.isNotEmpty()) {
             HomeReadingRow(
