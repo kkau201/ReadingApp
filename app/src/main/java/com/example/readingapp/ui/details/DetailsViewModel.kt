@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.readingapp.R
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
-import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.data.RemoteResult
 import com.example.readingapp.nav.NavigateTo
@@ -46,15 +45,15 @@ class DetailsViewModel @Inject constructor(
             try {
                 bookRepository.getBookInfo(args.bookId).collect { result ->
                     when (result) {
-                        is RemoteResult.Loading -> updateLoadingState(LoadingState.LOADING)
+                        is RemoteResult.Loading -> updateLoadingState(LoadingState.Loading())
                         is RemoteResult.Success -> {
-                            updateLoadingState(LoadingState.SUCCESS)
+                            updateLoadingState(LoadingState.Success)
                             _uiState.update { state ->
                                 state.copy(book = result.data)
                             }
                         }
                         is RemoteResult.Error -> {
-                            updateLoadingState(LoadingState.FAILED)
+                            updateLoadingState(LoadingState.Failed(result.exception?.message))
                             showErrorDialog(result.exception)
                         }
                     }

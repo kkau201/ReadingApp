@@ -20,7 +20,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
-import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
@@ -67,7 +66,7 @@ fun UpdateUserScreen(
         }
     ) { padding ->
         when (loadingState) {
-            LoadingState.SUCCESS -> {
+            LoadingState.Success -> {
                 UpdateUserContent(
                     modifier = Modifier.padding(padding),
                     uiState = uiState,
@@ -84,9 +83,6 @@ fun UpdateUserScreen(
                     }
                 )
             }
-            LoadingState.FAILED -> {
-                viewModel.showErrorDialog(ErrorType.UnknownUserException)
-            }
             else -> {}
         }
     }
@@ -99,7 +95,7 @@ fun ObserveUpdateUserLifecycle(
 ) {
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_START) viewModel.loadUser()
+            if (event == Lifecycle.Event.ON_START) viewModel.onLoad()
         }
         lifecycleOwner.lifecycle.addObserver(observer)
 

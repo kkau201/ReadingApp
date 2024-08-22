@@ -29,7 +29,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,7 +40,6 @@ import com.example.readingapp.R
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
-import com.example.readingapp.ui.components.ReadingAppBarNav
 import com.example.readingapp.utils.keyboardAsState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -137,16 +135,16 @@ fun SearchScreen(
 
         when (val results = uiState.results) {
             is SearchResults.Success -> {
-                viewModel.updateLoadingState(LoadingState.SUCCESS)
+                viewModel.updateLoadingState(LoadingState.Success)
                 SearchResults(
                     books = results.books,
                     offset = listOffset,
                     onBookClick = { bookId -> viewModel.onBookClick(bookId) }
                 )
             }
-            is SearchResults.Loading -> viewModel.updateLoadingState(LoadingState.LOADING)
+            is SearchResults.Loading -> viewModel.updateLoadingState(LoadingState.Loading())
             is SearchResults.Error -> {
-                viewModel.updateLoadingState(LoadingState.FAILED)
+                viewModel.updateLoadingState(LoadingState.Failed(results.exception?.message))
                 viewModel.showErrorDialog(results.exception)
             }
         }

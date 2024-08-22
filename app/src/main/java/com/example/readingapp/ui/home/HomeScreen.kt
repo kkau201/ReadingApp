@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -41,13 +40,11 @@ fun HomeScreen(
         backgroundColor = AppTheme.colors.background,
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            ReadingAppBar(
-                title = stringResource(id = R.string.app_name)
-            )
+            ReadingAppBar()
         }
     ) { padding ->
         when (loadingState.value) {
-            LoadingState.SUCCESS -> {
+            LoadingState.Success -> {
                 uiState.value?.let { loadedState ->
                     HomeContent(
                         padding = padding,

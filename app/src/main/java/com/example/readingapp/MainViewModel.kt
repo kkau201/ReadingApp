@@ -26,7 +26,7 @@ class MainViewModel @Inject constructor() : ViewModel(), DefaultLifecycleObserve
     val navigationFlow: Flow<NavigationEvent?>
         get() = _navigationFlow
 
-    private val _loadingFlow: MutableStateFlow<LoadingState> = MutableStateFlow(LoadingState.IDLE)
+    private val _loadingFlow: MutableStateFlow<LoadingState> = MutableStateFlow(LoadingState.Idle)
     val loadingFlow: StateFlow<LoadingState>
         get() = _loadingFlow
 

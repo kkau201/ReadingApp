@@ -32,17 +32,17 @@ class DashboardViewModel @Inject constructor(
     fun onLoad() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                updateLoadingState(LoadingState.LOADING)
                 val currentUserId =
                     FirebaseAuth.getInstance().currentUser?.uid ?: throw ErrorType.UnknownUserException
-                val user = fireRepository.user.value ?: fireRepository.fetchUser(currentUserId).getOrThrow()
+                fireRepository.fetchUser(currentUserId).getOrThrow()
 
                 withContext(Dispatchers.Main) {
-                    _uiState.update { it.copy(avatarColor = user?.avatar?.color ?: Purple) }
-                    updateLoadingState(LoadingState.SUCCESS)
+                    fireRepository.user.collect { user ->
+                        _uiState.update { state -> state.copy(avatarColor = user?.avatar?.color ?: Purple) }
+                    }
                 }
             } catch (e: Exception) {
-                updateLoadingState(LoadingState.FAILED)
+                updateLoadingState(LoadingState.Failed(e.message))
                 showErrorDialog(e)
             }
         }

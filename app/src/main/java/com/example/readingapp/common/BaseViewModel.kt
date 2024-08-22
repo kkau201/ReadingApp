@@ -3,7 +3,6 @@ package com.example.readingapp.common
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import com.example.readingapp.MainViewModel
-import com.example.readingapp.model.MUser
 import com.example.readingapp.nav.NavigateBack
 import com.example.readingapp.nav.NavigationEvent
 import com.example.readingapp.ui.components.DialogState
@@ -34,6 +33,9 @@ abstract class BaseViewModel(
     fun getLoadingState() = mainViewModel.loadingFlow
 
     fun updateLoadingState(state: LoadingState) {
+        if (state == mainViewModel.loadingFlow.value) return
+        if (state is LoadingState.Loading && mainViewModel.loadingFlow.value is LoadingState.Loading) return
+
         mainViewModel.updateLoadingState(state)
     }
 

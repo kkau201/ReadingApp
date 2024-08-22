@@ -41,7 +41,7 @@ fun EmailInput(
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         singleLine = true,
-        enabled = loading == LoadingState.IDLE,
+        enabled = loading == LoadingState.Idle,
         modifier = modifier
     )
 }
@@ -79,7 +79,7 @@ fun PasswordInput(
                 )
             }
         },
-        enabled = loading == LoadingState.IDLE,
+        enabled = loading == LoadingState.Idle,
         modifier = modifier.onFocusChanged { hasFocus.value = it.isFocused }
     )
 }

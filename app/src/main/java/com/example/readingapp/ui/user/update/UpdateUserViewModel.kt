@@ -4,6 +4,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
+import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.model.AVATAR_URL
 import com.example.readingapp.model.DISPLAY_NAME
@@ -11,6 +12,8 @@ import com.example.readingapp.model.QUOTE
 import com.example.readingapp.repo.FireRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -28,26 +31,36 @@ class UpdateUserViewModel @Inject constructor(
     val uiState: StateFlow<UpdateUserUiState>
         get() = _uiState
 
-    fun loadUser() = viewModelScope.launch {
-        updateLoadingState(LoadingState.LOADING)
-        FirebaseAuth.getInstance().currentUser?.uid?.let { currentUserId ->
-            val result = fireRepository.fetchUser(currentUserId)
-            result.data?.let {
-                updateLoadingState(LoadingState.SUCCESS)
-            }
-            result.e?.let {
-                updateLoadingState(LoadingState.FAILED)
+    private var userJob: Job? = null
+
+    fun onLoad() {
+        userJob = viewModelScope.launch {
+            updateLoadingState(LoadingState.Loading())
+            loadUser().join()
+            fireRepository.user.collect { user ->
+                _uiState.update { state ->
+                    state.copy(
+                        userId = user?.id,
+                        displayNameInput = user?.displayName ?: "",
+                        bioInput = user?.quote ?: "",
+                        selectedAvatar = Avatar.entries.find { avatar -> avatar.id == user?.avatarUrl }
+                            ?: Avatar.AVATAR_1
+                    )
+                }
+                user?.let {
+                    updateLoadingState(LoadingState.Success)
+                }
             }
         }
-        fireRepository.user.collect { user ->
-            _uiState.update { state ->
-                state.copy(
-                    userId = user?.id,
-                    displayNameInput = user?.displayName ?: "",
-                    bioInput = user?.quote ?: "",
-                    selectedAvatar = Avatar.entries.find { avatar -> avatar.id == user?.avatarUrl } ?: Avatar.AVATAR_1
-                )
-            }
+    }
+
+    private fun loadUser() = viewModelScope.launch {
+        try {
+            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: throw ErrorType.UnknownUserException
+            fireRepository.fetchUser(currentUserId).getOrThrow()
+        } catch (e: Exception) {
+            updateLoadingState(LoadingState.Failed(e.message))
+            showErrorDialog(e)
         }
     }
 
@@ -65,22 +78,30 @@ class UpdateUserViewModel @Inject constructor(
         }
     }
 
-    fun onUpdateClick() = uiState.value.userId?.let { id ->
-        fireRepository.updateUser(
-            userId = id,
-            userUpdates = mapOf(
-                DISPLAY_NAME to uiState.value.displayNameInput,
-                QUOTE to uiState.value.bioInput,
-                AVATAR_URL to uiState.value.selectedAvatar?.id
-            ),
-            onCompleteListener = {
-                showToast("Your details have successfully updated")
-                loadUser()
-                navigateBack()
-            },
-            onErrorListener = {
-                showToast("Error updating your details")
-            }
-        )
+    fun onUpdateClick() {
+        uiState.value.userId?.let { id ->
+            fireRepository.updateUser(
+                userId = id,
+                userUpdates = mapOf(
+                    DISPLAY_NAME to uiState.value.displayNameInput,
+                    QUOTE to uiState.value.bioInput,
+                    AVATAR_URL to uiState.value.selectedAvatar?.id
+                ),
+                onCompleteListener = {
+                    viewModelScope.launch {
+                        userJob?.cancel()
+                        userJob = null
+                        updateLoadingState(LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN))
+                        delay(3000)
+                        loadUser()
+                        showToast("Your details have successfully updated")
+                        navigateBack()
+                    }
+                },
+                onErrorListener = {
+                    showToast("Error updating your details")
+                }
+            )
+        }
     }
 }

@@ -74,7 +74,7 @@ fun LoginScreen(
             updatePasswordVisibility = viewModel::updatePasswordVisibility,
             keyboardController = keyboardController,
             submitText = if (uiState.value.loginScreenState == LoginScreenState.LOGIN) R.string.login else R.string.register,
-            submitEnabled = uiState.value.isEmailValid && uiState.value.isPasswordValid && loadingState.value != LoadingState.LOADING,
+            submitEnabled = uiState.value.isEmailValid && uiState.value.isPasswordValid && loadingState.value !is LoadingState.Loading,
             onSubmitClick = viewModel::onSubmitClick,
             errorMessage = uiState.value.errorMessage
         )

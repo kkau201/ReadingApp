@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.readingapp.R
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
+import com.example.readingapp.common.ErrorType
+import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.components.DialogState
@@ -28,12 +30,20 @@ class UserViewModel @Inject constructor(
         get() = _uiState
 
     fun loadUser() = viewModelScope.launch {
-        FirebaseAuth.getInstance().currentUser?.uid?.let { currentUserId ->
-            fireRepository.fetchUser(currentUserId)
+        try {
+            updateLoadingState(LoadingState.Loading())
+            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: throw ErrorType.UnknownUserException
+            fireRepository.fetchUser(currentUserId).getOrThrow()
+
+            fireRepository.user.collect { user ->
+                _uiState.update { it.copy(user = user) }
+                user?.let { updateLoadingState(LoadingState.Success) }
+            }
+        } catch (e: Exception) {
+            updateLoadingState(LoadingState.Failed(e.message))
+            showErrorDialog(e)
         }
-        fireRepository.user.collect { user ->
-            _uiState.update { it.copy(user = user) }
-        }
+
     }
 
     fun onLogoutClick() {

@@ -24,7 +24,6 @@ import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
-import com.example.readingapp.ui.components.LoadingLottie
 import com.example.readingapp.ui.components.ReadingAppBarNav
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.utils.keyboardAsState
@@ -69,11 +68,10 @@ fun UpdateScreen(
         }
     ) { padding ->
         when(uiState.loadingState) {
-            LoadingState.LOADING -> LoadingLottie()
-            LoadingState.FAILED -> {
+            is LoadingState.Failed -> {
                 viewModel.showErrorDialog(ErrorType.UnknownBookException)
             }
-            LoadingState.SUCCESS -> {
+            LoadingState.Success -> {
                 uiState.book?.let {
                     UpdateScreenContent(
                         modifier = Modifier.padding(padding),
@@ -89,6 +87,7 @@ fun UpdateScreen(
                     )
                 }
             }
+            else -> {}
         }
     }
 }

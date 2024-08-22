@@ -33,6 +33,7 @@ fun HomeUserIntro(displayName: String?, modifier: Modifier = Modifier) {
                 pushStyle(SpanStyle(color = allColors[pos % allColors.size]))
                 append(char)
             }
+            append("!")
         },
         fontWeight = FontWeight.Bold,
         style = AppTheme.typography.displaySmall,

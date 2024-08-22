@@ -1,17 +1,16 @@
 package com.example.readingapp.ui.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowBackIosNew
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,17 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.readingapp.R
 import com.example.readingapp.ui.theme.AppTheme
 
 @Composable
 fun ReadingAppBar(
-    title: String? = null,
-    actionImgRes: Int? = null,
-    onActionIconClick: () -> Unit = {}
+    title: String? = null
 ) {
     TopAppBar(
         modifier = Modifier.padding(vertical = AppTheme.spacing.smSpacing, horizontal = AppTheme.spacing.xsmSpacing),
@@ -39,31 +34,15 @@ fun ReadingAppBar(
         elevation = 0.dp,
         title = {
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.book_logo),
-                    contentDescription = stringResource(id = R.string.cont_desc_book_logo),
-                    modifier = Modifier
-                        .size(60.dp)
-                        .padding(end = AppTheme.spacing.smSpacing)
-                )
-                title?.let { Text(text = title, style = AppTheme.typography.bodyLarge) }
-            }
-        },
-        actions = {
-            actionImgRes?.let {
-                IconButton(
-                    modifier = Modifier.size(48.dp),
-                    onClick = onActionIconClick
-                ) {
-                    Image(
-                        painter = painterResource(id = actionImgRes),
-                        contentDescription = stringResource(id = R.string.cont_desc_profile_image)
-                    )
+                title?.let {
+                    Text(text = title, style = AppTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
                 }
             }
-        },
+        }
     )
 }
 

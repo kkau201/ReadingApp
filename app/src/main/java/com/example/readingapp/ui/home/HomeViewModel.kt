@@ -32,7 +32,7 @@ class HomeViewModel @Inject constructor(
     fun onLoad() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                updateLoadingState(LoadingState.LOADING)
+                updateLoadingState(LoadingState.Loading())
                 val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: throw ErrorType.UnknownUserException
                 val user = fireRepository.user.value ?: fireRepository.fetchUser(currentUserId).getOrThrow()
                 val books = fireRepository.fetchSavedBooksByUser().getOrThrow()
@@ -45,10 +45,10 @@ class HomeViewModel @Inject constructor(
                             readingList = books
                         )
                     }
-                    updateLoadingState(LoadingState.SUCCESS)
+                    updateLoadingState(LoadingState.Success)
                 }
             } catch (e: Exception) {
-                updateLoadingState(LoadingState.FAILED)
+                updateLoadingState(LoadingState.Failed(e.message))
                 showErrorDialog(e)
             }
         }

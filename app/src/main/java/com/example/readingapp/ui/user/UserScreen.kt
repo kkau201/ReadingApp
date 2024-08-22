@@ -35,7 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
-import com.example.readingapp.ui.components.ReadingAppBarNav
+import com.example.readingapp.ui.components.ReadingAppBar
 import com.example.readingapp.ui.components.ReadingAppTab
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.AppTheme.spacing
@@ -56,7 +56,7 @@ fun UserScreen(
         modifier = Modifier.fillMaxSize(),
         containerColor = AppTheme.colors.background,
         topBar = {
-            ReadingAppBarNav()
+            ReadingAppBar()
         }
     ) { padding ->
         UserContent(
@@ -112,10 +112,12 @@ fun UserContent(
             modifier = Modifier.padding(top = spacing.smSpacing, bottom = spacing.lgSpacing)
         )
         Column(
-            modifier = Modifier.background(
-                color = userAvatar?.color?.copy(alpha = 0.3f) ?: Purple.copy(alpha = 0.3f),
-                shape = RoundedCornerShape(spacing.smSpacing)
-            ).padding(spacing.xsmSpacing)
+            modifier = Modifier
+                .background(
+                    color = userAvatar?.color?.copy(alpha = 0.3f) ?: Purple.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(spacing.smSpacing)
+                )
+                .padding(spacing.xsmSpacing)
         ) {
             ReadingAppTab(
                 text = "Update Details",
@@ -140,7 +142,7 @@ fun ObserveUserLifecycleEvents(
 ) {
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_START) viewModel.loadUser()
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.loadUser()
         }
         lifecycleOwner.lifecycle.addObserver(observer)
 

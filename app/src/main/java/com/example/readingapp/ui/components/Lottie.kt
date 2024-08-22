@@ -1,5 +1,6 @@
 package com.example.readingapp.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -13,6 +14,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.readingapp.R
+import com.example.readingapp.ui.theme.AppTheme
 
 @Composable
 fun LoadingLottie() {
@@ -23,6 +25,23 @@ fun LoadingLottie() {
             .wrapContentHeight(Alignment.CenterVertically)
     ) {
         val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.loading_book))
+        LottieAnimation(
+            composition = composition,
+            iterations = LottieConstants.IterateForever
+        )
+    }
+}
+
+@Composable
+fun FullScreenLoadingLottie() {
+    Box(
+        modifier = Modifier
+            .background(color = AppTheme.colors.background)
+            .fillMaxSize()
+            .wrapContentWidth(Alignment.CenterHorizontally)
+            .wrapContentHeight(Alignment.CenterVertically)
+    ) {
+        val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.reading))
         LottieAnimation(
             composition = composition,
             iterations = LottieConstants.IterateForever

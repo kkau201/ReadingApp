@@ -1,17 +1,12 @@
 package com.example.readingapp.common
 
-data class LoadingState(
-    val status: Status,
-    val message: String? = null
-) {
-    companion object {
-        val IDLE = LoadingState(Status.IDLE)
-        val LOADING = LoadingState(Status.LOADING)
-        val SUCCESS = LoadingState(Status.SUCCESS)
-        val FAILED = LoadingState(Status.FAILED)
-    }
+sealed class LoadingState {
+    data object Idle : LoadingState()
+    data class Loading(val loadingType: LoadingType = LoadingType.MINI) : LoadingState()
+    data object Success : LoadingState()
+    data class Failed(val message: String? = null) : LoadingState()
 
-    enum class Status {
-        IDLE, LOADING, SUCCESS, FAILED
+    enum class LoadingType {
+        MINI, FULL_SCREEN
     }
 }

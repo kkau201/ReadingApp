@@ -68,26 +68,26 @@ class LoginViewModel @Inject constructor(
         Log.d("LoginViewModel", "Login button clicked")
         _uiState.update { it.copy(errorMessage = null) }
 
-        if (getLoadingState().value != LoadingState.LOADING) {
+        if (getLoadingState().value !is LoadingState.Loading) {
             viewModelScope.launch(Dispatchers.IO) {
-                updateLoadingState(LoadingState.LOADING)
+                updateLoadingState(LoadingState.Loading())
                 try {
                     auth.signInWithEmailAndPassword(uiState.value.email, uiState.value.password)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
-                                updateLoadingState(LoadingState.IDLE)
+                                updateLoadingState(LoadingState.Idle)
                                 navigate(NavigateTo(to = DashboardScreenDestination, popCurrent = true))
                             }
                             else {
-                                updateLoadingState(LoadingState.FAILED)
+                                updateLoadingState(LoadingState.Failed())
                                 Log.d("LoginViewModel", "Failed logging in user: ${task.exception}")
                                 _uiState.update { it.copy(errorMessage = task.exception?.message) }
-                                updateLoadingState(LoadingState.IDLE)
+                                updateLoadingState(LoadingState.Idle)
                             }
                         }
                 } catch (e: Exception) {
                     Log.d("LoginViewModel", "Failed logging in user: ${e.message}")
-                    updateLoadingState(LoadingState.IDLE)
+                    updateLoadingState(LoadingState.Idle)
                 }
             }
         }
@@ -97,15 +97,15 @@ class LoginViewModel @Inject constructor(
         Log.d("LoginViewModel", "Register button clicked")
         _uiState.update { it.copy(errorMessage = null) }
 
-        if (getLoadingState().value != LoadingState.LOADING) {
+        if (getLoadingState().value !is LoadingState.Loading) {
             viewModelScope.launch(Dispatchers.IO) {
-                updateLoadingState(LoadingState.LOADING)
+                updateLoadingState(LoadingState.Loading())
                 try {
                     auth.createUserWithEmailAndPassword(uiState.value.email, uiState.value.password)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
                                 Log.d("LoginViewModel", "Success registering user: ${task.result.user}")
-                                updateLoadingState(LoadingState.SUCCESS)
+                                updateLoadingState(LoadingState.Success)
 
                                 task.result?.user?.email?.split('@')?.get(0)?.let { displayName ->
                                     createUser(displayName)
@@ -118,17 +118,17 @@ class LoginViewModel @Inject constructor(
                                         primaryButtonText = "Login",
                                         onPrimaryClick = {
                                             dismissDialog()
-                                            updateLoadingState(LoadingState.IDLE)
+                                            updateLoadingState(LoadingState.Idle)
                                             onSwitchScreens(LoginScreenState.LOGIN)
                                         }
                                     )
                                 )
                             }
                             else {
-                                updateLoadingState(LoadingState.FAILED)
+                                updateLoadingState(LoadingState.Failed())
                                 Log.d("LoginViewModel", "Failed registering user: ${task.exception}")
                                 _uiState.update { it.copy(errorMessage = task.exception?.message) }
-                                updateLoadingState(LoadingState.IDLE)
+                                updateLoadingState(LoadingState.Idle)
                             }
                         }
                 } catch (e: Exception) {
