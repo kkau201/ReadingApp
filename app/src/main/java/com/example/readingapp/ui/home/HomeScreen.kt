@@ -19,7 +19,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
-import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.model.MBook
@@ -34,7 +33,6 @@ fun HomeScreen(
 ) {
     ViewModelBinding(viewModel)
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    val loadingState = viewModel.getLoadingState().collectAsStateWithLifecycle()
 
     Scaffold(
         backgroundColor = AppTheme.colors.background,
@@ -43,19 +41,14 @@ fun HomeScreen(
             ReadingAppBar()
         }
     ) { padding ->
-        when (loadingState.value) {
-            LoadingState.Success -> {
-                uiState.value?.let { loadedState ->
-                    HomeContent(
-                        padding = padding,
-                        displayName = loadedState.displayName,
-                        readingList = loadedState.readingList,
-                        currentReadingList = loadedState.currentReadingList,
-                        onBookClick = viewModel::onBookClick
-                    )
-                }
-            }
-            else -> {}
+        uiState.value?.let { loadedState ->
+            HomeContent(
+                padding = padding,
+                displayName = loadedState.displayName,
+                readingList = loadedState.readingList,
+                currentReadingList = loadedState.currentReadingList,
+                onBookClick = viewModel::onBookClick
+            )
         }
     }
 
