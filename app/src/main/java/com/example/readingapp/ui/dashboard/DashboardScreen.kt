@@ -1,11 +1,13 @@
 package com.example.readingapp.ui.dashboard
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
@@ -14,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
@@ -26,6 +29,8 @@ import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.home.HomeScreen
 import com.example.readingapp.ui.search.SearchScreen
+import com.example.readingapp.ui.theme.AppTheme.spacing
+import com.example.readingapp.ui.theme.Beige
 import com.example.readingapp.ui.theme.LightPink
 import com.example.readingapp.ui.user.UserScreen
 import com.ramcosta.composedestinations.annotation.Destination
@@ -66,7 +71,10 @@ fun DashboardBottomNav(
     onTabClick: (DashboardTab) -> Unit
 ) {
     BottomNavigation(
-        modifier = Modifier.height(BOTTOM_NAV_HEIGHT.dp),
+        modifier = Modifier
+            .height(BOTTOM_NAV_HEIGHT.dp)
+            .background(Beige)
+            .clip(RoundedCornerShape(topStart = spacing.mdSpacing, topEnd = spacing.mdSpacing)),
         backgroundColor = backgroundColor
     ) {
         DashboardTab.values().forEach { tab ->
