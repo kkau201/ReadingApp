@@ -37,8 +37,6 @@ import com.example.readingapp.ui.components.BookStatus
 import com.example.readingapp.ui.components.BookStatusButton
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.AppTheme.spacing
-import com.example.readingapp.ui.theme.Blue
-import com.example.readingapp.ui.theme.Pink
 
 @Composable
 fun UpdateScreenContent(
@@ -71,17 +69,17 @@ fun UpdateScreenContent(
         Column(
             Modifier
                 .padding(top = spacing.smSpacing)
-                .background(shape = RoundedCornerShape(spacing.smSpacing), color = Blue)
+                .background(shape = RoundedCornerShape(spacing.smSpacing), color = AppTheme.colors.surface)
                 .fillMaxWidth()
                 .padding(spacing.smSpacing)
         ) {
-            UpdateInputField(noteInput, onNoteInputChanged)
+            UpdateInputField(noteInput = noteInput, onNoteInputChanged = onNoteInputChanged)
 
-            UpdateBookStatus(selectedStatus, onStatusChanged)
+            UpdateBookStatus(selectedStatus = selectedStatus, onStatusChanged = onStatusChanged)
 
             UpdateRating(selectedRating = selectedRating, onRatingChanged = onRatingChanged)
 
-            Divider(color = Color.White.copy(alpha = 0.5f), modifier = Modifier.padding(top = spacing.mdSpacing))
+            Divider(color = AppTheme.colors.onSurface, modifier = Modifier.padding(top = spacing.mdSpacing))
 
             UpdateButtons(onSaveClick = onSaveClick, onCancelClick = onCancelClick)
 
@@ -91,16 +89,17 @@ fun UpdateScreenContent(
 
 @Composable
 fun UpdateInputField(
+    color: Color = AppTheme.colors.onSurface,
     noteInput: String,
     onNoteInputChanged: (String) -> Unit
 ) {
     val textFieldColors = TextFieldDefaults.outlinedTextFieldColors(
-        textColor = Pink,
-        unfocusedLabelColor = Pink.copy(alpha = 0.5f),
-        unfocusedBorderColor = Pink.copy(alpha = 0.5f),
-        focusedBorderColor = Pink,
-        focusedLabelColor = Pink,
-        cursorColor = Pink
+        textColor = color,
+        unfocusedLabelColor = color.copy(alpha = 0.5f),
+        unfocusedBorderColor = color.copy(alpha = 0.5f),
+        focusedBorderColor = color,
+        focusedLabelColor = color,
+        cursorColor = color
     )
 
     OutlinedTextField(
@@ -118,6 +117,7 @@ fun UpdateInputField(
 
 @Composable
 fun UpdateBookStatus(
+    color: Color = AppTheme.colors.onSurface,
     selectedStatus: BookStatus,
     onStatusChanged: (BookStatus) -> Unit
 ) {
@@ -130,6 +130,7 @@ fun UpdateBookStatus(
         BookStatus.entries.forEach { status ->
             BookStatusButton(
                 status = status,
+                color = color,
                 isSelected = selectedStatus == status,
                 onClick = { onStatusChanged(status) }
             )
@@ -139,6 +140,7 @@ fun UpdateBookStatus(
 
 @Composable
 fun UpdateRating(
+    color: Color = AppTheme.colors.onSurface,
     stars: Int = 5,
     selectedRating: Int = 0,
     onRatingChanged: (Int) -> Unit
@@ -155,7 +157,7 @@ fun UpdateRating(
                 Icon(
                     imageVector = if (i <= selectedRating) Icons.Rounded.StarRate else Icons.Rounded.StarBorder,
                     contentDescription = stringResource(id = R.string.cont_desc_star_number, i),
-                    tint = Pink,
+                    tint = color,
                     modifier = Modifier.size(40.dp)
                 )
             }
@@ -166,8 +168,8 @@ fun UpdateRating(
 @Composable
 fun UpdateButtons(
     modifier: Modifier = Modifier,
-    saveColor: Color = Pink,
-    cancelColor: Color = Pink.copy(alpha = 0.7f),
+    saveColor: Color = AppTheme.colors.onSurface,
+    cancelColor: Color = AppTheme.colors.onSurface.copy(alpha = 0.7f),
     horizontalArrangement: Arrangement.Horizontal = Arrangement.SpaceEvenly,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit

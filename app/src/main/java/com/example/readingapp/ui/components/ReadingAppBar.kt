@@ -60,7 +60,13 @@ fun ReadingAppBarNav(
         modifier = Modifier.padding(vertical = AppTheme.spacing.smSpacing, horizontal = AppTheme.spacing.xsmSpacing),
         colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
         title = {
-            title?.let { Text(text = title, style = AppTheme.typography.bodyLarge, color = navIconTint) }
+            title?.let {
+                Text(
+                    text = title,
+                    style = AppTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = navIconTint
+                )
+            }
         },
         navigationIcon = {
             IconButton(onClick = onNavIconClick) {
