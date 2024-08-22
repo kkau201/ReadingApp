@@ -14,10 +14,12 @@ import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,14 +35,14 @@ class UpdateViewModel @Inject constructor(
     val uiState: StateFlow<UpdateUiState>
         get() = _uiState
 
-    fun loadBook() {
-        viewModelScope.launch(Dispatchers.IO) {
-            fireRepository.fetchSavedBooksByUser()
-            fireRepository.savedBooks.collect { allSavedBooks ->
-                val savedBook = allSavedBooks.find { it.googleBookId == args.bookId }
+    fun loadBook() = viewModelScope.launch(Dispatchers.IO) {
+        try {
+            updateLoadingState(LoadingState.Loading())
+            val allSavedBooks = fireRepository.fetchSavedBooksByUser().getOrThrow()
+            val savedBook = allSavedBooks.find { it.googleBookId == args.bookId }
+            withContext(Dispatchers.Main) {
                 _uiState.update { state ->
                     state.copy(
-                        loadingState = savedBook?.let { LoadingState.Success } ?: LoadingState.Failed(),
                         bookId = savedBook?.id,
                         book = savedBook,
                         isSaved = savedBook != null,
@@ -49,7 +51,11 @@ class UpdateViewModel @Inject constructor(
                         selectedRating = savedBook?.rating?.toInt() ?: 0
                     )
                 }
+                updateLoadingState(LoadingState.Success)
             }
+        } catch (e: Exception) {
+            updateLoadingState(LoadingState.Failed(e.message))
+            showErrorDialog(e)
         }
     }
 
@@ -119,8 +125,13 @@ class UpdateViewModel @Inject constructor(
                             bookUpdates = updates,
                             onCompleteListener = { successful ->
                                 if (successful) {
-                                    showToast(getString(R.string.update_book_success))
-                                    loadBook()
+                                    viewModelScope.launch {
+                                        updateLoadingState(LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN))
+                                        delay(3000)
+                                        loadBook()
+                                        showToast(getString(R.string.update_book_success))
+                                        navigateBack()
+                                    }
                                 }
                             },
                             onErrorListener = { e ->
@@ -133,7 +144,8 @@ class UpdateViewModel @Inject constructor(
                         showToast(getString(R.string.update_book_error))
                     }
                 }
-            } else {
+            }
+            else {
                 showToast(getString(R.string.update_no_changes_made))
             }
         }

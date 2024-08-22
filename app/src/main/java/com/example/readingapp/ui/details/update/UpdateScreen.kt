@@ -20,8 +20,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
-import com.example.readingapp.common.ErrorType
-import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.components.ReadingAppBarNav
@@ -67,27 +65,19 @@ fun UpdateScreen(
             )
         }
     ) { padding ->
-        when(uiState.loadingState) {
-            is LoadingState.Failed -> {
-                viewModel.showErrorDialog(ErrorType.UnknownBookException)
-            }
-            LoadingState.Success -> {
-                uiState.book?.let {
-                    UpdateScreenContent(
-                        modifier = Modifier.padding(padding),
-                        book = it,
-                        noteInput = uiState.noteInput,
-                        selectedStatus = uiState.selectedStatus,
-                        selectedRating = uiState.selectedRating,
-                        onNoteInputChanged = viewModel::onNoteInputChanged,
-                        onStatusChanged = viewModel::onStatusChanged,
-                        onRatingChanged = viewModel::onRatingChanged,
-                        onSaveClick = viewModel::onSaveClick,
-                        onCancelClick = viewModel::onCancelClick,
-                    )
-                }
-            }
-            else -> {}
+        uiState.book?.let {
+            UpdateScreenContent(
+                modifier = Modifier.padding(padding),
+                book = it,
+                noteInput = uiState.noteInput,
+                selectedStatus = uiState.selectedStatus,
+                selectedRating = uiState.selectedRating,
+                onNoteInputChanged = viewModel::onNoteInputChanged,
+                onStatusChanged = viewModel::onStatusChanged,
+                onRatingChanged = viewModel::onRatingChanged,
+                onSaveClick = viewModel::onSaveClick,
+                onCancelClick = viewModel::onCancelClick,
+            )
         }
     }
 }
