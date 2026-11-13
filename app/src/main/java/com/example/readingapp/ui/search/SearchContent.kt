@@ -28,7 +28,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import com.example.readingapp.R
 import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.ColumnBookItem
@@ -111,7 +110,7 @@ fun SearchResults(
         LazyColumn(
             contentPadding = PaddingValues(
                 top = AppTheme.spacing.mdSpacing,
-                bottom = 96.dp
+                bottom = AppTheme.spacing.lgSpacing
             ),
             modifier = Modifier
                 .fillMaxSize()

@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBackIosNew
@@ -29,7 +28,6 @@ fun ReadingAppBar(
     title: String? = null
 ) {
     TopAppBar(
-        modifier = Modifier.padding(vertical = AppTheme.spacing.smSpacing, horizontal = AppTheme.spacing.xsmSpacing),
         colors = TopAppBarDefaults.topAppBarColors(containerColor = AppTheme.colors.background),
         title = {
             Row(
@@ -56,7 +54,6 @@ fun ReadingAppBarNav(
     actionButtons: List<ActionButton>? = null
 ) {
     CenterAlignedTopAppBar(
-        modifier = Modifier.padding(vertical = AppTheme.spacing.smSpacing, horizontal = AppTheme.spacing.xsmSpacing),
         colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
         title = {
             title?.let {

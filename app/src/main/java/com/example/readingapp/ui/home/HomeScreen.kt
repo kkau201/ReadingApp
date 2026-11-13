@@ -3,9 +3,13 @@ package com.example.readingapp.ui.home
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
@@ -13,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -26,8 +29,6 @@ import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.AppTheme.spacing
 
-const val TOP_MARGIN = 50
-
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
@@ -39,6 +40,7 @@ fun HomeScreen(
     Scaffold(
         containerColor = AppTheme.colors.background,
         modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
     ) { padding ->
         uiState.value?.let { loadedState ->
             HomeContent(
@@ -79,7 +81,7 @@ fun HomeContent(
             .fillMaxSize()
             .padding(padding)
     ) {
-        Spacer(modifier = Modifier.height(TOP_MARGIN.dp))
+        Spacer(modifier = Modifier.height(spacing.mdSpacing))
         HomeUserIntro(displayName = displayName, modifier = Modifier.padding(bottom = spacing.mdSpacing))
         if (currentReadingList.isNotEmpty()) {
             HomeReadingRow(

@@ -38,10 +38,8 @@ import com.example.readingapp.R
 import com.example.readingapp.ui.details.update.UpdateButtons
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.AppTheme.spacing
-import com.example.readingapp.ui.theme.Blue
 import com.example.readingapp.ui.theme.Purple
 import kotlin.math.absoluteValue
-import kotlin.math.truncate
 
 @Composable
 fun UpdateUserContent(

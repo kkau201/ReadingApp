@@ -1,7 +1,9 @@
 package com.example.readingapp.ui.user.update
 
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -69,7 +71,10 @@ fun UpdateUserScreen(
         when (loadingState) {
             LoadingState.Success -> {
                 UpdateUserContent(
-                    modifier = Modifier.padding(padding),
+                    modifier = Modifier
+                        .padding(padding)
+                        .consumeWindowInsets(padding)
+                        .imePadding(),
                     uiState = uiState,
                     onDisplayNameInputChange = viewModel::onDisplayNameInputChange,
                     onBioInputChange = viewModel::onBioInputChange,

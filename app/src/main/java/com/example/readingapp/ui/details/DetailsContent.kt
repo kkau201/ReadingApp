@@ -6,7 +6,6 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,7 +30,6 @@ import coil.request.ImageRequest
 import com.example.readingapp.R
 import com.example.readingapp.mainActivity
 import com.example.readingapp.model.MBook
-import com.example.readingapp.ui.components.ReadingAppButton
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.allColors
 import com.example.readingapp.utils.fromHtmlToSpanned

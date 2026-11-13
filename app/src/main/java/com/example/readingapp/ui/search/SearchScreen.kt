@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -28,6 +29,8 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -52,9 +55,11 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 private const val SEARCHBAR_OFFSET_MARGIN = 250f
-private const val SEARCHBAR_MIN_Y_OFFSET = 50f
 private const val DEFAULT_SEARCHBAR_Y_OFFSET = 800f
-private const val TOP_MARGIN = 100
+
+private fun searchBarOffsetFor(listOffset: Float, statusBarTopPx: Float): Float {
+    return (listOffset - SEARCHBAR_OFFSET_MARGIN).coerceIn(statusBarTopPx, DEFAULT_SEARCHBAR_Y_OFFSET)
+}
 
 @Composable
 fun SearchScreen(
@@ -80,8 +85,9 @@ fun SearchScreen(
     var listOffset by remember { mutableFloatStateOf(0f) }
     var searchBarOffset by remember { mutableFloatStateOf(DEFAULT_SEARCHBAR_Y_OFFSET) }
 
-    // Gap between image top and scrolling layout.
-    val marginTopInPx = with(LocalDensity.current) { TOP_MARGIN.dp.toPx() }
+    val density = LocalDensity.current
+    val statusBarTopPx = WindowInsets.statusBars.getTop(density).toFloat()
+    val marginTopInPx = statusBarTopPx + with(density) { spacing.lgSpacing.toPx() }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -91,10 +97,7 @@ fun SearchScreen(
                 val delta = available.y
                 coroutineScope.launch(Dispatchers.Main) {
                     listOffset = (listOffset + delta).coerceIn(marginTopInPx, imageHeightInPx.toFloat())
-                    searchBarOffset = (listOffset - SEARCHBAR_OFFSET_MARGIN).coerceIn(
-                        SEARCHBAR_MIN_Y_OFFSET,
-                        DEFAULT_SEARCHBAR_Y_OFFSET
-                    )
+                    searchBarOffset = searchBarOffsetFor(listOffset, statusBarTopPx)
                 }
                 return Offset(
                     0f,
@@ -123,32 +126,21 @@ fun SearchScreen(
                 .onGloballyPositioned {
                     // Set the image height when composable positioned.
                     imageHeightInPx = it.size.height - 100
-
-                    // Set the offset according to image height
-                    // To move layout to bottom during first composition.
                     listOffset = imageHeightInPx.toFloat()
+                    searchBarOffset = searchBarOffsetFor(listOffset, statusBarTopPx)
                 }
         ) {
             Image(
                 painter = painterResource(id = R.drawable.search_book_img),
                 contentDescription = null,
                 modifier = Modifier
-                    .padding(top = 80.dp, bottom = 100.dp)
+                    .statusBarsPadding()
+                    .padding(top = spacing.mdSpacing, bottom = spacing.lgSpacing)
                     .padding(horizontal = 100.dp)
                     .size(250.dp)
                     .align(Alignment.Center)
             )
         }
-        SearchInput(
-            currentInput = uiState.searchInput,
-            keyboardController = keyboardController,
-            onInputChange = viewModel::onInputChange,
-            onDoneClick = viewModel::onDoneClick,
-            modifier = Modifier.offset {
-                IntOffset(0, searchBarOffset.roundToInt())
-            }
-        )
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -173,6 +165,16 @@ fun SearchScreen(
                 viewModel.showErrorDialog(results.exception)
             }
         }
+
+        SearchInput(
+            currentInput = uiState.searchInput,
+            keyboardController = keyboardController,
+            onInputChange = viewModel::onInputChange,
+            onDoneClick = viewModel::onDoneClick,
+            modifier = Modifier.offset {
+                IntOffset(0, searchBarOffset.roundToInt())
+            }
+        )
     }
 }
 

@@ -1,14 +1,11 @@
 package com.example.readingapp.ui.dashboard
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -39,8 +36,6 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
-const val BOTTOM_NAV_HEIGHT = 60
-
 @Destination<RootGraph>
 @Composable
 fun DashboardScreen(
@@ -53,16 +48,21 @@ fun DashboardScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
+        containerColor = Beige,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = { DashboardBottomNav(uiState.avatarColor, uiState.currentTab, viewModel::onTabClick) }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
+        Box(
+            modifier = Modifier
+                .padding(padding)
+                .consumeWindowInsets(padding)
+        ) {
             when (uiState.currentTab) {
                 DashboardTab.Home -> HomeScreen()
                 DashboardTab.Session -> HomeScreen()
                 DashboardTab.Search -> SearchScreen(uiState.avatarColor)
                 DashboardTab.Profile -> UserScreen(uiState.avatarColor)
             }
-            Spacer(modifier = Modifier.height(BOTTOM_NAV_HEIGHT.dp))
         }
     }
 }
@@ -74,12 +74,10 @@ fun DashboardBottomNav(
     onTabClick: (DashboardTab) -> Unit
 ) {
     NavigationBar(
-        modifier = Modifier
-            .height(BOTTOM_NAV_HEIGHT.dp)
-            .background(Beige)
-            .clip(RoundedCornerShape(topStart = spacing.mdSpacing, topEnd = spacing.mdSpacing)),
+        modifier = Modifier.clip(
+            RoundedCornerShape(topStart = spacing.mdSpacing, topEnd = spacing.mdSpacing)
+        ),
         containerColor = backgroundColor,
-        windowInsets = WindowInsets(0, 0, 0, 0),
     ) {
         DashboardTab.values().forEach { tab ->
             NavigationBarItem(
@@ -93,7 +91,6 @@ fun DashboardBottomNav(
                     )
                 },
                 onClick = { onTabClick(tab) },
-                modifier = Modifier.fillMaxHeight(),
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = LightPink,
                     unselectedIconColor = LightPink,

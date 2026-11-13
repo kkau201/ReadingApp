@@ -1,7 +1,9 @@
 package com.example.readingapp.ui.details.update
 
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -68,7 +70,10 @@ fun UpdateScreen(
     ) { padding ->
         uiState.book?.let {
             UpdateScreenContent(
-                modifier = Modifier.padding(padding),
+                modifier = Modifier
+                    .padding(padding)
+                    .consumeWindowInsets(padding)
+                    .imePadding(),
                 book = it,
                 noteInput = uiState.noteInput,
                 selectedStatus = uiState.selectedStatus,
