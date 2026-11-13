@@ -23,7 +23,8 @@ class NetworkInterceptor @Inject constructor(
             val builder: Request.Builder = chain.request().newBuilder()
             val response = chain.proceed(builder.build())
 
-            val message = "code= ${response.code}, url= ${response.request.url}"
+            val url = response.request.url.newBuilder().removeAllQueryParameters("key").build()
+            val message = "code= ${response.code}, url= $url"
 
             if (response.code >= 500) {
                 throw ErrorType.ServiceException(message)

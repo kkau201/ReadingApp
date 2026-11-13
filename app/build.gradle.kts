@@ -1,4 +1,5 @@
 import com.example.dependencies.Libs
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -23,6 +24,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField("String", "BOOKS_API_KEY", "\"${booksApiKey()}\"")
     }
 
     buildTypes {
@@ -44,6 +46,16 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+fun booksApiKey(): String {
+    val secretsFile = rootProject.file("secrets.properties")
+    if (!secretsFile.exists()) return ""
+    return Properties().apply {
+        secretsFile.inputStream().use { load(it) }
+    }.getProperty("BOOKS_API_KEY").orEmpty()
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
 }
 
 ksp {

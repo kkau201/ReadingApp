@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.readingapp.ReadingApp
 import com.example.readingapp.common.ActivityProvider
 import com.example.readingapp.network.BookApi
+import com.example.readingapp.network.BooksApiKeyInterceptor
 import com.example.readingapp.repo.BookRepository
 import com.example.readingapp.config.Constants
 import com.example.readingapp.network.NetworkInterceptor
@@ -36,9 +37,11 @@ object ReadingAppModule {
     @Singleton
     @Provides
     fun provideBookApi(
+        booksApiKeyInterceptor: BooksApiKeyInterceptor,
         networkInterceptor: NetworkInterceptor
     ): BookApi {
         val client = OkHttpClient.Builder()
+            .addInterceptor(booksApiKeyInterceptor)
             .addInterceptor(networkInterceptor)
             .build()
 
