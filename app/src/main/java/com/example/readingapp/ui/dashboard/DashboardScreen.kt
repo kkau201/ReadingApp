@@ -18,9 +18,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -34,11 +34,12 @@ import com.example.readingapp.ui.theme.Beige
 import com.example.readingapp.ui.theme.LightPink
 import com.example.readingapp.ui.user.UserScreen
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
 const val BOTTOM_NAV_HEIGHT = 60
 
-@Destination
+@Destination<RootGraph>
 @Composable
 fun DashboardScreen(
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,

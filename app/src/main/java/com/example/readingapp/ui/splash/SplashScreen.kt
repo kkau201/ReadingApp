@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -18,11 +18,10 @@ import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.collectWithLifecycle
 import com.example.readingapp.ui.theme.AppTheme
 import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.annotation.RootNavGraph
+import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
-@Destination
-@RootNavGraph(start = true)
+@Destination<RootGraph>(start = true)
 @Composable
 fun SplashScreen(
     viewModel: SplashViewModel = hiltViewModel(),

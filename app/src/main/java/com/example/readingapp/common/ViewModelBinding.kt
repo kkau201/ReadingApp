@@ -1,13 +1,14 @@
 package com.example.readingapp.common
 
 import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.readingapp.MainViewModel
 import com.example.readingapp.mainActivity
 import com.example.readingapp.nav.NavigateBack
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.nav.PopTo
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.ramcosta.composedestinations.spec.Direction
 
 @Composable
 fun ViewModelBinding(
@@ -33,7 +34,7 @@ fun ViewModelBinding(
 
                         is PopTo -> {
                             navigator.popBackStack(
-                                route = navEvent.route,
+                                route = Direction(navEvent.route),
                                 inclusive = navEvent.inclusive,
                                 saveState = false
                             )
