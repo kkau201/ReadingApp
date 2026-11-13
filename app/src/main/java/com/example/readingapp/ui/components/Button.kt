@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,9 +27,9 @@ fun ReadingAppButton(
 ) {
 
     val buttonColors = ButtonDefaults.buttonColors(
-        backgroundColor = backgroundColor,
+        containerColor = backgroundColor,
         contentColor = contentColor,
-        disabledBackgroundColor = backgroundColor.copy(alpha = 0.6f),
+        disabledContainerColor = backgroundColor.copy(alpha = 0.6f),
         disabledContentColor = contentColor.copy(alpha = 0.6f)
     )
 

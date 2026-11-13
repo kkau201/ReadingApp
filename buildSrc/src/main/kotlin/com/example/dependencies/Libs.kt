@@ -43,7 +43,6 @@ object Libs {
         const val Retrofit = "com.squareup.retrofit2:retrofit:3.0.0"
         const val Http = "com.squareup.okhttp3:okhttp:5.5.1"
         const val JsonConverter = "com.squareup.retrofit2:converter-gson:3.0.0"
-        const val Material = "androidx.compose.material:material"
         const val MaterialIconsExtended = "androidx.compose.material:material-icons-extended"
         const val Lottie = "com.airbnb.android:lottie-compose:6.7.1"
     }

@@ -15,9 +15,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.StarHalf
 import androidx.compose.material.icons.rounded.Bookmark
@@ -60,8 +61,8 @@ fun RowBookItem(
     onClick: () -> Unit = {}
 ) {
     Card(
-        backgroundColor = Color.Transparent,
-        elevation = 0.dp,
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         modifier = modifier
             .padding(vertical = AppTheme.spacing.smSpacing)
             .wrapContentHeight()
@@ -132,8 +133,8 @@ fun ColumnBookItem(
     onClick: () -> Unit = {}
 ) {
     Card(
-        elevation = 0.dp,
-        backgroundColor = backgroundColor,
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
         modifier = modifier
             .padding(vertical = AppTheme.spacing.smSpacing)
             .wrapContentHeight()

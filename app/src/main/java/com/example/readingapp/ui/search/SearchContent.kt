@@ -13,10 +13,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.runtime.Composable
@@ -50,12 +50,16 @@ fun SearchInput(
         leadingIcon = { Icon(Icons.Rounded.Search, stringResource(id = R.string.cont_desc_search_icon)) },
         placeholder = { Text(text = stringResource(R.string.start_searching_here)) },
         shape = RoundedCornerShape(AppTheme.spacing.lgSpacing),
-        colors = TextFieldDefaults.textFieldColors(
-            textColor = AppTheme.colors.onBackground,
-            backgroundColor = AppTheme.colors.background,
+        colors = TextFieldDefaults.colors(
+            focusedTextColor = AppTheme.colors.onBackground,
+            unfocusedTextColor = AppTheme.colors.onBackground,
+            disabledTextColor = AppTheme.colors.onBackground,
+            focusedContainerColor = AppTheme.colors.background,
+            unfocusedContainerColor = AppTheme.colors.background,
+            disabledContainerColor = AppTheme.colors.background,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent
+            disabledIndicatorColor = Color.Transparent,
         ),
         singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),

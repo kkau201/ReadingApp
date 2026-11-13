@@ -3,7 +3,7 @@ package com.example.readingapp.ui.user.update
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Scaffold
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -50,7 +50,7 @@ fun UpdateUserScreen(
     if (!isKeyboardOpen) focusManager.clearFocus()
 
     Scaffold(
-        backgroundColor = AppTheme.colors.background,
+        containerColor = AppTheme.colors.background,
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {

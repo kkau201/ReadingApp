@@ -111,7 +111,6 @@ dependencies {
     implementation(Libs.Misc.JsonConverter)
 
     // Material
-    implementation(Libs.Misc.Material)
     implementation(Libs.Misc.MaterialIconsExtended)
 
     // Lottie

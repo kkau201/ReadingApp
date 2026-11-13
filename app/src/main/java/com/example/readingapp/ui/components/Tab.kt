@@ -6,10 +6,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.runtime.Composable
@@ -33,9 +33,9 @@ fun ReadingAppTab(
 ) {
 
     val buttonColors = ButtonDefaults.buttonColors(
-        backgroundColor = backgroundColor,
+        containerColor = backgroundColor,
         contentColor = contentColor,
-        disabledBackgroundColor = backgroundColor.copy(alpha = 0.6f),
+        disabledContainerColor = backgroundColor.copy(alpha = 0.6f),
         disabledContentColor = contentColor.copy(alpha = 0.6f)
     )
 
@@ -44,7 +44,7 @@ fun ReadingAppTab(
         shape = RoundedCornerShape(spacing.smSpacing),
         colors = buttonColors,
         enabled = enabled,
-        elevation = ButtonDefaults.elevation(0.dp),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
         modifier = modifier.padding(padding)
     ) {
         Row(

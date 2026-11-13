@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Scaffold
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
@@ -37,7 +37,7 @@ fun HomeScreen(
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
-        backgroundColor = AppTheme.colors.background,
+        containerColor = AppTheme.colors.background,
         modifier = Modifier.fillMaxSize(),
     ) { padding ->
         uiState.value?.let { loadedState ->

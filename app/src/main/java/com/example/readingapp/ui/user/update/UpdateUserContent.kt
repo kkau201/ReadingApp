@@ -17,10 +17,10 @@ import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
@@ -88,7 +88,7 @@ fun UpdateUserContent(
             )
         }
 
-        Divider(
+        HorizontalDivider(
             color = color.copy(alpha = 0.5f),
             modifier = Modifier
                 .padding(spacing.lgSpacing)
@@ -117,13 +117,14 @@ fun UpdateUserInputField(
     color: Color = Purple,
     onInputChange: (String) -> Unit
 ) {
-    val textFieldColors = TextFieldDefaults.outlinedTextFieldColors(
-        textColor = AppTheme.colors.onBackground,
-        unfocusedLabelColor = color.copy(alpha = 0.5f),
-        unfocusedBorderColor = color.copy(alpha = 0.5f),
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = AppTheme.colors.onBackground,
+        unfocusedTextColor = AppTheme.colors.onBackground,
+        cursorColor = color,
         focusedBorderColor = color,
+        unfocusedBorderColor = color.copy(alpha = 0.5f),
         focusedLabelColor = color,
-        cursorColor = color
+        unfocusedLabelColor = color.copy(alpha = 0.5f),
     )
 
     OutlinedTextField(

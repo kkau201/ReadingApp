@@ -8,19 +8,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Divider
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material.icons.rounded.StarRate
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,7 +79,7 @@ fun UpdateScreenContent(
 
             UpdateRating(selectedRating = selectedRating, onRatingChanged = onRatingChanged)
 
-            Divider(color = AppTheme.colors.onSurface, modifier = Modifier.padding(top = spacing.mdSpacing))
+            HorizontalDivider(color = AppTheme.colors.onSurface, modifier = Modifier.padding(top = spacing.mdSpacing))
 
             UpdateButtons(onSaveClick = onSaveClick, onCancelClick = onCancelClick)
 
@@ -93,13 +93,14 @@ fun UpdateInputField(
     noteInput: String,
     onNoteInputChanged: (String) -> Unit
 ) {
-    val textFieldColors = TextFieldDefaults.outlinedTextFieldColors(
-        textColor = color,
-        unfocusedLabelColor = color.copy(alpha = 0.5f),
-        unfocusedBorderColor = color.copy(alpha = 0.5f),
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = color,
+        unfocusedTextColor = color,
+        cursorColor = color,
         focusedBorderColor = color,
+        unfocusedBorderColor = color.copy(alpha = 0.5f),
         focusedLabelColor = color,
-        cursorColor = color
+        unfocusedLabelColor = color.copy(alpha = 0.5f),
     )
 
     OutlinedTextField(
@@ -181,8 +182,8 @@ fun UpdateButtons(
             .padding(top = spacing.xsmSpacing)
     ) {
         Button(
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
-            elevation = ButtonDefaults.elevation(0.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
             onClick = onCancelClick
         ) {
             Icon(
@@ -196,8 +197,8 @@ fun UpdateButtons(
             Text(text = stringResource(R.string.update_cancel), color = cancelColor)
         }
         Button(
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
-            elevation = ButtonDefaults.elevation(0.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
             onClick = onSaveClick
         ) {
             Icon(
