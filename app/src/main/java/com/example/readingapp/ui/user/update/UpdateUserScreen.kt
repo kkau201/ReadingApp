@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -26,7 +25,8 @@ import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.components.ReadingAppBarNav
-import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.HomeCanvas
+import com.example.readingapp.ui.theme.HomeInk
 import com.example.readingapp.utils.keyboardAsState
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
@@ -52,7 +52,7 @@ fun UpdateUserScreen(
     if (!isKeyboardOpen) focusManager.clearFocus()
 
     Scaffold(
-        containerColor = AppTheme.colors.background,
+        containerColor = HomeCanvas,
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
@@ -62,8 +62,9 @@ fun UpdateUserScreen(
             },
         topBar = {
             ReadingAppBarNav(
+                backgroundColor = HomeCanvas,
                 title = stringResource(R.string.update_user_title),
-                navIconTint = Color.Black,
+                navIconTint = HomeInk,
                 onNavIconClick = viewModel::navigateBack
             )
         }
@@ -78,7 +79,9 @@ fun UpdateUserScreen(
                     uiState = uiState,
                     onDisplayNameInputChange = viewModel::onDisplayNameInputChange,
                     onBioInputChange = viewModel::onBioInputChange,
+                    onReadingGoalChange = viewModel::onReadingGoalChange,
                     onAvatarChange = viewModel::onAvatarChange,
+                    onColorChange = viewModel::onColorChange,
                     onSaveClick = {
                         keyboardController?.hide()
                         viewModel.onUpdateClick()

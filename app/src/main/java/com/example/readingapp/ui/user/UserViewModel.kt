@@ -25,25 +25,42 @@ class UserViewModel @Inject constructor(
     private val fireRepository: FireRepository,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
-    private val _uiState: MutableStateFlow<UserUiState> = MutableStateFlow(UserUiState())
     val uiState: StateFlow<UserUiState>
-        get() = _uiState
+        field: MutableStateFlow<UserUiState> = MutableStateFlow(UserUiState())
 
-    fun loadUser() = viewModelScope.launch {
-        try {
-            updateLoadingState(LoadingState.Loading())
-            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: throw ErrorType.UnknownUserException
-            fireRepository.fetchUser(currentUserId).getOrThrow()
+    private var isWatchingProfile = false
 
-            fireRepository.user.collect { user ->
-                _uiState.update { it.copy(user = user) }
-                user?.let { updateLoadingState(LoadingState.Success) }
+    fun loadUser() {
+        if (!isWatchingProfile) {
+            isWatchingProfile = true
+            viewModelScope.launch {
+                fireRepository.user.collect { user ->
+                    uiState.update { it.copy(user = user) }
+                }
             }
-        } catch (e: Exception) {
-            updateLoadingState(LoadingState.Failed(e.message))
-            showErrorDialog(e)
+            viewModelScope.launch {
+                fireRepository.savedBooks.collect { books ->
+                    uiState.update { it.copy(books = books) }
+                }
+            }
         }
+        viewModelScope.launch {
+            try {
+                updateLoadingState(LoadingState.Loading())
+                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+                    ?: throw ErrorType.UnknownUserException
+                fireRepository.fetchUser(currentUserId).getOrThrow()
+                fireRepository.fetchSavedBooksByUser()
+                updateLoadingState(LoadingState.Success)
+            } catch (e: Exception) {
+                updateLoadingState(LoadingState.Failed(e.message))
+                showErrorDialog(e)
+            }
+        }
+    }
 
+    fun navigateToUpdateUser() {
+        navigate(NavigateTo(UpdateUserScreenDestination))
     }
 
     fun onLogoutClick() {
@@ -53,22 +70,13 @@ class UserViewModel @Inject constructor(
                 message = getString(R.string.logout_message),
                 primaryButtonText = getString(R.string.logout_yes),
                 onPrimaryClick = {
-                    logout()
+                    FirebaseAuth.getInstance().signOut()
                     dismissDialog()
+                    navigate(NavigateTo(LoginScreenDestination))
                 },
                 secondaryButtonText = getString(R.string.logout_no),
                 onSecondaryClick = { dismissDialog() }
             )
         )
-    }
-
-    fun navigateToUpdateUser() {
-        navigate(NavigateTo(UpdateUserScreenDestination))
-    }
-
-    private fun logout() {
-        FirebaseAuth.getInstance().signOut().run {
-            navigate(NavigateTo(LoginScreenDestination))
-        }
     }
 }

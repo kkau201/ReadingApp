@@ -61,7 +61,7 @@ fun DashboardScreen(
                 DashboardTab.Home -> HomeScreen()
                 DashboardTab.Session -> HomeScreen()
                 DashboardTab.Search -> SearchScreen()
-                DashboardTab.Profile -> UserScreen(uiState.avatarColor)
+                DashboardTab.Profile -> UserScreen()
             }
         }
     }

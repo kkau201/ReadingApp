@@ -3,24 +3,33 @@ package com.example.readingapp.ui.user.update
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Remove
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
@@ -32,14 +41,19 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.example.readingapp.R
-import com.example.readingapp.ui.details.update.UpdateButtons
+import com.example.readingapp.model.MAX_READING_GOAL
+import com.example.readingapp.model.MIN_READING_GOAL
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.AppTheme.spacing
-import com.example.readingapp.ui.theme.Purple
+import com.example.readingapp.ui.theme.HomeInk
+import com.example.readingapp.ui.theme.HomeMuted
 import kotlin.math.absoluteValue
+import kotlinx.coroutines.flow.drop
+
+private val FieldShape = RoundedCornerShape(20.dp)
 
 @Composable
 fun UpdateUserContent(
@@ -47,94 +61,221 @@ fun UpdateUserContent(
     uiState: UpdateUserUiState,
     onDisplayNameInputChange: (String) -> Unit,
     onBioInputChange: (String) -> Unit,
+    onReadingGoalChange: (Int) -> Unit,
     onAvatarChange: (Avatar) -> Unit,
+    onColorChange: (ProfileColor) -> Unit,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
-    val color = uiState.selectedAvatar?.color ?: Purple
-    Box(modifier = modifier
-        .fillMaxSize()
-        .padding(bottom = spacing.mdSpacing)) {
-        Column(
-            Modifier
-                .align(Alignment.TopCenter)
-                .background(shape = RoundedCornerShape(spacing.smSpacing), color = Color.Transparent)
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(vertical = spacing.mdSpacing)
-        ) {
-            UpdateAvatarPager(
-                selectedAvatar = uiState.selectedAvatar,
-                avatarList = uiState.avatarImgList,
-                onAvatarChange = onAvatarChange,
-                modifier = Modifier.padding(vertical = spacing.lgSpacing)
-            )
-
-            UpdateUserInputField(
-                label = stringResource(id = R.string.update_user_name_label),
-                color = color,
-                input = uiState.displayNameInput,
-                onInputChange = onDisplayNameInputChange,
-                modifier = Modifier.padding(horizontal = spacing.lgSpacing)
-            )
-            UpdateUserInputField(
-                label = stringResource(id = R.string.update_user_bio_label),
-                color = color,
-                input = uiState.bioInput,
-                onInputChange = onBioInputChange,
-                modifier = Modifier.padding(horizontal = spacing.lgSpacing)
-            )
-        }
-
-        HorizontalDivider(
-            color = color.copy(alpha = 0.5f),
-            modifier = Modifier
-                .padding(spacing.lgSpacing)
-                .padding(bottom = spacing.mdSpacing)
-                .align(Alignment.BottomCenter)
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(top = 8.dp, bottom = 24.dp)
+    ) {
+        ProfileFieldLabel(
+            text = stringResource(R.string.update_user_avatar_label),
+            modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp)
         )
-
-        UpdateButtons(
-            saveColor = color,
-            cancelColor = color.copy(alpha = 0.7f),
-            onSaveClick = onSaveClick,
-            onCancelClick = onCancelClick,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = spacing.mdSpacing)
+        UpdateAvatarPager(
+            selectedAvatar = uiState.selectedAvatar,
+            avatarList = uiState.avatarImgList,
+            onAvatarChange = onAvatarChange
+        )
+        ProfileColorPicker(
+            selected = uiState.selectedColor,
+            onColorChange = onColorChange,
+            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp)
+        )
+        ProfileTextField(
+            label = stringResource(R.string.update_user_name_label),
+            value = uiState.displayNameInput,
+            onValueChange = onDisplayNameInputChange,
+            imeAction = ImeAction.Next,
+            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 28.dp)
+        )
+        ProfileTextField(
+            label = stringResource(R.string.update_user_bio_label),
+            value = uiState.bioInput,
+            onValueChange = onBioInputChange,
+            singleLine = false,
+            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp)
+        )
+        ReadingGoalField(
+            goal = uiState.readingGoal,
+            onGoalChange = onReadingGoalChange,
+            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp)
+        )
+        ProfileFormButton(
+            text = stringResource(R.string.update_save),
+            container = HomeInk,
+            content = Color.White,
+            onClick = onSaveClick,
+            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 32.dp)
+        )
+        ProfileFormButton(
+            text = stringResource(R.string.update_cancel),
+            container = Color.White,
+            content = HomeInk,
+            onClick = onCancelClick,
+            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 10.dp)
         )
     }
 }
 
 @Composable
-fun UpdateUserInputField(
-    modifier: Modifier = Modifier,
-    label: String,
-    input: String,
-    color: Color = Purple,
-    onInputChange: (String) -> Unit
+private fun ProfileColorPicker(
+    selected: ProfileColor,
+    onColorChange: (ProfileColor) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val textFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedTextColor = AppTheme.colors.onBackground,
-        unfocusedTextColor = AppTheme.colors.onBackground,
-        cursorColor = color,
-        focusedBorderColor = color,
-        unfocusedBorderColor = color.copy(alpha = 0.5f),
-        focusedLabelColor = color,
-        unfocusedLabelColor = color.copy(alpha = 0.5f),
-    )
+    Column(modifier = modifier) {
+        ProfileFieldLabel(text = stringResource(R.string.update_user_color_label))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ProfileColor.entries.forEach { profileColor ->
+                val isSelected = profileColor == selected
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(profileColor.color)
+                        .border(
+                            width = if (isSelected) 2.dp else 0.dp,
+                            color = HomeInk,
+                            shape = CircleShape
+                        )
+                        .clickable { onColorChange(profileColor) }
+                )
+            }
+        }
+    }
+}
 
-    OutlinedTextField(
-        label = { Text(text = label) },
-        value = input,
-        shape = RoundedCornerShape(spacing.smSpacing),
-        colors = textFieldColors,
-        singleLine = true,
-        onValueChange = onInputChange,
+@Composable
+private fun ProfileFieldLabel(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = text,
+        color = HomeMuted,
+        style = AppTheme.typography.labelLarge,
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun ProfileTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    singleLine: Boolean = true,
+    imeAction: ImeAction = ImeAction.Done
+) {
+    Column(modifier = modifier) {
+        ProfileFieldLabel(text = label)
+        TextField(
+            value = value,
+            onValueChange = onValueChange,
+            textStyle = AppTheme.typography.bodyLarge.copy(color = HomeInk),
+            shape = FieldShape,
+            colors = TextFieldDefaults.colors(
+                focusedTextColor = HomeInk,
+                unfocusedTextColor = HomeInk,
+                cursorColor = HomeInk,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            ),
+            singleLine = singleLine,
+            minLines = if (singleLine) 1 else 3,
+            keyboardOptions = KeyboardOptions(imeAction = imeAction),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+        )
+    }
+}
+
+@Composable
+private fun ReadingGoalField(
+    goal: Int,
+    onGoalChange: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        ProfileFieldLabel(text = stringResource(R.string.update_user_goal_label))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+                .clip(FieldShape)
+                .background(Color.White),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            IconButton(
+                onClick = { onGoalChange(goal - 1) },
+                enabled = goal > MIN_READING_GOAL
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Remove,
+                    contentDescription = stringResource(R.string.cont_desc_decrease_goal),
+                    tint = if (goal > MIN_READING_GOAL) HomeInk else HomeMuted
+                )
+            }
+            Text(
+                text = goal.toString(),
+                color = HomeInk,
+                style = AppTheme.typography.headlineSmall,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+            IconButton(
+                onClick = { onGoalChange(goal + 1) },
+                enabled = goal < MAX_READING_GOAL
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Add,
+                    contentDescription = stringResource(R.string.cont_desc_increase_goal),
+                    tint = if (goal < MAX_READING_GOAL) HomeInk else HomeMuted
+                )
+            }
+        }
+        Text(
+            text = stringResource(R.string.profile_stamp_goal, goal),
+            color = HomeMuted,
+            style = AppTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+    }
+}
+
+@Composable
+private fun ProfileFormButton(
+    text: String,
+    container: Color,
+    content: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = text,
+        color = content,
+        style = AppTheme.typography.labelLarge,
         modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = spacing.smSpacing)
+            .clip(CircleShape)
+            .background(container)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 20.dp, vertical = 14.dp)
     )
 }
 
@@ -146,55 +287,54 @@ fun UpdateAvatarPager(
     avatarList: List<Avatar>,
     onAvatarChange: (Avatar) -> Unit
 ) {
-    val initSelectedIndex = avatarList.indexOfFirst { it.id == selectedAvatar?.id }.coerceAtLeast(0)
-    val pagerState = rememberPagerState(initialPage = initSelectedIndex, pageCount = { avatarList.size })
+    val selectedIndex = avatarList.indexOfFirst { it.id == selectedAvatar?.id }.coerceAtLeast(0)
+    val pagerState = rememberPagerState(
+        initialPage = selectedIndex,
+        pageCount = { avatarList.size }
+    )
+
+    LaunchedEffect(selectedAvatar?.id) {
+        val index = avatarList.indexOfFirst { it.id == selectedAvatar?.id }
+        if (index >= 0 && index != pagerState.currentPage) {
+            pagerState.animateScrollToPage(index)
+        }
+    }
 
     LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
-            onAvatarChange(avatarList[page])
-        }
+        snapshotFlow { pagerState.settledPage }
+            .drop(1)
+            .collect { page ->
+                onAvatarChange(avatarList[page])
+            }
     }
 
     HorizontalPager(
         modifier = modifier,
-        contentPadding = PaddingValues(horizontal = 110.dp),
-        pageSize = PageSize.Fixed(200.dp),
+        contentPadding = PaddingValues(horizontal = 120.dp),
+        pageSize = PageSize.Fixed(120.dp),
         state = pagerState
     ) { page ->
+        val selected = pagerState.currentPage == page
         Image(
             painter = painterResource(id = avatarList[page].img),
             contentDescription = stringResource(R.string.cont_desc_profile_image),
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .clip(CircleShape)
-                .size(200.dp)
+                .size(96.dp)
+                .border(
+                    width = if (selected) 2.dp else 0.dp,
+                    color = HomeInk,
+                    shape = CircleShape
+                )
                 .graphicsLayer {
-                    // Calculate the absolute offset for the current page from the
-                    // scroll position. We use the absolute value which allows us to mirror
-                    // any effects for both directions
                     val pageOffset = (
-                            (pagerState.currentPage - page) + pagerState
-                                .currentPageOffsetFraction
-                            ).absoluteValue
-
-                    // We animate the alpha, between 50% and 100%
-                    alpha = lerp(
-                        start = 0.5f,
-                        stop = 1f,
-                        fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                    )
-
-                    scaleX = lerp(
-                        start = 0.75f,
-                        stop = 1f,
-                        fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                    )
-
-                    scaleY = lerp(
-                        start = 0.75f,
-                        stop = 1f,
-                        fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                    )
+                        (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+                        ).absoluteValue
+                    val fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                    alpha = lerp(start = 0.45f, stop = 1f, fraction = fraction)
+                    scaleX = lerp(start = 0.8f, stop = 1f, fraction = fraction)
+                    scaleY = lerp(start = 0.8f, stop = 1f, fraction = fraction)
                 }
         )
     }

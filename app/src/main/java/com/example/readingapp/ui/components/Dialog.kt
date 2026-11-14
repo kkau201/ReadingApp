@@ -2,25 +2,33 @@ package com.example.readingapp.ui.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.HomeCover
+import com.example.readingapp.ui.theme.HomeInk
+import com.example.readingapp.ui.theme.HomeMuted
 
 data class DialogState(
     val dismissed: Boolean = false,
@@ -51,70 +59,65 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
             properties = DialogProperties(usePlatformDefaultWidth = false),
         ) {
             Surface(
-                shape = RoundedCornerShape(AppTheme.spacing.lgSpacing),
-                color = AppTheme.colors.background,
+                shape = RoundedCornerShape(20.dp),
+                color = Color.White,
                 modifier = modifier
                     .fillMaxWidth()
-                    .padding(horizontal = AppTheme.spacing.mdSpacing)
+                    .padding(horizontal = 24.dp)
             ) {
                 Column(
-                    verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = modifier.padding(AppTheme.spacing.mdSpacing)
-
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 32.dp)
                 ) {
                     icon?.let {
                         Image(
                             painter = painterResource(id = icon),
                             contentDescription = null,
-                            modifier = modifier.padding(bottom = AppTheme.spacing.mdSpacing)
+                            modifier = Modifier
+                                .padding(bottom = 16.dp)
+                                .size(72.dp)
                         )
                     }
                     title?.let {
                         Text(
                             text = title,
-                            style = AppTheme.typography.headlineSmall,
+                            style = AppTheme.typography.titleLarge,
                             textAlign = TextAlign.Center,
-                            color = AppTheme.colors.onBackground,
-                            modifier = modifier
-                                .fillMaxWidth()
-                                .padding(bottom = AppTheme.spacing.smSpacing)
+                            color = HomeInk,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
-
                     message?.let {
                         Text(
                             text = message,
                             style = AppTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
-                            color = AppTheme.colors.onBackground,
-                            modifier = modifier
+                            color = HomeMuted,
+                            modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = AppTheme.spacing.smSpacing)
+                                .padding(top = 8.dp)
                         )
                     }
-
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        modifier = modifier.fillMaxWidth()
-                    ) {
-                        secondaryButtonText?.let {
-                            Box(modifier = modifier.weight(1f)) {
-                                ReadingAppButton(
-                                    text = secondaryButtonText,
-                                    modifier = modifier.fillMaxWidth(),
-                                    padding = PaddingValues(end = AppTheme.spacing.xxsmSpacing),
-                                    onClick = { onSecondaryClick?.invoke() }
+                    if (primaryButtonText != null || secondaryButtonText != null) {
+                        Column(
+                            modifier = Modifier.padding(top = 24.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            primaryButtonText?.let {
+                                DialogButton(
+                                    text = primaryButtonText,
+                                    container = HomeInk,
+                                    content = Color.White,
+                                    onClick = { onPrimaryClick?.invoke() }
                                 )
                             }
-                        }
-                        primaryButtonText?.let {
-                            Box(modifier = modifier.weight(1f)) {
-                                ReadingAppButton(
-                                    text = primaryButtonText,
-                                    modifier = modifier.fillMaxWidth(),
-                                    padding = PaddingValues(start = AppTheme.spacing.xxsmSpacing),
-                                    onClick = { onPrimaryClick?.invoke() }
+                            secondaryButtonText?.let {
+                                DialogButton(
+                                    text = secondaryButtonText,
+                                    container = Color.White,
+                                    content = HomeInk,
+                                    border = HomeCover,
+                                    onClick = { onSecondaryClick?.invoke() }
                                 )
                             }
                         }
@@ -123,6 +126,35 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
             }
         }
     }
+}
+
+@Composable
+private fun DialogButton(
+    text: String,
+    container: Color,
+    content: Color,
+    onClick: () -> Unit,
+    border: Color? = null
+) {
+    Text(
+        text = text,
+        color = content,
+        style = AppTheme.typography.labelLarge,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(CircleShape)
+            .then(
+                if (border != null) {
+                    Modifier.border(1.dp, border, CircleShape)
+                } else {
+                    Modifier
+                }
+            )
+            .background(container)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 20.dp, vertical = 14.dp)
+    )
 }
 
 

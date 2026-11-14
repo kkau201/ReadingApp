@@ -53,6 +53,24 @@
     <string name="cont_desc_hide_password">Hide password</string>
     <string name="cont_desc_show_password">Show password</string>
     <string name="cont_desc_add_a_book">Add a book</string>
+    <string name="profile_title">Profile</string>
+    <string name="profile_update">Update details</string>
+    <string name="profile_logout">Log out</string>
+    <string name="profile_version">Version %1$s</string>
+    <string name="profile_section_reading">Your reading</string>
+    <string name="profile_section_now">Now reading</string>
+    <string name="profile_stamp_title">Books I’ve read</string>
+    <string name="profile_stamp_goal">%1$d before the year ends</string>
+    <string name="profile_stamp_complete">This year’s card is full</string>
+    <string name="profile_stamp_progress">%1$d of %2$d</string>
+    <plurals name="profile_stamp_more">
+        <item quantity="one">and %d more</item>
+        <item quantity="other">and %d more</item>
+    </plurals>
+    <plurals name="profile_pages_finished">
+        <item quantity="one">%d page finished</item>
+        <item quantity="other">%d pages finished</item>
+    </plurals>
     <string name="cont_desc_profile_image">Profile image</string>
     <string name="cont_desc_star_number">Star number %d</string>
     <string name="cont_desc_filled_star_icon">Filled star icon</string>
@@ -86,9 +104,15 @@
     <string name="update_book_error">Error updating book</string>
     <string name="update_no_changes_made">No changes made</string>
 
-    <string name="update_user_title">Update your details</string>
+    <string name="update_user_title">Edit profile</string>
     <string name="update_user_name_label">Name</string>
     <string name="update_user_bio_label">Bio</string>
     <string name="update_user_avatar_label">Avatar</string>
+    <string name="update_user_color_label">Colour</string>
+    <string name="update_user_goal_label">Books this year</string>
+    <string name="update_user_saved">Profile updated</string>
+    <string name="update_user_error">Couldn’t update your profile</string>
+    <string name="cont_desc_decrease_goal">Fewer books</string>
+    <string name="cont_desc_increase_goal">More books</string>
 
 </resources>

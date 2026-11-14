@@ -38,7 +38,7 @@ class DashboardViewModel @Inject constructor(
 
                 withContext(Dispatchers.Main) {
                     fireRepository.user.collect { user ->
-                        _uiState.update { state -> state.copy(avatarColor = user?.avatar?.color ?: Purple) }
+                        _uiState.update { state -> state.copy(avatarColor = user?.profileColor ?: Purple) }
                     }
                 }
             } catch (e: Exception) {
