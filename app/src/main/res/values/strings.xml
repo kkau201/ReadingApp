@@ -14,6 +14,23 @@
     <string name="hello">"Hello, "</string>
     <string name="currently_reading">Currently reading...</string>
     <string name="reading_list">Reading List</string>
+    <string name="home_greeting">Hello, %1$s</string>
+    <string name="home_title">Library</string>
+    <string name="home_now_reading">Now reading</string>
+    <string name="home_now">Now</string>
+    <string name="home_shelf">Your shelf</string>
+    <string name="home_filter_all">All</string>
+    <string name="home_filter_want_to_read">Want to read</string>
+    <string name="home_filter_reading">Reading</string>
+    <string name="home_filter_finished">Finished</string>
+    <string name="home_empty_title">Your shelf is quiet</string>
+    <string name="home_empty_body">Books you save will gather here.</string>
+    <string name="home_filter_empty">Nothing on this shelf yet.</string>
+    <string name="home_pages">%1$d pages</string>
+    <plurals name="home_book_count">
+        <item quantity="one">%d book</item>
+        <item quantity="other">%d books</item>
+    </plurals>
 
     <string name="search_title">Search books</string>
     <string name="start_searching_here">Start searching here…</string>
