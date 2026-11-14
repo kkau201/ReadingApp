@@ -1,180 +1,99 @@
 package com.example.readingapp.ui.search
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
+import com.example.readingapp.ui.components.LibraryPageTitle
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.AppTheme.spacing
+import com.example.readingapp.ui.theme.HomeCanvas
 import com.example.readingapp.utils.keyboardAsState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
-
-private const val SEARCHBAR_OFFSET_MARGIN = 250f
-private const val DEFAULT_SEARCHBAR_Y_OFFSET = 800f
-
-private fun searchBarOffsetFor(listOffset: Float, statusBarTopPx: Float): Float {
-    return (listOffset - SEARCHBAR_OFFSET_MARGIN).coerceIn(statusBarTopPx, DEFAULT_SEARCHBAR_Y_OFFSET)
-}
 
 @Composable
 fun SearchScreen(
-    themeColor: Color,
     viewModel: SearchViewModel = hiltViewModel(),
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 ) {
     ViewModelBinding(viewModel)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
-
-    // Clear focus if keyboard was hidden by user
     val isKeyboardOpen by keyboardAsState()
     val focusManager = LocalFocusManager.current
     if (!isKeyboardOpen) focusManager.clearFocus()
 
     ObserveLifecycleEvents(viewModel, lifecycleOwner)
 
-    // Image height that acquired in runtime.
-    var imageHeightInPx by remember { mutableIntStateOf(0) }
-
-    // Offset value to move layout to top.
-    var listOffset by remember { mutableFloatStateOf(0f) }
-    var searchBarOffset by remember { mutableFloatStateOf(DEFAULT_SEARCHBAR_Y_OFFSET) }
-
-    val density = LocalDensity.current
-    val statusBarTopPx = WindowInsets.statusBars.getTop(density).toFloat()
-    val marginTopInPx = statusBarTopPx + with(density) { spacing.lgSpacing.toPx() }
-
-    val coroutineScope = rememberCoroutineScope()
-
-    val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                val delta = available.y
-                coroutineScope.launch(Dispatchers.Main) {
-                    listOffset = (listOffset + delta).coerceIn(marginTopInPx, imageHeightInPx.toFloat())
-                    searchBarOffset = searchBarOffsetFor(listOffset, statusBarTopPx)
-                }
-                return Offset(
-                    0f,
-                    if (listOffset < imageHeightInPx && listOffset > marginTopInPx) delta else 0f
-                )
-            }
-        }
-    }
-
-    Box(
-        modifier = Modifier
-            .background(color = Color.White)
-            .fillMaxSize()
-            .nestedScroll(nestedScrollConnection)
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    keyboardController?.hide()
-                })
-            },
-    ) {
-        Box(
-            modifier = Modifier
-                .background(themeColor)
-                .wrapContentHeight()
-                .fillMaxWidth()
-                .onGloballyPositioned {
-                    // Set the image height when composable positioned.
-                    imageHeightInPx = it.size.height - 100
-                    listOffset = imageHeightInPx.toFloat()
-                    searchBarOffset = searchBarOffsetFor(listOffset, statusBarTopPx)
-                }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.search_book_img),
-                contentDescription = null,
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .padding(top = spacing.mdSpacing, bottom = spacing.lgSpacing)
-                    .padding(horizontal = 100.dp)
-                    .size(250.dp)
-                    .align(Alignment.Center)
-            )
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .offset {
-                    IntOffset(0, listOffset.roundToInt())
-                }
-                .background(color = AppTheme.colors.background, shape = RoundedCornerShape(spacing.lgSpacing))
-        )
-
-        when (val results = uiState.results) {
-            is SearchResults.Success -> {
-                viewModel.updateLoadingState(LoadingState.Success)
-                SearchResults(
-                    books = results.books,
-                    offset = listOffset,
-                    onBookClick = { bookId -> viewModel.onBookClick(bookId) }
-                )
-            }
+    val results = uiState.results
+    LaunchedEffect(results) {
+        when (results) {
+            is SearchResults.Success -> viewModel.updateLoadingState(LoadingState.Success)
             is SearchResults.Loading -> viewModel.updateLoadingState(LoadingState.Loading())
             is SearchResults.Error -> {
                 viewModel.updateLoadingState(LoadingState.Failed(results.exception?.message))
                 viewModel.showErrorDialog(results.exception)
             }
         }
+    }
 
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(HomeCanvas)
+            .statusBarsPadding()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { keyboardController?.hide() })
+            }
+    ) {
+        LibraryPageTitle(
+            text = stringResource(R.string.search_title),
+            modifier = Modifier.padding(
+                start = AppTheme.spacing.mdSpacing,
+                end = AppTheme.spacing.mdSpacing,
+                top = 12.dp
+            )
+        )
         SearchInput(
             currentInput = uiState.searchInput,
             keyboardController = keyboardController,
             onInputChange = viewModel::onInputChange,
             onDoneClick = viewModel::onDoneClick,
-            modifier = Modifier.offset {
-                IntOffset(0, searchBarOffset.roundToInt())
-            }
+            modifier = Modifier.padding(
+                start = AppTheme.spacing.mdSpacing,
+                end = AppTheme.spacing.mdSpacing,
+                top = 20.dp
+            )
         )
+        if (results is SearchResults.Success) {
+            SearchResults(
+                books = results.books,
+                onBookClick = viewModel::onBookClick,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(top = 12.dp)
+            )
+        }
     }
 }
 

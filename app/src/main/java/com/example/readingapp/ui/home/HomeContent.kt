@@ -45,17 +45,18 @@ import androidx.compose.ui.unit.dp
 import com.example.readingapp.R
 import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.BookStatus
+import com.example.readingapp.ui.components.LibraryPageTitle
+import com.example.readingapp.ui.components.ShelfSpineShape
+import com.example.readingapp.ui.components.shelfKey
+import com.example.readingapp.ui.components.shelfSwatches
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.HomeCover
 import com.example.readingapp.ui.theme.HomeInk
 import com.example.readingapp.ui.theme.HomeMuted
-import com.example.readingapp.ui.theme.allColors
 import com.example.readingapp.ui.user.update.Avatar
 
-private val PagePadding = 24.dp
 private val SpineGap = 6.dp
 private val PulledWidth = 132.dp
-private val SpineShape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
 private val ShelfEdge = Color(0xFFD3C3AB)
 private val SpineWidths = listOf(36.dp, 42.dp, 48.dp, 54.dp)
 private val SpineHeights = listOf(156.dp, 172.dp, 188.dp, 204.dp)
@@ -102,7 +103,7 @@ fun HomeContent(
         )
         HomeSectionTitle(
             title = shelfTitle(filter),
-            modifier = Modifier.padding(start = PagePadding, top = 28.dp, bottom = 16.dp)
+            modifier = Modifier.padding(start = AppTheme.spacing.mdSpacing, top = 28.dp, bottom = 16.dp)
         )
         if (shelf.isEmpty()) {
             EmptyShelf(
@@ -130,7 +131,7 @@ private fun HomeHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = PagePadding),
+            .padding(horizontal = AppTheme.spacing.mdSpacing),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
@@ -145,10 +146,8 @@ private fun HomeHeader(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            Text(
+            LibraryPageTitle(
                 text = stringResource(R.string.home_title),
-                color = HomeInk,
-                style = AppTheme.typography.displaySmall,
                 modifier = Modifier.padding(top = 2.dp)
             )
             Text(
@@ -202,7 +201,7 @@ private fun HomeFilters(
     Row(
         modifier = modifier
             .horizontalScroll(rememberScrollState())
-            .padding(horizontal = PagePadding),
+            .padding(horizontal = AppTheme.spacing.mdSpacing),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         ShelfFilter.entries.forEach { filter ->
@@ -256,7 +255,7 @@ private fun ShelfRow(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = PagePadding)
+            .padding(horizontal = AppTheme.spacing.mdSpacing)
     ) {
         val styles = shelfStyles(books)
         val shelves = packShelves(books, styles, pulledKey, maxWidth)
@@ -339,8 +338,8 @@ private fun BookSpine(
         modifier = Modifier
             .width(style.width)
             .height(style.height)
-            .shadow(elevation = 3.dp, shape = SpineShape, ambientColor = Color(0x221C1917), spotColor = Color(0x331C1917))
-            .clip(SpineShape)
+            .shadow(elevation = 3.dp, shape = ShelfSpineShape, ambientColor = Color(0x221C1917), spotColor = Color(0x331C1917))
+            .clip(ShelfSpineShape)
             .background(style.cloth)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
@@ -411,26 +410,13 @@ private fun PulledBook(
     }
 }
 
-private fun MBook.shelfKey(): String = googleBookId ?: id ?: title.orEmpty()
-
 private fun shelfStyles(books: List<MBook>): List<SpineStyle> {
-    val recent = ArrayDeque<Color>()
-    return books.map { book ->
-        val hash = book.shelfKey().fold(0) { acc, char -> 31 * acc + char.code }
-        val start = hash.mod(allColors.size)
-        var cloth = allColors[start]
-        var step = 0
-        while (cloth in recent && step < allColors.size) {
-            step++
-            cloth = allColors[(start + step).mod(allColors.size)]
-        }
-        recent.addLast(cloth)
-        if (recent.size > 2) recent.removeFirst()
+    return shelfSwatches(books.map { it.shelfKey() }).map { swatch ->
         SpineStyle(
-            cloth = cloth,
-            ink = cloth.onCloth(),
-            width = SpineWidths[hash.mod(SpineWidths.size)],
-            height = SpineHeights[(hash / 7).mod(SpineHeights.size)]
+            cloth = swatch.cloth,
+            ink = swatch.cloth.onCloth(),
+            width = SpineWidths[swatch.hash.mod(SpineWidths.size)],
+            height = SpineHeights[(swatch.hash / 7).mod(SpineHeights.size)]
         )
     }
 }
@@ -455,7 +441,7 @@ private fun EmptyShelf(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = PagePadding)
+            .padding(horizontal = AppTheme.spacing.mdSpacing)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -495,7 +481,7 @@ private fun GhostSpine(height: Dp) {
         modifier = Modifier
             .width(34.dp)
             .height(height)
-            .clip(SpineShape)
+            .clip(ShelfSpineShape)
             .background(HomeInk.copy(alpha = 0.06f))
     )
 }

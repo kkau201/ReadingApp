@@ -60,7 +60,7 @@ fun DashboardScreen(
             when (uiState.currentTab) {
                 DashboardTab.Home -> HomeScreen()
                 DashboardTab.Session -> HomeScreen()
-                DashboardTab.Search -> SearchScreen(uiState.avatarColor)
+                DashboardTab.Search -> SearchScreen()
                 DashboardTab.Profile -> UserScreen(uiState.avatarColor)
             }
         }

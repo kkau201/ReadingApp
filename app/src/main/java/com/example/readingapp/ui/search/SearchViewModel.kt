@@ -5,12 +5,10 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
-import com.example.readingapp.common.ErrorType
-import com.example.readingapp.data.RemoteResult
 import com.example.readingapp.config.Constants.DEFAULT_SEARCH
+import com.example.readingapp.data.RemoteResult
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.BookRepository
-import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +28,10 @@ class SearchViewModel @Inject constructor(
         get() = _uiState
 
     fun onLoad() {
-        searchBooks(DEFAULT_SEARCH)
+        val state = uiState.value
+        if (state.results !is SearchResults.Loading) return
+        val query = state.searchInput.trim().ifEmpty { DEFAULT_SEARCH }
+        searchBooks(query)
     }
 
     fun onInputChange(input: String) {
@@ -46,12 +47,16 @@ class SearchViewModel @Inject constructor(
         searchBooks(uiState.value.searchInput)
     }
 
-    private fun searchBooks(q: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            if (q.isEmpty()) return@launch
+    private var searchRequest = 0
 
+    private fun searchBooks(q: String) {
+        val query = q.trim()
+        if (query.isEmpty()) return
+        val request = ++searchRequest
+        viewModelScope.launch(Dispatchers.IO) {
             try {
-                bookRepository.getBooksByQuery(q).collect { result ->
+                bookRepository.getBooksByQuery(query).collect { result ->
+                    if (request != searchRequest) return@collect
                     Log.d("ReadingAppTesting", "Result collected from book flow: $result")
                     _uiState.update { state ->
                         state.copy(
@@ -64,6 +69,7 @@ class SearchViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
+                if (request != searchRequest) return@launch
                 Log.e("ReadingAppTesting", "Failed to get books by query: $e")
                 _uiState.update { it.copy(results = SearchResults.Error(e)) }
             }

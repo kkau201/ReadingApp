@@ -32,8 +32,8 @@
         <item quantity="other">%d books</item>
     </plurals>
 
-    <string name="search_title">Search books</string>
-    <string name="start_searching_here">Start searching here…</string>
+    <string name="search_title">Search</string>
+    <string name="start_searching_here">Title or author</string>
 
     <string name="error_title">Error</string>
     <string name="error_unknown">Something went wrong</string>
@@ -65,7 +65,7 @@
     <string name="logout_message">Are you sure you want to log out?</string>
     <string name="logout_yes">Yes</string>
     <string name="logout_no">No</string>
-    <string name="no_results">No Results</string>
+    <string name="no_results">No results</string>
     <string name="save_button">Save</string>
     <string name="update_button">Update</string>
     <string name="login_error_title">Login error</string>
