@@ -1,10 +1,10 @@
 package com.example.readingapp.ui.components
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBackIosNew
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import com.example.readingapp.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,22 +71,22 @@ fun ReadingAppBarNav(
         },
         actions = {
             actionButtons?.forEach { button ->
-                IconButton(
-                    modifier = Modifier.background(color = button.backgroundColor, shape = CircleShape),
-                    enabled = button.isEnabled,
-                    onClick = button.onClick
-                ) {
-                    Icon(imageVector = button.icon, contentDescription = null, tint = button.tint)
-                }
+                Text(
+                    text = button.label,
+                    color = button.tint,
+                    style = AppTheme.typography.labelLarge,
+                    modifier = Modifier
+                        .clickable(enabled = button.isEnabled, onClick = button.onClick)
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                )
             }
         }
     )
 }
 
 data class ActionButton(
-    val icon: ImageVector,
+    val label: String,
     val tint: Color = Color.Black,
-    val backgroundColor: Color = Color.Transparent,
     val isEnabled: Boolean = true,
     val onClick: () -> Unit
 )

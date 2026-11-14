@@ -37,11 +37,18 @@ data class DialogState(
     val title: String? = null,
     val message: String? = null,
     val content: Map<String, String> = emptyMap(),
+    val choices: List<DialogChoice> = emptyList(),
     val primaryButtonText: String? = null,
     val onPrimaryClick: (() -> Unit)? = null,
     val secondaryButtonText: String? = null,
     val onSecondaryClick: (() -> Unit)? = null,
     val onDismissRequest: (() -> Unit)? = null
+)
+
+data class DialogChoice(
+    val text: String,
+    val selected: Boolean = false,
+    val onClick: () -> Unit
 )
 
 @Composable
@@ -98,11 +105,20 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
                                 .padding(top = 8.dp)
                         )
                     }
-                    if (primaryButtonText != null || secondaryButtonText != null) {
+                    if (choices.isNotEmpty() || primaryButtonText != null || secondaryButtonText != null) {
                         Column(
                             modifier = Modifier.padding(top = 24.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
+                            choices.forEach { choice ->
+                                DialogButton(
+                                    text = choice.text,
+                                    container = if (choice.selected) Ink else Color.White,
+                                    content = if (choice.selected) Color.White else Ink,
+                                    border = if (choice.selected) null else Cover,
+                                    onClick = choice.onClick
+                                )
+                            }
                             primaryButtonText?.let {
                                 DialogButton(
                                     text = primaryButtonText,

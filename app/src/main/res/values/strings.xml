@@ -35,6 +35,12 @@
 
     <string name="search_title">Search</string>
     <string name="start_searching_here">Title or author</string>
+    <string name="details_about">About</string>
+    <string name="details_save">Save</string>
+    <string name="details_edit">Edit</string>
+    <string name="details_remove">Remove</string>
+    <string name="details_add_shelf">Add to your shelf</string>
+    <string name="details_update_status">Update status</string>
 
     <string name="error_title">Error</string>
     <string name="error_unknown">Something went wrong</string>
@@ -99,6 +105,9 @@
     <string name="remove_book_secondary_button">No</string>
 
     <string name="update_book_title">Update book</string>
+    <string name="update_book_status">Status</string>
+    <string name="update_book_rating">Rating</string>
+    <string name="update_book_notes">Notes</string>
     <string name="update_cancel">Cancel</string>
     <string name="update_save">Save</string>
     <string name="update_book_success">Book updated</string>

@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -25,7 +24,8 @@ import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.components.ReadingAppBarNav
-import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.Ink
+import com.example.readingapp.ui.theme.Paper
 import com.example.readingapp.utils.keyboardAsState
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
@@ -52,7 +52,7 @@ fun UpdateScreen(
     if (!isKeyboardOpen) focusManager.clearFocus()
 
     Scaffold(
-        containerColor = AppTheme.colors.background,
+        containerColor = Paper,
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
@@ -62,8 +62,9 @@ fun UpdateScreen(
             },
         topBar = {
             ReadingAppBarNav(
+                backgroundColor = Paper,
                 title = stringResource(R.string.update_book_title),
-                navIconTint = Color.Black,
+                navIconTint = Ink,
                 onNavIconClick = viewModel::navigateBack
             )
         }
