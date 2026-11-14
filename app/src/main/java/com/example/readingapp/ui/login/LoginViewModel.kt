@@ -8,7 +8,6 @@ import com.example.readingapp.common.LoadingState
 import com.example.readingapp.model.MUser
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.FireRepository.Companion.USERS_COLLECTION
-import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.DashboardScreenDestination
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,7 +39,8 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onPasswordChange(input: String) {
-        val isValid = input.trim().isNotEmpty()
+        val minimum = if (uiState.value.loginScreenState == LoginScreenState.SIGN_UP) 6 else 1
+        val isValid = input.trim().length >= minimum
         _uiState.update { it.copy(password = input, isPasswordValid = isValid) }
     }
 
@@ -96,56 +97,35 @@ class LoginViewModel @Inject constructor(
     private fun onRegisterClick() {
         Log.d("LoginViewModel", "Register button clicked")
         _uiState.update { it.copy(errorMessage = null) }
+        if (getLoadingState().value is LoadingState.Loading) return
 
-        if (getLoadingState().value !is LoadingState.Loading) {
-            viewModelScope.launch(Dispatchers.IO) {
-                updateLoadingState(LoadingState.Loading())
-                try {
-                    auth.createUserWithEmailAndPassword(uiState.value.email, uiState.value.password)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                Log.d("LoginViewModel", "Success registering user: ${task.result.user}")
-                                updateLoadingState(LoadingState.Success)
-
-                                task.result?.user?.email?.split('@')?.get(0)?.let { displayName ->
-                                    createUser(displayName)
-                                }
-
-                                showDialog(
-                                    DialogState(
-                                        title = "Register Success",
-                                        message = "You have successfully created an account, you can now login",
-                                        primaryButtonText = "Login",
-                                        onPrimaryClick = {
-                                            dismissDialog()
-                                            updateLoadingState(LoadingState.Idle)
-                                            onSwitchScreens(LoginScreenState.LOGIN)
-                                        }
-                                    )
-                                )
-                            }
-                            else {
-                                updateLoadingState(LoadingState.Failed())
-                                Log.d("LoginViewModel", "Failed registering user: ${task.exception}")
-                                _uiState.update { it.copy(errorMessage = task.exception?.message) }
-                                updateLoadingState(LoadingState.Idle)
-                            }
-                        }
-                } catch (e: Exception) {
-                    Log.d("LoginViewModel", "Failed registering user: ${e.message}")
-                }
+        viewModelScope.launch(Dispatchers.IO) {
+            updateLoadingState(LoadingState.Loading())
+            try {
+                val result = auth.createUserWithEmailAndPassword(
+                    uiState.value.email,
+                    uiState.value.password
+                ).await()
+                val displayName = result.user?.email?.substringBefore('@').orEmpty().ifBlank { "Reader" }
+                createUser(displayName)
+                updateLoadingState(LoadingState.Idle)
+                navigate(NavigateTo(to = DashboardScreenDestination, popCurrent = true))
+            } catch (e: Exception) {
+                Log.d("LoginViewModel", "Failed registering user: ${e.message}")
+                updateLoadingState(LoadingState.Idle)
+                _uiState.update { it.copy(errorMessage = e.message) }
             }
         }
     }
 
-    private fun createUser(displayName: String) {
+    private suspend fun createUser(displayName: String) {
         Log.d("LoginViewModel", "Adding user to database with display name: $displayName")
-        val userId = auth.currentUser?.uid
+        val userId = auth.currentUser?.uid ?: return
         val user = MUser(
-            userId = userId.toString(),
+            userId = userId,
             displayName = displayName
         ).toMap()
 
-        FirebaseFirestore.getInstance().collection(USERS_COLLECTION).add(user)
+        FirebaseFirestore.getInstance().collection(USERS_COLLECTION).add(user).await()
     }
 }

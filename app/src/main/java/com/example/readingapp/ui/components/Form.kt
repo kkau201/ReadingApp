@@ -1,28 +1,27 @@
 package com.example.readingapp.ui.components
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.example.readingapp.R
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.Ink
+import com.example.readingapp.ui.theme.Muted
 import com.example.readingapp.utils.keyboardAsState
 
 @Composable
@@ -38,66 +37,61 @@ fun InputForm(
     onSubmitClick: () -> Unit,
     submitEnabled: Boolean,
     keyboardController: SoftwareKeyboardController?,
-    errorMessage: String?
+    errorMessage: String?,
+    showPasswordHint: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
-    // Clear focus if keyboard was hidden by user
     val isKeyboardOpen by keyboardAsState()
     val focusManager = LocalFocusManager.current
     if (!isKeyboardOpen) focusManager.clearFocus()
 
-    val textFieldColors = TextFieldDefaults.colors(
-        focusedIndicatorColor = AppTheme.colors.primary,
-        unfocusedIndicatorColor = Color.Transparent,
-        disabledIndicatorColor = Color.Transparent,
-        focusedContainerColor = Color.Transparent,
-        unfocusedContainerColor = Color.Transparent,
-        disabledContainerColor = Color.Transparent,
-    )
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(AppTheme.spacing.mdSpacing)
-    ) {
+    Column(modifier = modifier.fillMaxWidth()) {
         EmailInput(
             loading = loading,
             email = email,
             onEmailChange = onEmailChange,
-            textFieldColors = textFieldColors,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next
+            ),
             keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-            modifier = Modifier.padding(bottom = AppTheme.spacing.smSpacing)
+            modifier = Modifier.fillMaxWidth()
         )
-
         PasswordInput(
             loading = loading,
             password = password,
             onPasswordChange = onPasswordChange,
             passwordVisible = passwordVisible,
             updatePasswordVisibility = updatePasswordVisibility,
-            textFieldColors = textFieldColors,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            ),
             keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
-            modifier = Modifier.padding(bottom = AppTheme.spacing.xsmSpacing)
-        )
-        Text(
-            text = errorMessage ?: "",
-            color = AppTheme.colors.primary,
-            style = AppTheme.typography.bodySmall,
-            textAlign = TextAlign.Center,
             modifier = Modifier
-                .padding(bottom = AppTheme.spacing.smSpacing)
-                .padding(horizontal = AppTheme.spacing.smSpacing)
+                .fillMaxWidth()
+                .padding(top = 20.dp)
         )
-
+        if (showPasswordHint) {
+            Text(
+                text = stringResource(R.string.password_hint),
+                color = Muted,
+                style = AppTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp, start = 8.dp)
+            )
+        }
+        if (!errorMessage.isNullOrBlank()) {
+            Text(
+                text = errorMessage,
+                color = Ink,
+                style = AppTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 12.dp)
+            )
+        }
         ReadingAppButton(
             text = stringResource(submitText),
             enabled = submitEnabled,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = AppTheme.spacing.xxsmSpacing)
+            modifier = Modifier.padding(top = 32.dp)
         ) {
             focusManager.clearFocus()
             onSubmitClick()

@@ -35,3 +35,8 @@ Google accepts the key only from the Android app named in the restriction. Each 
 - `X-Android-Cert` is the SHA-1 of the certificate that signed the installed APK.
 
 The app reads that signature at runtime and hashes it, so the value matches the build that is actually running. If either header does not match the Cloud Console row, Google returns 403.
+
+## To do
+
+- [ ] Add Google auth
+- [ ] Add delete account

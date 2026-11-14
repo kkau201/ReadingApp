@@ -1,51 +1,53 @@
 package com.example.readingapp.ui.components
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
 import com.example.readingapp.R
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.Ink
+import com.example.readingapp.ui.theme.Muted
+
+private val FieldShape = RoundedCornerShape(20.dp)
 
 @Composable
 fun EmailInput(
     loading: LoadingState,
     email: String,
     onEmailChange: (String) -> Unit,
-    textFieldColors: TextFieldColors,
     keyboardOptions: KeyboardOptions,
     keyboardActions: KeyboardActions,
     modifier: Modifier = Modifier
 ) {
-    TextField(
+    AuthField(
+        label = stringResource(R.string.email),
         value = email,
         onValueChange = onEmailChange,
-        placeholder = { Text(stringResource(R.string.email)) },
-        colors = textFieldColors,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
-        singleLine = true,
         enabled = loading == LoadingState.Idle,
         modifier = modifier
     )
 }
-
 
 @Composable
 fun PasswordInput(
@@ -54,32 +56,81 @@ fun PasswordInput(
     onPasswordChange: (String) -> Unit,
     passwordVisible: Boolean,
     updatePasswordVisibility: (Boolean) -> Unit,
-    textFieldColors: TextFieldColors,
     keyboardOptions: KeyboardOptions,
     keyboardActions: KeyboardActions,
     modifier: Modifier = Modifier
 ) {
-    val hasFocus = remember { mutableStateOf(false) }
-    TextField(
+    AuthField(
+        label = stringResource(R.string.password),
         value = password,
         onValueChange = onPasswordChange,
-        placeholder = { Text(stringResource(R.string.password)) },
-        colors = textFieldColors,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
-        singleLine = true,
-        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        enabled = loading == LoadingState.Idle,
+        visualTransformation = if (passwordVisible) {
+            VisualTransformation.None
+        } else {
+            PasswordVisualTransformation()
+        },
         trailingIcon = {
             IconButton(onClick = { updatePasswordVisibility(!passwordVisible) }) {
                 Icon(
-                    imageVector = if (passwordVisible) Icons.Rounded.Visibility else Icons.Filled.VisibilityOff,
-                    tint = if (hasFocus.value) AppTheme.colors.primary else Color.Gray,
-                    contentDescription = if (passwordVisible) stringResource(R.string.cont_desc_hide_password)
-                    else stringResource(R.string.cont_desc_show_password)
+                    imageVector = if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                    tint = Ink,
+                    contentDescription = stringResource(
+                        if (passwordVisible) R.string.cont_desc_hide_password else R.string.cont_desc_show_password
+                    )
                 )
             }
         },
-        enabled = loading == LoadingState.Idle,
-        modifier = modifier.onFocusChanged { hasFocus.value = it.isFocused }
+        modifier = modifier
     )
+}
+
+@Composable
+private fun AuthField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    keyboardOptions: KeyboardOptions,
+    keyboardActions: KeyboardActions,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    trailingIcon: @Composable (() -> Unit)? = null
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = label,
+            color = Muted,
+            style = AppTheme.typography.labelLarge
+        )
+        TextField(
+            value = value,
+            onValueChange = onValueChange,
+            textStyle = AppTheme.typography.bodyLarge.copy(color = Ink),
+            shape = FieldShape,
+            colors = TextFieldDefaults.colors(
+                focusedTextColor = Ink,
+                unfocusedTextColor = Ink,
+                disabledTextColor = Ink.copy(alpha = 0.6f),
+                cursorColor = Ink,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                disabledContainerColor = Color.White,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            ),
+            singleLine = true,
+            enabled = enabled,
+            visualTransformation = visualTransformation,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
+            trailingIcon = trailingIcon,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+        )
+    }
 }
