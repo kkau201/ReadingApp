@@ -80,7 +80,6 @@ fun UserScreen(
             modifier = Modifier.padding(padding),
             userDisplayName = uiState.user?.displayName.orEmpty(),
             userBio = uiState.user?.quote.orEmpty(),
-            userProfession = uiState.user?.profession.orEmpty(),
             userAvatar = uiState.user?.avatar,
             books = uiState.books,
             readingGoal = uiState.user?.readingGoal ?: DEFAULT_READING_GOAL,
@@ -95,7 +94,6 @@ fun UserContent(
     modifier: Modifier = Modifier,
     userDisplayName: String,
     userBio: String,
-    userProfession: String = "",
     userAvatar: Avatar? = null,
     books: List<MBook> = emptyList(),
     readingGoal: Int = DEFAULT_READING_GOAL,
@@ -105,7 +103,6 @@ fun UserContent(
     val pagePadding = AppTheme.spacing.mdSpacing
     val name = userDisplayName.asProfileText()
     val bio = userBio.asProfileText()
-    val profession = userProfession.asProfileText()
     val nowReading = books.filter { it.bookStatus == BookStatus.READING }
     Column(
         modifier = modifier
@@ -116,7 +113,6 @@ fun UserContent(
     ) {
         ProfileHeader(
             name = name,
-            profession = profession,
             bio = bio,
             avatar = userAvatar,
             onEditClick = onUpdateClick,
@@ -164,7 +160,6 @@ fun UserContent(
 @Composable
 private fun ProfileHeader(
     name: String?,
-    profession: String?,
     bio: String?,
     avatar: Avatar?,
     onEditClick: () -> Unit,
@@ -198,14 +193,6 @@ private fun ProfileHeader(
                         tint = Ink
                     )
                 }
-            }
-            if (profession != null) {
-                Text(
-                    text = profession,
-                    color = Muted,
-                    style = AppTheme.typography.labelLarge,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
             }
             if (bio != null) {
                 Text(

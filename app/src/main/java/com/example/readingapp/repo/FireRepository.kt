@@ -110,9 +110,12 @@ class FireRepository @Inject constructor(
         val dataOrException = DataOrException<MUser?, Boolean, Exception>()
         try {
             dataOrException.loading = true
-            dataOrException.data = queryUser.get().await().documents
+            val userDocument = queryUser.get().await().documents
                 .find { it.get(USER_ID)?.equals(currentUserId) == true }
-                ?.toModel()
+            if (userDocument?.contains("profession") == true) {
+                userDocument.reference.update("profession", FieldValue.delete())
+            }
+            dataOrException.data = userDocument?.toModel()
 
             if (dataOrException.data != null) dataOrException.loading = false
         } catch (e: FirebaseFirestoreException) {

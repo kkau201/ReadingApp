@@ -9,7 +9,6 @@ const val USER_ID = "user_id"
 const val DISPLAY_NAME = "display_name"
 const val AVATAR_URL = "avatar_url"
 const val QUOTE = "quote"
-const val PROFESSION = "profession"
 const val READING_GOAL = "reading_goal"
 const val PROFILE_COLOR = "profile_color"
 const val DEFAULT_READING_GOAL = 8
@@ -24,7 +23,6 @@ data class MUser(
     val displayName: String,
     val avatarUrl: String = "",
     val quote: String = "",
-    val profession: String = "",
     val readingGoal: Int = DEFAULT_READING_GOAL,
     val profileColorId: String = ""
 ) {
@@ -34,7 +32,6 @@ data class MUser(
             DISPLAY_NAME to this.displayName,
             AVATAR_URL to this.avatarUrl,
             QUOTE to this.quote,
-            PROFESSION to this.profession,
             READING_GOAL to this.readingGoal.asReadingGoal(),
             PROFILE_COLOR to this.profileColorId,
         )
@@ -54,7 +51,6 @@ fun DocumentSnapshot.toModel(): MUser {
         displayName = this.get(DISPLAY_NAME).toString(),
         avatarUrl = this.get(AVATAR_URL).toString(),
         quote = this.get(QUOTE).toString(),
-        profession = this.get(PROFESSION).toString(),
         readingGoal = (this.get(READING_GOAL) as? Number)?.toInt().asReadingGoal(),
         profileColorId = this.get(PROFILE_COLOR)?.toString()?.takeUnless { it == "null" }.orEmpty()
     )

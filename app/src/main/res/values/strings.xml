@@ -12,13 +12,8 @@
     <string name="password_hint">* At least 6 characters</string>
     <string name="already_user">Already have an account?</string>
 
-    <string name="hello">"Hello, "</string>
-    <string name="currently_reading">Currently reading...</string>
-    <string name="reading_list">Reading List</string>
     <string name="home_greeting">Hello, %1$s</string>
     <string name="home_title">Library</string>
-    <string name="home_now_reading">Now reading</string>
-    <string name="home_now">Now</string>
     <string name="home_shelf">Your shelf</string>
     <string name="home_filter_all">All</string>
     <string name="home_filter_want_to_read">Want to read</string>
@@ -53,9 +48,6 @@
     <string name="error_bad_response">Unexpected server response</string>
     <string name="error_ok">OK</string>
     <string name="error_try_again">Try Again</string>
-    <string name="error_cancel">Cancel</string>
-    <string name="error_yes">Yes</string>
-    <string name="error_no">No</string>
 
     <string name="cont_desc_book_logo">Book logo</string>
     <string name="cont_desc_hide_password">Hide password</string>
@@ -92,8 +84,6 @@
     <string name="logout_yes">Yes</string>
     <string name="logout_no">No</string>
     <string name="no_results">No results</string>
-    <string name="save_button">Save</string>
-    <string name="update_button">Update</string>
     <string name="login_error_title">Login error</string>
     <string name="login_error_message">Sorry, unable to get your account to log in</string>
     <string name="login_error_primary_btn">Try again</string>
