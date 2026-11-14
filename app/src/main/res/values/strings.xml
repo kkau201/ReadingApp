@@ -36,6 +36,7 @@
     <string name="search_title">Search</string>
     <string name="start_searching_here">Title or author</string>
     <string name="details_about">About</string>
+    <string name="details_on_your_shelf">On your shelf</string>
     <string name="details_save">Save</string>
     <string name="details_edit">Edit</string>
     <string name="details_remove">Remove</string>
@@ -106,6 +107,15 @@
 
     <string name="update_book_title">Update book</string>
     <string name="update_book_status">Status</string>
+    <string name="update_book_finished_on">Finished</string>
+    <string name="update_book_finished_year">Year</string>
+    <string name="update_book_finished_month">Month</string>
+    <string name="update_book_finished_day">Day</string>
+    <string name="update_book_finished_not_sure">Not sure</string>
+    <string name="update_book_finished_optional">Optional</string>
+    <string name="update_book_finished_error">That day is not in this month</string>
+    <string name="update_book_year_earlier">Earlier year</string>
+    <string name="update_book_year_later">Later year</string>
     <string name="update_book_rating">Rating</string>
     <string name="update_book_notes">Notes</string>
     <string name="update_cancel">Cancel</string>

@@ -34,6 +34,10 @@ data class MBook(
     @set: PropertyName("finished_reading")
     var finishedReading: Timestamp? = null,
 
+    @get: PropertyName("finished_on")
+    @set: PropertyName("finished_on")
+    var finishedOn: String? = null,
+
     @get: PropertyName("user_id")
     @set: PropertyName("user_id")
     var userId: String? = null,

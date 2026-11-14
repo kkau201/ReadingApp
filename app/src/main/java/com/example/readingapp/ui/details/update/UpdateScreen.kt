@@ -12,13 +12,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
@@ -78,9 +78,16 @@ fun UpdateScreen(
                 book = it,
                 noteInput = uiState.noteInput,
                 selectedStatus = uiState.selectedStatus,
+                finishedYear = uiState.finishedYear,
+                finishedMonth = uiState.finishedMonth,
+                finishedDay = uiState.finishedDay,
+                finishedOnError = uiState.finishedOnError,
                 selectedRating = uiState.selectedRating,
                 onNoteInputChanged = viewModel::onNoteInputChanged,
                 onStatusChanged = viewModel::onStatusChanged,
+                onFinishedYearChanged = viewModel::onFinishedYearChanged,
+                onFinishedMonthChanged = viewModel::onFinishedMonthChanged,
+                onFinishedDayChanged = viewModel::onFinishedDayChanged,
                 onRatingChanged = viewModel::onRatingChanged,
                 onSaveClick = viewModel::onSaveClick,
                 onCancelClick = viewModel::onCancelClick,

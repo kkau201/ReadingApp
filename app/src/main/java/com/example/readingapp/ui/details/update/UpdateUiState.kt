@@ -9,5 +9,9 @@ data class UpdateUiState(
     val isSaved: Boolean = false,
     val noteInput: String = "",
     val selectedStatus: BookStatus = BookStatus.LIBRARY,
-    val selectedRating: Int = 0
+    val selectedRating: Int = 0,
+    val finishedYear: Int = 0,
+    val finishedMonth: Int? = null,
+    val finishedDay: String = "",
+    val finishedOnError: Boolean = false
 )

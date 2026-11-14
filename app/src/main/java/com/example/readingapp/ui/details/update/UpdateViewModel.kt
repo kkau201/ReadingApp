@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class UpdateViewModel @Inject constructor(
@@ -40,6 +41,7 @@ class UpdateViewModel @Inject constructor(
             updateLoadingState(LoadingState.Loading())
             val allSavedBooks = fireRepository.fetchSavedBooksByUser().getOrThrow()
             val savedBook = allSavedBooks.find { it.googleBookId == args.bookId }
+            val parts = savedBook.finishedParts()
             withContext(Dispatchers.Main) {
                 _uiState.update { state ->
                     state.copy(
@@ -48,7 +50,11 @@ class UpdateViewModel @Inject constructor(
                         isSaved = savedBook != null,
                         noteInput = savedBook?.notes ?: "",
                         selectedStatus = savedBook?.bookStatus ?: BookStatus.LIBRARY,
-                        selectedRating = savedBook?.rating?.toInt() ?: 0
+                        selectedRating = savedBook?.rating?.toInt() ?: 0,
+                        finishedYear = parts.year,
+                        finishedMonth = parts.month,
+                        finishedDay = parts.day,
+                        finishedOnError = false
                     )
                 }
                 updateLoadingState(LoadingState.Success)
@@ -67,7 +73,36 @@ class UpdateViewModel @Inject constructor(
 
     fun onStatusChanged(status: BookStatus) {
         _uiState.update { state ->
-            state.copy(selectedStatus = status)
+            val year = if (status == BookStatus.FINISHED && state.finishedYear == 0) {
+                maxFinishedYear()
+            } else {
+                state.finishedYear
+            }
+            state.copy(selectedStatus = status, finishedYear = year, finishedOnError = false)
+        }
+    }
+
+    fun onFinishedYearChanged(year: Int) {
+        if (year !in MIN_FINISHED_YEAR..maxFinishedYear()) return
+        _uiState.update { it.copy(finishedYear = year, finishedOnError = false) }
+    }
+
+    fun onFinishedMonthChanged(month: Int?) {
+        _uiState.update { state ->
+            state.copy(
+                finishedMonth = month,
+                finishedDay = if (month == null) "" else state.finishedDay,
+                finishedOnError = false
+            )
+        }
+    }
+
+    fun onFinishedDayChanged(input: String) {
+        _uiState.update { state ->
+            state.copy(
+                finishedDay = input.filter(Char::isDigit).take(2),
+                finishedOnError = false
+            )
         }
     }
 
@@ -91,61 +126,68 @@ class UpdateViewModel @Inject constructor(
                 updates = updates.plus("rating" to uiState.value.selectedRating.toDouble())
             }
 
-            // Start and Finished timestamps
             val selectedStatus: BookStatus = uiState.value.selectedStatus
-
-            // Check if need to reset timestamps due to user reverting the status to a previous stage
-            val resetStartedReading = book.startedReading != null && selectedStatus == BookStatus.LIBRARY
-            val resetFinishedReading = book.finishedReading != null && selectedStatus != BookStatus.FINISHED
-            // Check if user has progressed to next stage which requires a timestamp of now
-            val hasStartedReading = book.startedReading == null && uiState.value.selectedStatus == BookStatus.READING
-            val hasFinishedReading = book.finishedReading == null && uiState.value.selectedStatus == BookStatus.FINISHED
-
-            val startedTimeStamp: Timestamp? =
-                if (resetStartedReading) null
-                else if (hasStartedReading || (hasFinishedReading && book.startedReading == null)) Timestamp.now()
-                else book.startedReading
-            val finishedTimeStamp: Timestamp? =
-                if (resetFinishedReading) null
-                else if (hasFinishedReading) Timestamp.now()
-                else book.finishedReading
+            val finished = if (selectedStatus == BookStatus.FINISHED) {
+                FinishedParts(
+                    year = uiState.value.finishedYear,
+                    month = uiState.value.finishedMonth,
+                    day = uiState.value.finishedDay
+                ).toFinishedOn()
+            } else {
+                null
+            }
+            if (selectedStatus == BookStatus.FINISHED && finished == null) {
+                _uiState.update { it.copy(finishedOnError = true) }
+                return@let
+            }
+            val finishedTimeStamp = finished?.toTimestamp()
+            val startedTimeStamp: Timestamp? = when {
+                selectedStatus == BookStatus.LIBRARY -> null
+                book.startedReading != null -> book.startedReading
+                else -> finishedTimeStamp ?: Timestamp.now()
+            }
 
             if (startedTimeStamp != book.startedReading) {
                 updates = updates.plus("started_reading" to startedTimeStamp)
             }
-            if (finishedTimeStamp != book.finishedReading) {
+            if (!sameLocalDay(finishedTimeStamp, book.finishedReading)) {
                 updates = updates.plus("finished_reading" to finishedTimeStamp)
+            }
+            if (finished?.display != book.finishedOn) {
+                updates = updates.plus("finished_on" to finished?.display)
             }
 
             if (updates.isNotEmpty()) {
-                viewModelScope.launch {
-                    try {
-                        fireRepository.updateBook(
-                            bookId = book.id.toString(),
-                            bookUpdates = updates,
-                            onCompleteListener = { successful ->
-                                if (successful) {
-                                    viewModelScope.launch {
-                                        updateLoadingState(LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN))
-                                        delay(3000)
-                                        loadBook()
-                                        showToast(getString(R.string.update_book_success))
-                                        navigateBack()
-                                    }
+                updateLoadingState(LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN))
+                try {
+                    fireRepository.updateBook(
+                        bookId = book.id.toString(),
+                        bookUpdates = updates,
+                        onCompleteListener = { successful ->
+                            if (successful) {
+                                viewModelScope.launch {
+                                    delay(3000.milliseconds)
+                                    loadBook()
+                                    showToast(getString(R.string.update_book_success))
+                                    navigateBack()
                                 }
-                            },
-                            onErrorListener = { e ->
-                                Log.e("Error", "onSaveClick: Error updating book", e)
-                                showToast("Error updating book")
+                            } else {
+                                updateLoadingState(LoadingState.Idle)
+                                showToast(getString(R.string.update_book_error))
                             }
-                        )
-                    } catch (e: Exception) {
-                        Log.e("Error", "onSaveClick: Error updating book", e)
-                        showToast(getString(R.string.update_book_error))
-                    }
+                        },
+                        onErrorListener = { e ->
+                            Log.e("Error", "onSaveClick: Error updating book", e)
+                            updateLoadingState(LoadingState.Idle)
+                            showToast(getString(R.string.update_book_error))
+                        }
+                    )
+                } catch (e: Exception) {
+                    Log.e("Error", "onSaveClick: Error updating book", e)
+                    updateLoadingState(LoadingState.Idle)
+                    showToast(getString(R.string.update_book_error))
                 }
-            }
-            else {
+            } else {
                 showToast(getString(R.string.update_no_changes_made))
             }
         }

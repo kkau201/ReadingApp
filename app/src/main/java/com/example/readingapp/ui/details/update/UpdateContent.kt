@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -42,10 +43,17 @@ fun UpdateScreenContent(
     modifier: Modifier = Modifier,
     book: MBook,
     selectedStatus: BookStatus,
+    finishedYear: Int,
+    finishedMonth: Int?,
+    finishedDay: String,
+    finishedOnError: Boolean,
     selectedRating: Int,
     noteInput: String,
     onNoteInputChanged: (String) -> Unit,
     onStatusChanged: (BookStatus) -> Unit,
+    onFinishedYearChanged: (Int) -> Unit,
+    onFinishedMonthChanged: (Int?) -> Unit,
+    onFinishedDayChanged: (String) -> Unit,
     onRatingChanged: (Int) -> Unit,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit
@@ -65,7 +73,14 @@ fun UpdateScreenContent(
         )
         StatusField(
             selected = selectedStatus,
-            onStatusChanged = onStatusChanged
+            finishedYear = finishedYear,
+            finishedMonth = finishedMonth,
+            finishedDay = finishedDay,
+            finishedOnError = finishedOnError,
+            onStatusChanged = onStatusChanged,
+            onFinishedYearChanged = onFinishedYearChanged,
+            onFinishedMonthChanged = onFinishedMonthChanged,
+            onFinishedDayChanged = onFinishedDayChanged
         )
         RatingField(
             selectedRating = selectedRating,
@@ -96,7 +111,14 @@ fun UpdateScreenContent(
 @Composable
 private fun StatusField(
     selected: BookStatus,
-    onStatusChanged: (BookStatus) -> Unit
+    finishedYear: Int,
+    finishedMonth: Int?,
+    finishedDay: String,
+    finishedOnError: Boolean,
+    onStatusChanged: (BookStatus) -> Unit,
+    onFinishedYearChanged: (Int) -> Unit,
+    onFinishedMonthChanged: (Int?) -> Unit,
+    onFinishedDayChanged: (String) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         FieldLabel(text = stringResource(R.string.update_book_status))
@@ -123,6 +145,17 @@ private fun StatusField(
                 )
             }
         }
+        if (selected == BookStatus.FINISHED) {
+            FinishedDateField(
+                year = finishedYear,
+                month = finishedMonth,
+                day = finishedDay,
+                dayError = finishedOnError,
+                onYearChanged = onFinishedYearChanged,
+                onMonthChanged = onFinishedMonthChanged,
+                onDayChanged = onFinishedDayChanged
+            )
+        }
     }
 }
 
@@ -141,6 +174,7 @@ private fun RatingField(
                 val description = stringResource(R.string.cont_desc_star_number, star)
                 OutlineStar(
                     color = if (star <= selectedRating) Ink else Ink.copy(alpha = 0.28f),
+                    filled = star <= selectedRating,
                     modifier = Modifier
                         .semantics { contentDescription = description }
                         .clickable { onRatingChanged(star) }

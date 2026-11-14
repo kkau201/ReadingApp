@@ -21,14 +21,20 @@ import kotlin.math.sin
 fun OutlineStar(
     modifier: Modifier = Modifier,
     color: Color = Ink.copy(alpha = 0.28f),
+    filled: Boolean = false,
     size: Dp = 42.dp
 ) {
     Canvas(modifier = modifier.size(size)) {
-        drawPath(
-            path = starPath(),
-            color = color,
-            style = Stroke(width = 1.6f, cap = StrokeCap.Round, join = StrokeJoin.Round)
-        )
+        val path = starPath()
+        if (filled) {
+            drawPath(path = path, color = color)
+        } else {
+            drawPath(
+                path = path,
+                color = color,
+                style = Stroke(width = 1.6f, cap = StrokeCap.Round, join = StrokeJoin.Round)
+            )
+        }
     }
 }
 

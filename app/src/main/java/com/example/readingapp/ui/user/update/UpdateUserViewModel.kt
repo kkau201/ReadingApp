@@ -8,8 +8,8 @@ import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.model.AVATAR_URL
-import com.example.readingapp.model.PROFILE_COLOR
 import com.example.readingapp.model.DISPLAY_NAME
+import com.example.readingapp.model.PROFILE_COLOR
 import com.example.readingapp.model.QUOTE
 import com.example.readingapp.model.READING_GOAL
 import com.example.readingapp.model.asReadingGoal
@@ -51,7 +51,9 @@ class UpdateUserViewModel @Inject constructor(
                         selectedAvatar = Avatar.entries.find { avatar -> avatar.id == user?.avatarUrl }
                             ?: Avatar.AVATAR_1,
                         selectedColor = ProfileColor.fromId(user?.profileColorId)
-                            ?: ProfileColor.fromColor(user?.avatar?.color ?: ProfileColor.PURPLE.color)
+                            ?: ProfileColor.fromColor(
+                                user?.avatar?.color ?: ProfileColor.PURPLE.color
+                            )
                     )
                 }
                 user?.let {
@@ -63,7 +65,8 @@ class UpdateUserViewModel @Inject constructor(
 
     private fun loadUser() = viewModelScope.launch {
         try {
-            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: throw ErrorType.UnknownUserException
+            val currentUserId =
+                FirebaseAuth.getInstance().currentUser?.uid ?: throw ErrorType.UnknownUserException
             fireRepository.fetchUser(currentUserId).getOrThrow()
         } catch (e: Exception) {
             updateLoadingState(LoadingState.Failed(e.message))
@@ -95,6 +98,7 @@ class UpdateUserViewModel @Inject constructor(
 
     fun onUpdateClick() {
         uiState.value.userId?.let { id ->
+            updateLoadingState(LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN))
             fireRepository.updateUser(
                 userId = id,
                 userUpdates = mapOf(
@@ -108,7 +112,6 @@ class UpdateUserViewModel @Inject constructor(
                     viewModelScope.launch {
                         userJob?.cancel()
                         userJob = null
-                        updateLoadingState(LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN))
                         delay(3000.milliseconds)
                         loadUser()
                         showToast(getString(R.string.update_user_saved))
@@ -116,6 +119,7 @@ class UpdateUserViewModel @Inject constructor(
                     }
                 },
                 onErrorListener = {
+                    updateLoadingState(LoadingState.Idle)
                     showToast(getString(R.string.update_user_error))
                 }
             )

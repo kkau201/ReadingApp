@@ -1,6 +1,7 @@
 package com.example.readingapp.ui.details
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,26 +27,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.readingapp.R
 import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.BookStatus
+import com.example.readingapp.ui.components.OutlineStar
 import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
+import com.example.readingapp.ui.details.update.finishedDateLabel
 import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.Cover
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
 import com.example.readingapp.utils.fromHtmlToSpanned
 import com.example.readingapp.utils.toAnnotatedString
 
 private val CoverShape = RoundedCornerShape(6.dp)
+private val ShelfCardShape = RoundedCornerShape(20.dp)
 
 @Composable
 fun DetailsScreenContent(
     book: MBook,
-    savedStatus: BookStatus?,
+    savedBook: MBook?,
     onStatusClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -59,16 +66,14 @@ fun DetailsScreenContent(
         verticalArrangement = Arrangement.spacedBy(28.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            BookHeading(
-                book = book,
-                cloth = cloth,
-                savedStatus = savedStatus,
-                onStatusClick = onStatusClick
-            )
+            BookHeading(book = book, cloth = cloth)
             val genres = book.genreTags()
             if (genres.isNotEmpty()) {
                 GenreTags(genres)
             }
+        }
+        savedBook?.let { shelf ->
+            YourShelfCard(book = shelf, onStatusClick = onStatusClick)
         }
         book.description?.takeIf { it.isNotBlank() }?.let { description ->
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -90,9 +95,7 @@ fun DetailsScreenContent(
 @Composable
 private fun BookHeading(
     book: MBook,
-    cloth: Color,
-    savedStatus: BookStatus?,
-    onStatusClick: () -> Unit
+    cloth: Color
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -124,18 +127,87 @@ private fun BookHeading(
                     style = AppTheme.typography.bodySmall
                 )
             }
-            savedStatus?.let { status ->
+        }
+    }
+}
+
+@Composable
+private fun YourShelfCard(
+    book: MBook,
+    onStatusClick: () -> Unit
+) {
+    val status = book.bookStatus
+    val finishedDate = book.finishedDateLabel()
+    val rating = book.shelfRating()
+    val notes = book.notes?.takeIf { it.isNotBlank() }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(ShelfCardShape)
+            .border(1.dp, Cover, ShelfCardShape)
+            .background(Color.White)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.details_on_your_shelf),
+            color = Ink,
+            style = AppTheme.typography.titleLarge
+        )
+        Column(
+            modifier = Modifier.clickable(onClick = onStatusClick),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            ShelfLabel(text = stringResource(R.string.update_book_status))
+            Text(
+                text = status.shelfLabel(),
+                color = Ink,
+                style = AppTheme.typography.bodyLarge
+            )
+            if (status == BookStatus.FINISHED && !finishedDate.isNullOrBlank()) {
                 Text(
-                    text = status.shelfLabel(),
+                    text = finishedDate,
+                    color = Muted,
+                    style = AppTheme.typography.bodySmall
+                )
+            }
+        }
+        if (rating != null) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                ShelfLabel(text = stringResource(R.string.update_book_rating))
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    for (star in 1..5) {
+                        val description = stringResource(R.string.cont_desc_star_number, star)
+                        OutlineStar(
+                            color = if (star <= rating) Ink else Ink.copy(alpha = 0.28f),
+                            filled = star <= rating,
+                            size = 22.dp,
+                            modifier = Modifier.semantics { contentDescription = description }
+                        )
+                    }
+                }
+            }
+        }
+        if (notes != null) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                ShelfLabel(text = stringResource(R.string.update_book_notes))
+                Text(
+                    text = notes,
                     color = Ink,
-                    style = AppTheme.typography.labelLarge,
-                    modifier = Modifier
-                        .padding(top = 4.dp)
-                        .clickable(onClick = onStatusClick)
+                    style = AppTheme.typography.bodyLarge
                 )
             }
         }
     }
+}
+
+@Composable
+private fun ShelfLabel(text: String) {
+    Text(
+        text = text,
+        color = Muted,
+        style = AppTheme.typography.labelLarge
+    )
 }
 
 @Composable
@@ -192,6 +264,13 @@ private fun GenreTags(genres: List<String>) {
             )
         }
     }
+}
+
+private fun MBook.shelfRating(): Int? {
+    val value = rating ?: return null
+    val stars = value.toInt()
+    if (stars !in 1..5 || value != stars.toDouble()) return null
+    return stars
 }
 
 private fun MBook.genreTags(): List<String> {

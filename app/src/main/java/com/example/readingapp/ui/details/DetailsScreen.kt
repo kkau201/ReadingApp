@@ -76,7 +76,7 @@ fun DetailsScreen(
         uiState.book?.let {
             DetailsScreenContent(
                 book = it,
-                savedStatus = uiState.savedBook?.bookStatus,
+                savedBook = uiState.savedBook,
                 onStatusClick = viewModel::onChooseStatus,
                 modifier = Modifier.padding(padding)
             )
