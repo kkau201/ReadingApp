@@ -25,8 +25,8 @@ import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.components.ReadingAppBarNav
-import com.example.readingapp.ui.theme.HomeCanvas
-import com.example.readingapp.ui.theme.HomeInk
+import com.example.readingapp.ui.theme.Canvas
+import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.utils.keyboardAsState
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
@@ -52,7 +52,7 @@ fun UpdateUserScreen(
     if (!isKeyboardOpen) focusManager.clearFocus()
 
     Scaffold(
-        containerColor = HomeCanvas,
+        containerColor = Canvas,
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
@@ -62,9 +62,9 @@ fun UpdateUserScreen(
             },
         topBar = {
             ReadingAppBarNav(
-                backgroundColor = HomeCanvas,
+                backgroundColor = Canvas,
                 title = stringResource(R.string.update_user_title),
-                navIconTint = HomeInk,
+                navIconTint = Ink,
                 onNavIconClick = viewModel::navigateBack
             )
         }

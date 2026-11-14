@@ -48,8 +48,8 @@ import com.example.readingapp.R
 import com.example.readingapp.model.MAX_READING_GOAL
 import com.example.readingapp.model.MIN_READING_GOAL
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.HomeInk
-import com.example.readingapp.ui.theme.HomeMuted
+import com.example.readingapp.ui.theme.Ink
+import com.example.readingapp.ui.theme.Muted
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.flow.drop
 
@@ -108,7 +108,7 @@ fun UpdateUserContent(
         )
         ProfileFormButton(
             text = stringResource(R.string.update_save),
-            container = HomeInk,
+            container = Ink,
             content = Color.White,
             onClick = onSaveClick,
             modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 32.dp)
@@ -116,7 +116,7 @@ fun UpdateUserContent(
         ProfileFormButton(
             text = stringResource(R.string.update_cancel),
             container = Color.White,
-            content = HomeInk,
+            content = Ink,
             onClick = onCancelClick,
             modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 10.dp)
         )
@@ -146,7 +146,7 @@ private fun ProfileColorPicker(
                         .background(profileColor.color)
                         .border(
                             width = if (isSelected) 2.dp else 0.dp,
-                            color = HomeInk,
+                            color = Ink,
                             shape = CircleShape
                         )
                         .clickable { onColorChange(profileColor) }
@@ -163,7 +163,7 @@ private fun ProfileFieldLabel(
 ) {
     Text(
         text = text,
-        color = HomeMuted,
+        color = Muted,
         style = AppTheme.typography.labelLarge,
         modifier = modifier
     )
@@ -183,12 +183,12 @@ private fun ProfileTextField(
         TextField(
             value = value,
             onValueChange = onValueChange,
-            textStyle = AppTheme.typography.bodyLarge.copy(color = HomeInk),
+            textStyle = AppTheme.typography.bodyLarge.copy(color = Ink),
             shape = FieldShape,
             colors = TextFieldDefaults.colors(
-                focusedTextColor = HomeInk,
-                unfocusedTextColor = HomeInk,
-                cursorColor = HomeInk,
+                focusedTextColor = Ink,
+                unfocusedTextColor = Ink,
+                cursorColor = Ink,
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,
                 focusedIndicatorColor = Color.Transparent,
@@ -229,12 +229,12 @@ private fun ReadingGoalField(
                 Icon(
                     imageVector = Icons.Rounded.Remove,
                     contentDescription = stringResource(R.string.cont_desc_decrease_goal),
-                    tint = if (goal > MIN_READING_GOAL) HomeInk else HomeMuted
+                    tint = if (goal > MIN_READING_GOAL) Ink else Muted
                 )
             }
             Text(
                 text = goal.toString(),
-                color = HomeInk,
+                color = Ink,
                 style = AppTheme.typography.headlineSmall,
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
@@ -245,13 +245,13 @@ private fun ReadingGoalField(
                 Icon(
                     imageVector = Icons.Rounded.Add,
                     contentDescription = stringResource(R.string.cont_desc_increase_goal),
-                    tint = if (goal < MAX_READING_GOAL) HomeInk else HomeMuted
+                    tint = if (goal < MAX_READING_GOAL) Ink else Muted
                 )
             }
         }
         Text(
             text = stringResource(R.string.profile_stamp_goal, goal),
-            color = HomeMuted,
+            color = Muted,
             style = AppTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 8.dp)
         )
@@ -324,7 +324,7 @@ fun UpdateAvatarPager(
                 .size(96.dp)
                 .border(
                     width = if (selected) 2.dp else 0.dp,
-                    color = HomeInk,
+                    color = Ink,
                     shape = CircleShape
                 )
                 .graphicsLayer {

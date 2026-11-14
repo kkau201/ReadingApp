@@ -28,7 +28,7 @@ import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.components.LibraryPageTitle
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.HomeCanvas
+import com.example.readingapp.ui.theme.Canvas
 import com.example.readingapp.utils.keyboardAsState
 
 @Composable
@@ -60,7 +60,7 @@ fun SearchScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(HomeCanvas)
+            .background(Canvas)
             .statusBarsPadding()
             .pointerInput(Unit) {
                 detectTapGestures(onTap = { keyboardController?.hide() })

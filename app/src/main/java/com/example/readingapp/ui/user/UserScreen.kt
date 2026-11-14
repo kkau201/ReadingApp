@@ -55,10 +55,10 @@ import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.BookStatus
 import com.example.readingapp.ui.components.LibraryPageTitle
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.HomeCanvas
-import com.example.readingapp.ui.theme.HomeCover
-import com.example.readingapp.ui.theme.HomeInk
-import com.example.readingapp.ui.theme.HomeMuted
+import com.example.readingapp.ui.theme.Canvas
+import com.example.readingapp.ui.theme.Cover
+import com.example.readingapp.ui.theme.Ink
+import com.example.readingapp.ui.theme.Muted
 import com.example.readingapp.ui.user.update.Avatar
 
 @Composable
@@ -73,7 +73,7 @@ fun UserScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = HomeCanvas,
+        containerColor = Canvas,
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     ) { padding ->
         UserContent(
@@ -147,13 +147,13 @@ fun UserContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(CircleShape)
-                    .background(HomeInk)
+                    .background(Ink)
                     .clickable(onClick = onLogoutClick)
                     .padding(horizontal = 20.dp, vertical = 14.dp)
             )
             Text(
                 text = stringResource(R.string.profile_version, BuildConfig.VERSION_NAME),
-                color = HomeMuted,
+                color = Muted,
                 style = AppTheme.typography.bodySmall,
                 textAlign = TextAlign.Center
             )
@@ -180,7 +180,7 @@ private fun ProfileHeader(
         ) {
             Text(
                 text = stringResource(R.string.profile_title),
-                color = HomeMuted,
+                color = Muted,
                 style = AppTheme.typography.labelLarge
             )
             Row(
@@ -195,14 +195,14 @@ private fun ProfileHeader(
                     Icon(
                         imageVector = Icons.Outlined.Edit,
                         contentDescription = stringResource(R.string.profile_update),
-                        tint = HomeInk
+                        tint = Ink
                     )
                 }
             }
             if (profession != null) {
                 Text(
                     text = profession,
-                    color = HomeMuted,
+                    color = Muted,
                     style = AppTheme.typography.labelLarge,
                     modifier = Modifier.padding(top = 4.dp)
                 )
@@ -210,7 +210,7 @@ private fun ProfileHeader(
             if (bio != null) {
                 Text(
                     text = bio,
-                    color = HomeMuted,
+                    color = Muted,
                     style = AppTheme.typography.bodyLarge,
                     modifier = Modifier.padding(top = 4.dp)
                 )
@@ -262,7 +262,7 @@ private fun ReadingSummary(
             if (pages > 0) {
                 Text(
                     text = pluralStringResource(R.plurals.profile_pages_finished, pages, pages),
-                    color = HomeMuted,
+                    color = Muted,
                     style = AppTheme.typography.bodyMedium
                 )
             }
@@ -286,12 +286,12 @@ private fun ReadingStat(
     ) {
         Text(
             text = count.toString(),
-            color = HomeInk,
+            color = Ink,
             style = AppTheme.typography.headlineSmall
         )
         Text(
             text = label,
-            color = HomeMuted,
+            color = Muted,
             style = AppTheme.typography.labelMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 2.dp)
@@ -307,7 +307,7 @@ private fun NowReading(books: List<MBook>) {
             Column {
                 Text(
                     text = book.title.orEmpty(),
-                    color = HomeInk,
+                    color = Ink,
                     style = AppTheme.typography.titleMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -316,7 +316,7 @@ private fun NowReading(books: List<MBook>) {
                 if (!author.isNullOrBlank()) {
                     Text(
                         text = author,
-                        color = HomeMuted,
+                        color = Muted,
                         style = AppTheme.typography.bodyMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -335,7 +335,7 @@ private fun ProfileSectionTitle(
 ) {
     Text(
         text = text,
-        color = HomeInk,
+        color = Ink,
         style = AppTheme.typography.titleLarge,
         modifier = modifier
     )
@@ -362,13 +362,13 @@ private fun ProfileAvatar(
             modifier = modifier
                 .size(72.dp)
                 .clip(CircleShape)
-                .background(HomeCover),
+                .background(Cover),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = initial,
-                color = HomeInk,
+                color = Ink,
                 style = AppTheme.typography.headlineSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Clip

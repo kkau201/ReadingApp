@@ -26,9 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.HomeCover
-import com.example.readingapp.ui.theme.HomeInk
-import com.example.readingapp.ui.theme.HomeMuted
+import com.example.readingapp.ui.theme.Cover
+import com.example.readingapp.ui.theme.Ink
+import com.example.readingapp.ui.theme.Muted
 
 data class DialogState(
     val dismissed: Boolean = false,
@@ -83,7 +83,7 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
                             text = title,
                             style = AppTheme.typography.titleLarge,
                             textAlign = TextAlign.Center,
-                            color = HomeInk,
+                            color = Ink,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -92,7 +92,7 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
                             text = message,
                             style = AppTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
-                            color = HomeMuted,
+                            color = Muted,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 8.dp)
@@ -106,7 +106,7 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
                             primaryButtonText?.let {
                                 DialogButton(
                                     text = primaryButtonText,
-                                    container = HomeInk,
+                                    container = Ink,
                                     content = Color.White,
                                     onClick = { onPrimaryClick?.invoke() }
                                 )
@@ -115,8 +115,8 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
                                 DialogButton(
                                     text = secondaryButtonText,
                                     container = Color.White,
-                                    content = HomeInk,
-                                    border = HomeCover,
+                                    content = Ink,
+                                    border = Cover,
                                     onClick = { onSecondaryClick?.invoke() }
                                 )
                             }

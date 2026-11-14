@@ -17,7 +17,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
-import com.example.readingapp.ui.theme.HomeCanvas
+import com.example.readingapp.ui.theme.Canvas
 
 @Composable
 fun HomeScreen(
@@ -28,7 +28,7 @@ fun HomeScreen(
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
-        containerColor = HomeCanvas,
+        containerColor = Canvas,
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
     ) { padding ->

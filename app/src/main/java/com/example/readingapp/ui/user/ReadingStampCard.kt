@@ -1,6 +1,6 @@
 package com.example.readingapp.ui.user
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Canvas as DrawCanvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,8 +35,9 @@ import com.example.readingapp.model.asReadingGoal
 import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.HomeInk
-import com.example.readingapp.ui.theme.HomeMuted
+import com.example.readingapp.ui.theme.Canvas
+import com.example.readingapp.ui.theme.Ink
+import com.example.readingapp.ui.theme.Muted
 import com.example.readingapp.ui.theme.Yellow
 import com.google.firebase.Timestamp
 import java.util.Calendar
@@ -72,12 +73,12 @@ fun ReadingStampCard(
     ) {
         Text(
             text = year.toString(),
-            color = HomeMuted,
+            color = Ink,
             style = AppTheme.typography.labelSmall
         )
         Text(
             text = stringResource(R.string.profile_stamp_title),
-            color = HomeInk,
+            color = Ink,
             style = AppTheme.typography.headlineSmall,
             modifier = Modifier.padding(top = 4.dp)
         )
@@ -87,7 +88,7 @@ fun ReadingStampCard(
             } else {
                 stringResource(R.string.profile_stamp_goal, stampGoal)
             },
-            color = HomeMuted,
+            color = Ink,
             style = AppTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 4.dp, bottom = 18.dp)
         )
@@ -110,7 +111,7 @@ fun ReadingStampCard(
         }
         Text(
             text = description,
-            color = HomeInk,
+            color = Ink,
             style = AppTheme.typography.labelLarge,
             modifier = Modifier
                 .padding(top = 18.dp)
@@ -119,7 +120,7 @@ fun ReadingStampCard(
         if (extra > 0) {
             Text(
                 text = pluralStringResource(R.plurals.profile_stamp_more, extra, extra),
-                color = HomeMuted,
+                color = Muted,
                 style = AppTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 2.dp)
             )
@@ -133,10 +134,10 @@ private fun ReadingStamp(cloth: Color?) {
         modifier = Modifier.size(56.dp),
         contentAlignment = Alignment.Center
     ) {
-        Canvas(modifier = Modifier.size(42.dp)) {
+        DrawCanvas(modifier = Modifier.size(42.dp)) {
             drawPath(
                 path = starPath(),
-                color = HomeInk.copy(alpha = 0.28f),
+                color = Ink.copy(alpha = 0.28f),
                 style = Stroke(width = 1.6f, cap = StrokeCap.Round, join = StrokeJoin.Round)
             )
         }

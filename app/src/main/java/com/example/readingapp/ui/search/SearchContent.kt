@@ -40,8 +40,8 @@ import com.example.readingapp.ui.components.ShelfSpineShape
 import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.HomeInk
-import com.example.readingapp.ui.theme.HomeMuted
+import com.example.readingapp.ui.theme.Ink
+import com.example.readingapp.ui.theme.Muted
 
 @Composable
 fun SearchInput(
@@ -54,35 +54,35 @@ fun SearchInput(
     TextField(
         value = currentInput,
         onValueChange = onInputChange,
-        textStyle = AppTheme.typography.bodyLarge.copy(color = HomeInk),
+        textStyle = AppTheme.typography.bodyLarge.copy(color = Ink),
         leadingIcon = {
             Icon(
                 imageVector = Icons.Rounded.Search,
                 contentDescription = stringResource(id = R.string.cont_desc_search_icon),
-                tint = HomeInk
+                tint = Ink
             )
         },
         placeholder = {
             Text(
                 text = stringResource(R.string.start_searching_here),
-                color = HomeMuted,
+                color = Muted,
                 style = AppTheme.typography.bodyLarge
             )
         },
         shape = CircleShape,
         colors = TextFieldDefaults.colors(
-            focusedTextColor = HomeInk,
-            unfocusedTextColor = HomeInk,
-            disabledTextColor = HomeInk,
-            cursorColor = HomeInk,
+            focusedTextColor = Ink,
+            unfocusedTextColor = Ink,
+            disabledTextColor = Ink,
+            cursorColor = Ink,
             focusedContainerColor = Color.White,
             unfocusedContainerColor = Color.White,
             disabledContainerColor = Color.White,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
-            focusedPlaceholderColor = HomeMuted,
-            unfocusedPlaceholderColor = HomeMuted
+            focusedPlaceholderColor = Muted,
+            unfocusedPlaceholderColor = Muted
         ),
         singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -105,7 +105,7 @@ fun SearchResults(
     if (books.isEmpty()) {
         Text(
             text = stringResource(R.string.no_results),
-            color = HomeInk,
+            color = Ink,
             style = AppTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
             modifier = modifier
@@ -156,7 +156,7 @@ private fun SearchResultRow(
         ) {
             Text(
                 text = book.title.orEmpty(),
-                color = HomeInk,
+                color = Ink,
                 style = AppTheme.typography.titleMedium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -165,7 +165,7 @@ private fun SearchResultRow(
             if (!author.isNullOrBlank()) {
                 Text(
                     text = author,
-                    color = HomeMuted,
+                    color = Muted,
                     style = AppTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -178,7 +178,7 @@ private fun SearchResultRow(
             if (meta.isNotBlank()) {
                 Text(
                     text = meta,
-                    color = HomeMuted,
+                    color = Muted,
                     style = AppTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

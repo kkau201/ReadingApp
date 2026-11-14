@@ -50,9 +50,9 @@ import com.example.readingapp.ui.components.ShelfSpineShape
 import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.HomeCover
-import com.example.readingapp.ui.theme.HomeInk
-import com.example.readingapp.ui.theme.HomeMuted
+import com.example.readingapp.ui.theme.Cover
+import com.example.readingapp.ui.theme.Ink
+import com.example.readingapp.ui.theme.Muted
 import com.example.readingapp.ui.user.update.Avatar
 
 private val SpineGap = 6.dp
@@ -140,7 +140,7 @@ private fun HomeHeader(
             if (!displayName.isNullOrBlank()) {
                 Text(
                     text = stringResource(R.string.home_greeting, displayName),
-                    color = HomeMuted,
+                    color = Muted,
                     style = AppTheme.typography.labelLarge,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -152,7 +152,7 @@ private fun HomeHeader(
             )
             Text(
                 text = pluralStringResource(R.plurals.home_book_count, bookCount, bookCount),
-                color = HomeMuted,
+                color = Muted,
                 style = AppTheme.typography.bodyLarge,
             )
         }
@@ -179,13 +179,13 @@ private fun HomeAvatar(avatar: Avatar?, name: String?) {
                 .padding(start = 16.dp)
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(HomeCover),
+                .background(Cover),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = initial,
-                color = HomeInk,
+                color = Ink,
                 style = AppTheme.typography.titleLarge
             )
         }
@@ -208,11 +208,11 @@ private fun HomeFilters(
             val isSelected = filter == selected
             Text(
                 text = filter.label(),
-                color = if (isSelected) Color.White else HomeInk,
+                color = if (isSelected) Color.White else Ink,
                 style = AppTheme.typography.labelLarge,
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(if (isSelected) HomeInk else Color.White)
+                    .background(if (isSelected) Ink else Color.White)
                     .clickable { onSelect(filter) }
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             )
@@ -240,7 +240,7 @@ private fun shelfTitle(filter: ShelfFilter): String = when (filter) {
 private fun HomeSectionTitle(title: String, modifier: Modifier = Modifier) {
     Text(
         text = title,
-        color = HomeInk,
+        color = Ink,
         style = AppTheme.typography.titleLarge,
         modifier = modifier
     )
@@ -423,7 +423,7 @@ private fun shelfStyles(books: List<MBook>): List<SpineStyle> {
 
 private fun Color.onCloth(): Color {
     val luminance = 0.299f * red + 0.587f * green + 0.114f * blue
-    return if (luminance > 0.55f) HomeInk else Color.White
+    return if (luminance > 0.55f) Ink else Color.White
 }
 
 private data class SpineStyle(
@@ -459,13 +459,13 @@ private fun EmptyShelf(
                 title?.let {
                     Text(
                         text = it,
-                        color = HomeInk,
+                        color = Ink,
                         style = AppTheme.typography.titleLarge
                     )
                 }
                 Text(
                     text = body,
-                    color = HomeMuted,
+                    color = Muted,
                     style = AppTheme.typography.bodySmall,
                     modifier = Modifier.padding(top = if (title == null) 0.dp else 4.dp)
                 )
@@ -482,7 +482,7 @@ private fun GhostSpine(height: Dp) {
             .width(34.dp)
             .height(height)
             .clip(ShelfSpineShape)
-            .background(HomeInk.copy(alpha = 0.06f))
+            .background(Ink.copy(alpha = 0.06f))
     )
 }
 
