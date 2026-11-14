@@ -81,7 +81,6 @@ fun UpdateUserScreen(
                     onBioInputChange = viewModel::onBioInputChange,
                     onReadingGoalChange = viewModel::onReadingGoalChange,
                     onAvatarChange = viewModel::onAvatarChange,
-                    onColorChange = viewModel::onColorChange,
                     onSaveClick = {
                         keyboardController?.hide()
                         viewModel.onUpdateClick()

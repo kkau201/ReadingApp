@@ -5,13 +5,10 @@ import androidx.compose.material.icons.rounded.Book
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.example.readingapp.ui.theme.Purple
 
 data class DashboardUiState(
-    val currentTab: DashboardTab = DashboardTab.Home,
-    val avatarColor: Color = Purple
+    val currentTab: DashboardTab = DashboardTab.Home
 )
 
 sealed class DashboardTab(

@@ -31,6 +31,7 @@ import com.example.readingapp.ui.search.SearchScreen
 import com.example.readingapp.ui.session.SessionScreen
 import com.example.readingapp.ui.theme.AppTheme.spacing
 import com.example.readingapp.ui.theme.Beige
+import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.LightPink
 import com.example.readingapp.ui.user.UserScreen
 import com.ramcosta.composedestinations.annotation.Destination
@@ -51,7 +52,7 @@ fun DashboardScreen(
     Scaffold(
         containerColor = Beige,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        bottomBar = { DashboardBottomNav(uiState.avatarColor, uiState.currentTab, viewModel::onTabClick) }
+        bottomBar = { DashboardBottomNav(uiState.currentTab, viewModel::onTabClick) }
     ) { padding ->
         Box(
             modifier = Modifier
@@ -70,7 +71,6 @@ fun DashboardScreen(
 
 @Composable
 fun DashboardBottomNav(
-    backgroundColor: Color,
     currentTab: DashboardTab,
     onTabClick: (DashboardTab) -> Unit
 ) {
@@ -78,7 +78,7 @@ fun DashboardBottomNav(
         modifier = Modifier.clip(
             RoundedCornerShape(topStart = spacing.mdSpacing, topEnd = spacing.mdSpacing)
         ),
-        containerColor = backgroundColor,
+        containerColor = Ink,
     ) {
         DashboardTab.values().forEach { tab ->
             NavigationBarItem(

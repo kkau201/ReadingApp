@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -63,7 +62,6 @@ fun UpdateUserContent(
     onBioInputChange: (String) -> Unit,
     onReadingGoalChange: (Int) -> Unit,
     onAvatarChange: (Avatar) -> Unit,
-    onColorChange: (ProfileColor) -> Unit,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
@@ -81,11 +79,6 @@ fun UpdateUserContent(
             selectedAvatar = uiState.selectedAvatar,
             avatarList = uiState.avatarImgList,
             onAvatarChange = onAvatarChange
-        )
-        ProfileColorPicker(
-            selected = uiState.selectedColor,
-            onColorChange = onColorChange,
-            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp)
         )
         ProfileTextField(
             label = stringResource(R.string.update_user_name_label),
@@ -120,39 +113,6 @@ fun UpdateUserContent(
             onClick = onCancelClick,
             modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 10.dp)
         )
-    }
-}
-
-@Composable
-private fun ProfileColorPicker(
-    selected: ProfileColor,
-    onColorChange: (ProfileColor) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        ProfileFieldLabel(text = stringResource(R.string.update_user_color_label))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            ProfileColor.entries.forEach { profileColor ->
-                val isSelected = profileColor == selected
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(profileColor.color)
-                        .border(
-                            width = if (isSelected) 2.dp else 0.dp,
-                            color = Ink,
-                            shape = CircleShape
-                        )
-                        .clickable { onColorChange(profileColor) }
-                )
-            }
-        }
     }
 }
 

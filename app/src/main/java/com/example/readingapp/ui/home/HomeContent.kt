@@ -270,7 +270,7 @@ private fun ShelfRow(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(ShelfHeight)
-                            .padding(horizontal = 2.dp),
+                            .padding(horizontal = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(SpineGap),
                         verticalAlignment = Alignment.Bottom
                     ) {

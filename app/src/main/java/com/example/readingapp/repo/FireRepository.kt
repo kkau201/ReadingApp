@@ -120,8 +120,11 @@ class FireRepository @Inject constructor(
             dataOrException.loading = true
             val userDocument = queryUser.get().await().documents
                 .find { it.get(USER_ID)?.equals(currentUserId) == true }
-            if (userDocument?.contains("profession") == true) {
-                userDocument.reference.update("profession", FieldValue.delete())
+            userDocument?.let { document ->
+                val unused = listOf("profession", "profile_color").filter { document.contains(it) }
+                if (unused.isNotEmpty()) {
+                    document.reference.update(unused.associateWith { FieldValue.delete() })
+                }
             }
             dataOrException.data = userDocument?.toModel()
 

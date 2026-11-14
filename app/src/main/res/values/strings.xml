@@ -118,7 +118,6 @@
     <string name="update_user_name_label">Name</string>
     <string name="update_user_bio_label">Bio</string>
     <string name="update_user_avatar_label">Avatar</string>
-    <string name="update_user_color_label">Colour</string>
     <string name="update_user_goal_label">Books this year</string>
     <string name="update_user_saved">Profile updated</string>
     <string name="update_user_error">Couldn’t update your profile</string>

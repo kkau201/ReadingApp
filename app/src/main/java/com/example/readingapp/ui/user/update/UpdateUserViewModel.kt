@@ -9,7 +9,6 @@ import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.model.AVATAR_URL
 import com.example.readingapp.model.DISPLAY_NAME
-import com.example.readingapp.model.PROFILE_COLOR
 import com.example.readingapp.model.QUOTE
 import com.example.readingapp.model.READING_GOAL
 import com.example.readingapp.model.asReadingGoal
@@ -49,11 +48,7 @@ class UpdateUserViewModel @Inject constructor(
                         bioInput = user?.quote ?: "",
                         readingGoal = user?.readingGoal.asReadingGoal(),
                         selectedAvatar = Avatar.entries.find { avatar -> avatar.id == user?.avatarUrl }
-                            ?: Avatar.AVATAR_1,
-                        selectedColor = ProfileColor.fromId(user?.profileColorId)
-                            ?: ProfileColor.fromColor(
-                                user?.avatar?.color ?: ProfileColor.PURPLE.color
-                            )
+                            ?: Avatar.AVATAR_1
                     )
                 }
                 user?.let {
@@ -92,10 +87,6 @@ class UpdateUserViewModel @Inject constructor(
         }
     }
 
-    fun onColorChange(color: ProfileColor) {
-        uiState.update { it.copy(selectedColor = color) }
-    }
-
     fun onUpdateClick() {
         uiState.value.userId?.let { id ->
             updateLoadingState(LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN))
@@ -105,7 +96,6 @@ class UpdateUserViewModel @Inject constructor(
                     DISPLAY_NAME to uiState.value.displayNameInput,
                     QUOTE to uiState.value.bioInput,
                     AVATAR_URL to uiState.value.selectedAvatar?.id,
-                    PROFILE_COLOR to uiState.value.selectedColor.id,
                     READING_GOAL to uiState.value.readingGoal.asReadingGoal()
                 ),
                 onCompleteListener = {
