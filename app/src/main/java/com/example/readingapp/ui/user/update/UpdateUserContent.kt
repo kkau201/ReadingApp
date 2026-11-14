@@ -41,16 +41,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.example.readingapp.R
 import com.example.readingapp.model.MAX_READING_GOAL
 import com.example.readingapp.model.MIN_READING_GOAL
 import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.Cover
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
-import kotlin.math.absoluteValue
 import kotlinx.coroutines.flow.drop
+import kotlin.math.absoluteValue
 
 private val FieldShape = RoundedCornerShape(20.dp)
 
@@ -65,54 +67,65 @@ fun UpdateUserContent(
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(top = 8.dp, bottom = 24.dp)
-    ) {
-        ProfileFieldLabel(
-            text = stringResource(R.string.update_user_avatar_label),
-            modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp)
-        )
-        UpdateAvatarPager(
-            selectedAvatar = uiState.selectedAvatar,
-            avatarList = uiState.avatarImgList,
-            onAvatarChange = onAvatarChange
-        )
-        ProfileTextField(
-            label = stringResource(R.string.update_user_name_label),
-            value = uiState.displayNameInput,
-            onValueChange = onDisplayNameInputChange,
-            imeAction = ImeAction.Next,
-            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 28.dp)
-        )
-        ProfileTextField(
-            label = stringResource(R.string.update_user_bio_label),
-            value = uiState.bioInput,
-            onValueChange = onBioInputChange,
-            singleLine = false,
-            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp)
-        )
-        ReadingGoalField(
-            goal = uiState.readingGoal,
-            onGoalChange = onReadingGoalChange,
-            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp)
-        )
-        ProfileFormButton(
-            text = stringResource(R.string.update_save),
-            container = Ink,
-            content = Color.White,
-            onClick = onSaveClick,
-            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 32.dp)
-        )
-        ProfileFormButton(
-            text = stringResource(R.string.update_cancel),
-            container = Color.White,
-            content = Ink,
-            onClick = onCancelClick,
-            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 10.dp)
-        )
+    Column(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(top = 8.dp, bottom = 16.dp)
+        ) {
+            ProfileFieldLabel(
+                text = stringResource(R.string.update_user_avatar_label),
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp)
+            )
+            UpdateAvatarPager(
+                selectedAvatar = uiState.selectedAvatar,
+                avatarList = uiState.avatarImgList,
+                onAvatarChange = onAvatarChange
+            )
+            ProfileTextField(
+                label = stringResource(R.string.update_user_name_label),
+                value = uiState.displayNameInput,
+                onValueChange = onDisplayNameInputChange,
+                imeAction = ImeAction.Next,
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 28.dp)
+            )
+            ProfileTextField(
+                label = stringResource(R.string.update_user_bio_label),
+                value = uiState.bioInput,
+                onValueChange = onBioInputChange,
+                singleLine = false,
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp)
+            )
+            ReadingGoalField(
+                goal = uiState.readingGoal,
+                onGoalChange = onReadingGoalChange,
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp)
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ProfileFormButton(
+                text = stringResource(R.string.update_cancel),
+                container = Color.White,
+                content = Ink,
+                border = Cover,
+                onClick = onCancelClick,
+                modifier = Modifier.weight(1f)
+            )
+            ProfileFormButton(
+                text = stringResource(R.string.update_save),
+                container = Ink,
+                content = Color.White,
+                onClick = onSaveClick,
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
 
@@ -224,15 +237,18 @@ private fun ProfileFormButton(
     container: Color,
     content: Color,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    border: Color? = null
 ) {
     Text(
         text = text,
         color = content,
         style = AppTheme.typography.labelLarge,
+        textAlign = TextAlign.Center,
         modifier = modifier
             .fillMaxWidth()
             .clip(CircleShape)
+            .then(if (border != null) Modifier.border(1.dp, border, CircleShape) else Modifier)
             .background(container)
             .clickable(onClick = onClick)
             .padding(horizontal = 20.dp, vertical = 14.dp)
@@ -289,8 +305,8 @@ fun UpdateAvatarPager(
                 )
                 .graphicsLayer {
                     val pageOffset = (
-                        (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
-                        ).absoluteValue
+                            (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+                            ).absoluteValue
                     val fraction = 1f - pageOffset.coerceIn(0f, 1f)
                     alpha = lerp(start = 0.45f, stop = 1f, fraction = fraction)
                     scaleX = lerp(start = 0.8f, stop = 1f, fraction = fraction)

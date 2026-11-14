@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -58,51 +57,61 @@ fun UpdateScreenContent(
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp)
-            .padding(top = 12.dp, bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(28.dp)
-    ) {
-        Text(
-            text = book.title.orEmpty(),
-            color = Ink,
-            style = AppTheme.typography.headlineSmall
-        )
-        StatusField(
-            selected = selectedStatus,
-            finishedYear = finishedYear,
-            finishedMonth = finishedMonth,
-            finishedDay = finishedDay,
-            finishedOnError = finishedOnError,
-            onStatusChanged = onStatusChanged,
-            onFinishedYearChanged = onFinishedYearChanged,
-            onFinishedMonthChanged = onFinishedMonthChanged,
-            onFinishedDayChanged = onFinishedDayChanged
-        )
-        RatingField(
-            selectedRating = selectedRating,
-            onRatingChanged = onRatingChanged
-        )
-        NotesField(
-            noteInput = noteInput,
-            onNoteInputChanged = onNoteInputChanged
-        )
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            FormButton(
-                text = stringResource(R.string.update_save),
-                container = Ink,
-                content = Color.White,
-                onClick = onSaveClick
+    Column(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp)
+                .padding(top = 12.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(28.dp)
+        ) {
+            Text(
+                text = book.title.orEmpty(),
+                color = Ink,
+                style = AppTheme.typography.headlineSmall
             )
+            StatusField(
+                selected = selectedStatus,
+                finishedYear = finishedYear,
+                finishedMonth = finishedMonth,
+                finishedDay = finishedDay,
+                finishedOnError = finishedOnError,
+                onStatusChanged = onStatusChanged,
+                onFinishedYearChanged = onFinishedYearChanged,
+                onFinishedMonthChanged = onFinishedMonthChanged,
+                onFinishedDayChanged = onFinishedDayChanged
+            )
+            RatingField(
+                selectedRating = selectedRating,
+                onRatingChanged = onRatingChanged
+            )
+            NotesField(
+                noteInput = noteInput,
+                onNoteInputChanged = onNoteInputChanged
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             FormButton(
                 text = stringResource(R.string.update_cancel),
                 container = Color.White,
                 content = Ink,
                 border = Cover,
-                onClick = onCancelClick
+                onClick = onCancelClick,
+                modifier = Modifier.weight(1f)
+            )
+            FormButton(
+                text = stringResource(R.string.update_save),
+                container = Ink,
+                content = Color.White,
+                onClick = onSaveClick,
+                modifier = Modifier.weight(1f)
             )
         }
     }
@@ -229,6 +238,7 @@ private fun FormButton(
     container: Color,
     content: Color,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     border: Color? = null
 ) {
     Text(
@@ -236,7 +246,7 @@ private fun FormButton(
         color = content,
         style = AppTheme.typography.labelLarge,
         textAlign = TextAlign.Center,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(CircleShape)
             .then(
