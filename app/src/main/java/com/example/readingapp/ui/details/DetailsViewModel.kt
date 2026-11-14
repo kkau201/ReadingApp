@@ -19,6 +19,7 @@ import com.example.readingapp.ui.destinations.UpdateScreenDestination
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,11 +37,28 @@ class DetailsViewModel @Inject constructor(
     override val isNavigationDestination: Boolean = true
     private val args = DetailsScreenDestination.argsFrom(savedStateHandle)
 
-    private val _uiState: MutableStateFlow<DetailsUiState> = MutableStateFlow(DetailsUiState())
     val uiState: StateFlow<DetailsUiState>
-        get() = _uiState
+        field: MutableStateFlow<DetailsUiState> = MutableStateFlow(DetailsUiState())
+
+    private var isWatchingSavedBooks = false
 
     fun loadBook() {
+        if (!isWatchingSavedBooks) {
+            isWatchingSavedBooks = true
+            viewModelScope.launch {
+                fireRepository.fetchSavedBooksByUser()
+                fireRepository.savedBooks.collect { allSavedBooks ->
+                    val savedBook = allSavedBooks.find { it.googleBookId == args.bookId }
+                    uiState.update { state ->
+                        state.copy(
+                            bookId = savedBook?.id,
+                            isSaved = savedBook != null
+                        )
+                    }
+                }
+            }
+        }
+
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 bookRepository.getBookInfo(args.bookId).collect { result ->
@@ -48,7 +66,7 @@ class DetailsViewModel @Inject constructor(
                         is RemoteResult.Loading -> updateLoadingState(LoadingState.Loading())
                         is RemoteResult.Success -> {
                             updateLoadingState(LoadingState.Success)
-                            _uiState.update { state ->
+                            uiState.update { state ->
                                 state.copy(book = result.data)
                             }
                         }
@@ -58,79 +76,80 @@ class DetailsViewModel @Inject constructor(
                         }
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 showErrorDialog(e)
-            }
-
-            fireRepository.savedBooks.collect { allSavedBooks ->
-                val savedBook = allSavedBooks.find { it.googleBookId == args.bookId }
-                _uiState.update { state ->
-                    state.copy(
-                        bookId = savedBook?.id,
-                        isSaved = savedBook != null
-                    )
-                }
             }
         }
     }
 
     fun toggleSavedBook() = viewModelScope.launch {
-        if (uiState.value.isSaved) showDialog(
-            DialogState(
-                title = getString(R.string.remove_book_title),
-                message = getString(R.string.remove_book_message),
-                primaryButtonText = getString(R.string.remove_book_primary_button),
-                secondaryButtonText = getString(R.string.remove_book_secondary_button),
-                onPrimaryClick = {
-                    dismissDialog()
-                    removeBook()
-                },
-                onSecondaryClick = { dismissDialog() }
+        val savedCopies = fireRepository.fetchSavedBooksByUser().data
+            ?.filter { it.googleBookId == args.bookId && !it.id.isNullOrBlank() }
+            .orEmpty()
+        if (savedCopies.isNotEmpty()) {
+            showDialog(
+                DialogState(
+                    title = getString(R.string.remove_book_title),
+                    message = getString(R.string.remove_book_message),
+                    primaryButtonText = getString(R.string.remove_book_primary_button),
+                    secondaryButtonText = getString(R.string.remove_book_secondary_button),
+                    onPrimaryClick = {
+                        dismissDialog()
+                        removeBooks(savedCopies.mapNotNull { it.id })
+                    },
+                    onSecondaryClick = { dismissDialog() }
+                )
             )
-        )
-        else saveBook()
-    }
-
-    private fun saveBook() {
-        uiState.value.book?.let { book ->
-            val db = FirebaseFirestore.getInstance()
-            val bookWithId = book.copy(
-                userId = FirebaseAuth.getInstance().currentUser?.uid.toString()
-            )
-            val dbCollection = db.collection(BOOKS_COLLECTION)
-            if (bookWithId.toString().isNotEmpty()) {
-                dbCollection.add(bookWithId)
-                    .addOnSuccessListener { documentRef ->
-                        val docId = documentRef.id
-                        dbCollection.document(docId)
-                            .update(hashMapOf("id" to docId) as Map<String, Any>)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    showToast(getString(R.string.book_saved_toast))
-                                    fetchSavedBooks()
-                                }
-                            }
-                            .addOnFailureListener {
-                                Log.e("Error", "saveBook: Error updating doc", it)
-                            }
-                    }
-            }
+        } else {
+            saveBook()
         }
     }
 
-    private fun removeBook() {
-        uiState.value.bookId?.let { bookId ->
-            val db = FirebaseFirestore.getInstance()
-            db.collection(BOOKS_COLLECTION).document(bookId)
+    private fun saveBook() {
+        val book = uiState.value.book ?: return
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        if (fireRepository.savedBooks.value.any { it.googleBookId == args.bookId }) return
+
+        val db = FirebaseFirestore.getInstance()
+        val bookWithId = book.copy(
+            userId = userId,
+            googleBookId = book.googleBookId ?: args.bookId
+        )
+        val dbCollection = db.collection(BOOKS_COLLECTION)
+        dbCollection.add(bookWithId)
+            .addOnSuccessListener { documentRef ->
+                dbCollection.document(documentRef.id)
+                    .update(mapOf("id" to documentRef.id))
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            showToast(getString(R.string.book_saved_toast))
+                            fetchSavedBooks()
+                        }
+                    }
+                    .addOnFailureListener {
+                        Log.e("Error", "saveBook: Error updating doc", it)
+                    }
+            }
+    }
+
+    private fun removeBooks(bookIds: List<String>) {
+        if (bookIds.isEmpty()) return
+        val db = FirebaseFirestore.getInstance().collection(BOOKS_COLLECTION)
+        var remaining = bookIds.size
+        bookIds.distinct().forEach { bookId ->
+            db.document(bookId)
                 .delete()
                 .addOnCompleteListener {
-                    if (it.isSuccessful) {
+                    remaining -= 1
+                    if (remaining == 0) {
                         showToast(getString(R.string.book_removed_toast))
                         fetchSavedBooks()
                     }
                 }
                 .addOnFailureListener {
-                    Log.e("Error", "saveBook: Error deleting doc", it)
+                    Log.e("Error", "removeBook: Error deleting doc", it)
                 }
         }
     }

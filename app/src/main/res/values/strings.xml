@@ -23,9 +23,9 @@
     <string name="home_filter_want_to_read">Want to read</string>
     <string name="home_filter_reading">Reading</string>
     <string name="home_filter_finished">Finished</string>
-    <string name="home_empty_title">Your shelf is quiet</string>
+    <string name="home_empty_title">Dust settled in</string>
     <string name="home_empty_body">Books you save will gather here.</string>
-    <string name="home_filter_empty">Nothing on this shelf yet.</string>
+    <string name="home_filter_empty">Getting a wee bit dusty in here...</string>
     <string name="home_pages">%1$d pages</string>
     <plurals name="home_book_count">
         <item quantity="one">%d book</item>

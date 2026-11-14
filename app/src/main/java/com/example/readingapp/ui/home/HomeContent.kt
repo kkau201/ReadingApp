@@ -95,36 +95,28 @@ fun HomeContent(
             avatar = avatar,
             bookCount = readingList.size
         )
-        if (readingList.isEmpty()) {
-            HomeEmpty(
-                title = stringResource(R.string.home_empty_title),
-                body = stringResource(R.string.home_empty_body),
-                modifier = Modifier.padding(top = 48.dp)
+        HomeFilters(
+            selected = filter,
+            onSelect = { filterName = it.name },
+            modifier = Modifier.padding(top = 22.dp)
+        )
+        HomeSectionTitle(
+            title = shelfTitle(filter),
+            modifier = Modifier.padding(start = PagePadding, top = 28.dp, bottom = 16.dp)
+        )
+        if (shelf.isEmpty()) {
+            EmptyShelf(
+                title = if (readingList.isEmpty()) stringResource(R.string.home_empty_title) else null,
+                body = stringResource(
+                    if (readingList.isEmpty()) R.string.home_empty_body else R.string.home_filter_empty
+                )
             )
         } else {
-            HomeFilters(
-                selected = filter,
-                onSelect = { filterName = it.name },
-                modifier = Modifier.padding(top = 22.dp)
+            ShelfRow(
+                books = shelf,
+                pulledKey = featured?.shelfKey(),
+                onBookClick = onBookClick
             )
-            HomeSectionTitle(
-                title = shelfTitle(filter),
-                modifier = Modifier.padding(start = PagePadding, top = 28.dp, bottom = 16.dp)
-            )
-            if (shelf.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.home_filter_empty),
-                    color = HomeMuted,
-                    style = AppTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = PagePadding)
-                )
-            } else {
-                ShelfRow(
-                    books = shelf,
-                    pulledKey = featured?.shelfKey(),
-                    onBookClick = onBookClick
-                )
-            }
         }
     }
 }
@@ -286,15 +278,7 @@ private fun ShelfRow(
                             )
                         }
                     }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp)
-                            .background(
-                                color = ShelfEdge,
-                                shape = RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)
-                            )
-                    )
+                    ShelfLedge()
                 }
             }
         }
@@ -464,22 +448,67 @@ private data class SpineStyle(
 )
 
 @Composable
-private fun HomeEmpty(
-    title: String,
-    body: String,
-    modifier: Modifier = Modifier
+private fun EmptyShelf(
+    title: String?,
+    body: String
 ) {
-    Column(modifier = modifier.padding(horizontal = PagePadding)) {
-        Text(
-            text = title,
-            color = HomeInk,
-            style = AppTheme.typography.headlineSmall
-        )
-        Text(
-            text = body,
-            color = HomeMuted,
-            style = AppTheme.typography.bodyLarge,
-            modifier = Modifier.padding(top = 6.dp)
-        )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = PagePadding)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(SpineGap),
+            verticalAlignment = Alignment.Bottom
+        ) {
+            GhostSpine(height = 124.dp)
+            GhostSpine(height = 156.dp)
+            GhostSpine(height = 138.dp)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 10.dp, bottom = 8.dp)
+            ) {
+                title?.let {
+                    Text(
+                        text = it,
+                        color = HomeInk,
+                        style = AppTheme.typography.titleLarge
+                    )
+                }
+                Text(
+                    text = body,
+                    color = HomeMuted,
+                    style = AppTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = if (title == null) 0.dp else 4.dp)
+                )
+            }
+        }
+        ShelfLedge()
     }
+}
+
+@Composable
+private fun GhostSpine(height: Dp) {
+    Box(
+        modifier = Modifier
+            .width(34.dp)
+            .height(height)
+            .clip(SpineShape)
+            .background(HomeInk.copy(alpha = 0.06f))
+    )
+}
+
+@Composable
+private fun ShelfLedge() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(8.dp)
+            .background(
+                color = ShelfEdge,
+                shape = RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)
+            )
+    )
 }

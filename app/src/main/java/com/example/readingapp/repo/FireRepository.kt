@@ -4,6 +4,7 @@ import com.example.readingapp.data.DataOrException
 import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MUser
 import com.example.readingapp.model.toModel
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
@@ -41,14 +42,19 @@ class FireRepository @Inject constructor(
     }
 
     suspend fun fetchSavedBooksByUser(): DataOrException<List<MBook>, Boolean, Exception> {
-        return fetchSavedBooksByUser(user.value?.userId.toString())
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: user.value?.userId
+        if (userId.isNullOrBlank()) {
+            _savedBooks.update { emptyList() }
+            return DataOrException(data = emptyList())
+        }
+        return fetchSavedBooksByUser(userId)
     }
 
     suspend fun fetchSavedBooksByUser(userId: String): DataOrException<List<MBook>, Boolean, Exception> {
         val result = getAllBooksFromDatabase()
-        val savedBooks = result.data?.filter {  it.userId == userId } ?: emptyList()
+        val savedBooks = result.data?.filter { it.userId == userId } ?: emptyList()
         _savedBooks.update { savedBooks }
-
+        result.data = savedBooks
         return result
     }
 
@@ -58,7 +64,9 @@ class FireRepository @Inject constructor(
         try {
             dataOrException.loading = true
             dataOrException.data = queryBook.get().await().documents.map { documentSnapshot ->
-                documentSnapshot.toObject(MBook::class.java)!!
+                documentSnapshot.toObject(MBook::class.java)!!.apply {
+                    id = documentSnapshot.id
+                }
             }
             if (!dataOrException.data.isNullOrEmpty()) dataOrException.loading = false
         } catch (e: FirebaseFirestoreException) {
