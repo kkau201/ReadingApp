@@ -1,6 +1,6 @@
 # ReadingApp
 
-Search and book details load from the Google Books API. Those calls need an API key restricted to this Android app. The Firebase key in `google-services.json` is only for Auth and Firestore.
+This project is a reading app built to learn Firebase and Google Cloud: how to set up authentication and a database, then use them from an Android app. Sign-in uses Firebase Auth. Shelves, profiles, and saved books live in Firestore. Book search and details come from the Google Books API, which needs its own key restricted to this Android app. The Firebase key in `google-services.json` is only for Auth and Firestore.
 
 `google-services.json` is part of the app and stays in git. `secrets.properties` is the Books API key and stays on your machine.
 
