@@ -95,11 +95,13 @@ fun SwitchScreenSection(screenState: LoginScreenState, onSwitchClick: (LoginScre
     ) {
         Text(
             text = stringResource(if (screenState == LoginScreenState.LOGIN) R.string.new_user else R.string.already_user),
+            style = AppTheme.typography.bodyMedium,
             modifier = Modifier.padding(end = AppTheme.spacing.xxsmSpacing)
         )
         Text(
             text = stringResource(if (screenState == LoginScreenState.LOGIN) R.string.sign_up else R.string.login),
             color = AppTheme.colors.primary,
+            style = AppTheme.typography.labelLarge,
             textDecoration = TextDecoration.Underline,
             modifier = Modifier.clickable { onSwitchClick(LoginScreenState.switch(screenState)) })
 

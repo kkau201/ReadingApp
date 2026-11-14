@@ -46,7 +46,7 @@ fun ReadingAppButton(
         ) {
             Text(
                 text = text,
-                style = AppTheme.typography.bodyMedium,
+                style = AppTheme.typography.labelLarge,
                 color = contentColor,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(1f, false)

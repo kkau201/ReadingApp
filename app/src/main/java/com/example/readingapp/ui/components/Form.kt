@@ -85,6 +85,7 @@ fun InputForm(
         Text(
             text = errorMessage ?: "",
             color = AppTheme.colors.primary,
+            style = AppTheme.typography.bodySmall,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .padding(bottom = AppTheme.spacing.smSpacing)

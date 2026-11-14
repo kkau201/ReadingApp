@@ -27,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -59,7 +58,7 @@ fun UpdateScreenContent(
             Text(
                 text = it,
                 textAlign = TextAlign.Center,
-                style = AppTheme.typography.titleLarge,
+                style = AppTheme.typography.headlineSmall,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(bottom = spacing.mdSpacing)
@@ -194,7 +193,11 @@ fun UpdateButtons(
                     .padding(end = spacing.xsmSpacing)
                     .alpha(0.7f)
             )
-            Text(text = stringResource(R.string.update_cancel), color = cancelColor)
+            Text(
+                text = stringResource(R.string.update_cancel),
+                style = AppTheme.typography.labelLarge,
+                color = cancelColor
+            )
         }
         Button(
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
@@ -207,7 +210,11 @@ fun UpdateButtons(
                 tint = saveColor,
                 modifier = Modifier.padding(end = spacing.xsmSpacing)
             )
-            Text(text = stringResource(R.string.update_save), fontWeight = FontWeight.Bold, color = saveColor)
+            Text(
+                text = stringResource(R.string.update_save),
+                style = AppTheme.typography.labelLarge,
+                color = saveColor
+            )
         }
     }
 }

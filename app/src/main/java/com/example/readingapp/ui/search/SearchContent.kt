@@ -98,6 +98,7 @@ fun SearchResults(
             )
             Text(
                 text = stringResource(R.string.no_results),
+                style = AppTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .padding(top = AppTheme.spacing.smSpacing)

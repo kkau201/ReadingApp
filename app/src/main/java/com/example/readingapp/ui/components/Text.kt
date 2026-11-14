@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import com.example.readingapp.ui.theme.AppTheme
 
 @Composable
@@ -19,8 +18,7 @@ fun Title(text: String, modifier: Modifier = Modifier, color: Color = AppTheme.c
     Text(
         text = text,
         color = color,
-        style = AppTheme.typography.titleLarge,
-        fontWeight = FontWeight.Bold,
+        style = AppTheme.typography.headlineSmall,
         modifier = modifier
     )
 }

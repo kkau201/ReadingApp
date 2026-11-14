@@ -18,6 +18,7 @@ import com.example.readingapp.nav.ReadingAppNavHost
 import com.example.readingapp.ui.components.FullScreenLoadingLottie
 import com.example.readingapp.ui.components.LoadingLottie
 import com.example.readingapp.ui.components.ReadingAppDialog
+import com.example.readingapp.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -26,8 +27,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                MainContent()
+            MaterialTheme(
+                colorScheme = AppTheme.colors,
+                typography = AppTheme.typography
+            ) {
+                Surface(modifier = Modifier.fillMaxSize(), color = AppTheme.colors.background) {
+                    MainContent()
+                }
             }
         }
     }

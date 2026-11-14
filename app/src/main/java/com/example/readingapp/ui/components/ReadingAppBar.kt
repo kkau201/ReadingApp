@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import com.example.readingapp.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,7 +35,7 @@ fun ReadingAppBar(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 title?.let {
-                    Text(text = title, style = AppTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+                    Text(text = title, style = AppTheme.typography.headlineSmall)
                 }
             }
         }
@@ -59,7 +58,7 @@ fun ReadingAppBarNav(
             title?.let {
                 Text(
                     text = title,
-                    style = AppTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    style = AppTheme.typography.headlineSmall,
                     color = navIconTint
                 )
             }

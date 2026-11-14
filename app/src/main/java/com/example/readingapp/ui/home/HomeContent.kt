@@ -38,15 +38,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.readingapp.R
 import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.BookStatus
+import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.HomeCover
 import com.example.readingapp.ui.theme.HomeInk
 import com.example.readingapp.ui.theme.HomeMuted
@@ -116,7 +115,7 @@ fun HomeContent(
                 Text(
                     text = stringResource(R.string.home_filter_empty),
                     color = HomeMuted,
-                    fontSize = 15.sp,
+                    style = AppTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = PagePadding)
                 )
             } else {
@@ -142,13 +141,14 @@ private fun HomeHeader(
             .padding(horizontal = PagePadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)) {
             if (!displayName.isNullOrBlank()) {
                 Text(
                     text = stringResource(R.string.home_greeting, displayName),
                     color = HomeMuted,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
+                    style = AppTheme.typography.labelLarge,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -156,16 +156,13 @@ private fun HomeHeader(
             Text(
                 text = stringResource(R.string.home_title),
                 color = HomeInk,
-                fontSize = 34.sp,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = (-0.8).sp,
-                lineHeight = 40.sp
+                style = AppTheme.typography.displaySmall,
+                modifier = Modifier.padding(top = 2.dp)
             )
             Text(
                 text = pluralStringResource(R.plurals.home_book_count, bookCount, bookCount),
                 color = HomeMuted,
-                fontSize = 15.sp,
-                modifier = Modifier.padding(top = 2.dp)
+                style = AppTheme.typography.bodyLarge,
             )
         }
         HomeAvatar(avatar = avatar, name = displayName)
@@ -198,8 +195,7 @@ private fun HomeAvatar(avatar: Avatar?, name: String?) {
             Text(
                 text = initial,
                 color = HomeInk,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
+                style = AppTheme.typography.titleLarge
             )
         }
     }
@@ -222,8 +218,7 @@ private fun HomeFilters(
             Text(
                 text = filter.label(),
                 color = if (isSelected) Color.White else HomeInk,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
+                style = AppTheme.typography.labelLarge,
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(if (isSelected) HomeInk else Color.White)
@@ -255,9 +250,7 @@ private fun HomeSectionTitle(title: String, modifier: Modifier = Modifier) {
     Text(
         text = title,
         color = HomeInk,
-        fontSize = 18.sp,
-        fontWeight = FontWeight.SemiBold,
-        letterSpacing = (-0.3).sp,
+        style = AppTheme.typography.titleLarge,
         modifier = modifier
     )
 }
@@ -378,9 +371,7 @@ private fun BookSpine(
         Text(
             text = book.title.orEmpty(),
             color = style.ink,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 0.6.sp,
+            style = AppTheme.typography.labelLarge,
             maxLines = 1,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
@@ -412,18 +403,13 @@ private fun PulledBook(
         Text(
             text = stringResource(R.string.home_filter_reading).uppercase(),
             color = style.ink.copy(alpha = 0.72f),
-            fontSize = 10.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 1.3.sp
+            style = AppTheme.typography.labelSmall
         )
         Column {
             Text(
                 text = book.title.orEmpty(),
                 color = style.ink,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold,
-                lineHeight = 24.sp,
-                letterSpacing = (-0.3).sp,
+                style = AppTheme.typography.headlineSmall,
                 maxLines = 5,
                 overflow = TextOverflow.Ellipsis
             )
@@ -431,7 +417,7 @@ private fun PulledBook(
                 Text(
                     text = author,
                     color = style.ink.copy(alpha = 0.75f),
-                    fontSize = 12.sp,
+                    style = AppTheme.typography.bodySmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 8.dp)
@@ -487,14 +473,12 @@ private fun HomeEmpty(
         Text(
             text = title,
             color = HomeInk,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold
+            style = AppTheme.typography.headlineSmall
         )
         Text(
             text = body,
             color = HomeMuted,
-            fontSize = 15.sp,
-            lineHeight = 22.sp,
+            style = AppTheme.typography.bodyLarge,
             modifier = Modifier.padding(top = 6.dp)
         )
     }

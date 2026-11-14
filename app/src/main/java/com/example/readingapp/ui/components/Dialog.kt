@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.Dialog
@@ -74,9 +73,8 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
                     title?.let {
                         Text(
                             text = title,
-                            style = AppTheme.typography.titleLarge,
+                            style = AppTheme.typography.headlineSmall,
                             textAlign = TextAlign.Center,
-                            fontWeight = FontWeight.Bold,
                             color = AppTheme.colors.onBackground,
                             modifier = modifier
                                 .fillMaxWidth()
