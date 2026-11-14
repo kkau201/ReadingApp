@@ -55,7 +55,7 @@ import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.BookStatus
 import com.example.readingapp.ui.components.LibraryPageTitle
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.Canvas
+import com.example.readingapp.ui.theme.Paper
 import com.example.readingapp.ui.theme.Cover
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
@@ -73,7 +73,7 @@ fun UserScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = Canvas,
+        containerColor = Paper,
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     ) { padding ->
         UserContent(

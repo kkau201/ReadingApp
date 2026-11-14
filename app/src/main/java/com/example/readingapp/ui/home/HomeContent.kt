@@ -57,6 +57,7 @@ import com.example.readingapp.ui.user.update.Avatar
 
 private val SpineGap = 6.dp
 private val PulledWidth = 132.dp
+private val ShelfHeight = 206.dp
 private val ShelfEdge = Color(0xFFD3C3AB)
 private val SpineWidths = listOf(36.dp, 42.dp, 48.dp, 54.dp)
 private val SpineHeights = listOf(156.dp, 172.dp, 188.dp, 204.dp)
@@ -263,7 +264,9 @@ private fun ShelfRow(
             shelves.forEach { indexes ->
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(ShelfHeight),
                         horizontalArrangement = Arrangement.spacedBy(SpineGap),
                         verticalAlignment = Alignment.Bottom
                     ) {
@@ -375,7 +378,7 @@ private fun PulledBook(
     Column(
         modifier = Modifier
             .width(PulledWidth)
-            .height(206.dp)
+            .height(ShelfHeight)
             .shadow(elevation = 10.dp, shape = RoundedCornerShape(6.dp), ambientColor = Color(0x221C1917), spotColor = Color(0x401C1917))
             .clip(RoundedCornerShape(6.dp))
             .background(style.cloth)
@@ -444,7 +447,9 @@ private fun EmptyShelf(
             .padding(horizontal = AppTheme.spacing.mdSpacing)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(ShelfHeight),
             horizontalArrangement = Arrangement.spacedBy(SpineGap),
             verticalAlignment = Alignment.Bottom
         ) {
@@ -454,7 +459,8 @@ private fun EmptyShelf(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 10.dp, bottom = 8.dp)
+                    .padding(start = 10.dp, bottom = 8.dp),
+                verticalArrangement = Arrangement.Bottom
             ) {
                 title?.let {
                     Text(

@@ -1,6 +1,6 @@
 package com.example.readingapp.ui.user
 
-import androidx.compose.foundation.Canvas as DrawCanvas
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,7 +35,6 @@ import com.example.readingapp.model.asReadingGoal
 import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.Canvas
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
 import com.example.readingapp.ui.theme.Yellow
@@ -134,7 +133,7 @@ private fun ReadingStamp(cloth: Color?) {
         modifier = Modifier.size(56.dp),
         contentAlignment = Alignment.Center
     ) {
-        DrawCanvas(modifier = Modifier.size(42.dp)) {
+        Canvas(modifier = Modifier.size(42.dp)) {
             drawPath(
                 path = starPath(),
                 color = Ink.copy(alpha = 0.28f),

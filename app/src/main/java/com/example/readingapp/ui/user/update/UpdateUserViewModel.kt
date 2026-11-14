@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class UpdateUserViewModel @Inject constructor(
@@ -31,9 +32,8 @@ class UpdateUserViewModel @Inject constructor(
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
     override val isNavigationDestination: Boolean = true
 
-    private val _uiState: MutableStateFlow<UpdateUserUiState> = MutableStateFlow(UpdateUserUiState())
     val uiState: StateFlow<UpdateUserUiState>
-        get() = _uiState
+        field: MutableStateFlow<UpdateUserUiState> = MutableStateFlow(UpdateUserUiState())
 
     private var userJob: Job? = null
 
@@ -42,7 +42,7 @@ class UpdateUserViewModel @Inject constructor(
             updateLoadingState(LoadingState.Loading())
             loadUser().join()
             fireRepository.user.collect { user ->
-                _uiState.update { state ->
+                uiState.update { state ->
                     state.copy(
                         userId = user?.id,
                         displayNameInput = user?.displayName ?: "",
@@ -72,25 +72,25 @@ class UpdateUserViewModel @Inject constructor(
     }
 
     fun onDisplayNameInputChange(input: String) {
-        _uiState.update { it.copy(displayNameInput = input) }
+        uiState.update { it.copy(displayNameInput = input) }
     }
 
     fun onBioInputChange(input: String) {
-        _uiState.update { it.copy(bioInput = input) }
+        uiState.update { it.copy(bioInput = input) }
     }
 
     fun onReadingGoalChange(goal: Int) {
-        _uiState.update { it.copy(readingGoal = goal.asReadingGoal()) }
+        uiState.update { it.copy(readingGoal = goal.asReadingGoal()) }
     }
 
     fun onAvatarChange(avatar: Avatar) {
         if (uiState.value.selectedAvatar != avatar) {
-            _uiState.update { it.copy(selectedAvatar = avatar) }
+            uiState.update { it.copy(selectedAvatar = avatar) }
         }
     }
 
     fun onColorChange(color: ProfileColor) {
-        _uiState.update { it.copy(selectedColor = color) }
+        uiState.update { it.copy(selectedColor = color) }
     }
 
     fun onUpdateClick() {
@@ -109,7 +109,7 @@ class UpdateUserViewModel @Inject constructor(
                         userJob?.cancel()
                         userJob = null
                         updateLoadingState(LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN))
-                        delay(3000)
+                        delay(3000.milliseconds)
                         loadUser()
                         showToast(getString(R.string.update_user_saved))
                         navigateBack()
