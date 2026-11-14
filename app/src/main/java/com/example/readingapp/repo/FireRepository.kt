@@ -3,8 +3,11 @@ package com.example.readingapp.repo
 import com.example.readingapp.data.DataOrException
 import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MUser
+import com.example.readingapp.model.StoredBook
 import com.example.readingapp.model.toModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
@@ -51,29 +54,56 @@ class FireRepository @Inject constructor(
     }
 
     suspend fun fetchSavedBooksByUser(userId: String): DataOrException<List<MBook>, Boolean, Exception> {
-        val result = getAllBooksFromDatabase()
+        val result = getAllBooksFromDatabase(userId)
         val savedBooks = result.data?.filter { it.userId == userId } ?: emptyList()
         _savedBooks.update { savedBooks }
         result.data = savedBooks
         return result
     }
 
-    suspend fun getAllBooksFromDatabase(): DataOrException<List<MBook>, Boolean, Exception> {
+    suspend fun getAllBooksFromDatabase(userId: String): DataOrException<List<MBook>, Boolean, Exception> {
         val dataOrException = DataOrException<List<MBook>, Boolean, Exception>()
 
         try {
             dataOrException.loading = true
-            dataOrException.data = queryBook.get().await().documents.map { documentSnapshot ->
-                documentSnapshot.toObject(MBook::class.java)!!.apply {
-                    id = documentSnapshot.id
+            dataOrException.data = queryBook
+                .whereEqualTo(StoredBook.USER_ID, userId)
+                .get()
+                .await()
+                .documents
+                .map { documentSnapshot ->
+                    documentSnapshot.removeUnusedFields()
+                    documentSnapshot.toStoredBook()
                 }
-            }
             if (!dataOrException.data.isNullOrEmpty()) dataOrException.loading = false
         } catch (e: FirebaseFirestoreException) {
             dataOrException.e = e
         }
 
         return dataOrException
+    }
+
+    private fun DocumentSnapshot.removeUnusedFields() {
+        val extra = data?.keys?.filter { it !in StoredBook.fields }.orEmpty()
+        if (extra.isEmpty()) return
+        reference.update(extra.associateWith { FieldValue.delete() })
+    }
+
+    private fun DocumentSnapshot.toStoredBook(): MBook {
+        val authorList = (get(StoredBook.AUTHORS) as? List<*>)?.mapNotNull { it as? String }
+        return MBook(
+            id = id,
+            title = getString(StoredBook.TITLE),
+            authors = authorList,
+            pageCount = getLong(StoredBook.PAGE_COUNT)?.toInt(),
+            notes = getString(StoredBook.NOTES),
+            rating = getDouble(StoredBook.RATING),
+            startedReading = getTimestamp(StoredBook.STARTED_READING),
+            finishedReading = getTimestamp(StoredBook.FINISHED_READING),
+            finishedOn = getString(StoredBook.FINISHED_ON),
+            userId = getString(StoredBook.USER_ID),
+            googleBookId = getString(StoredBook.GOOGLE_BOOK_ID)
+        )
     }
 
     private suspend fun getUserDetailsFromDatabase(currentUserId: String?): DataOrException<MUser?, Boolean, Exception> {
@@ -98,10 +128,17 @@ class FireRepository @Inject constructor(
         onCompleteListener: (Boolean) -> Unit,
         onErrorListener: (Exception) -> Unit
     ) {
+        val updates = bookUpdates.mapValues { (_, value) ->
+            when {
+                value == null -> FieldValue.delete()
+                value is String && value.isBlank() -> FieldValue.delete()
+                else -> value
+            }
+        }
         FirebaseFirestore.getInstance()
             .collection(BOOKS_COLLECTION)
             .document(bookId)
-            .update(bookUpdates)
+            .update(updates)
             .addOnCompleteListener {
                 onCompleteListener(it.isSuccessful)
             }

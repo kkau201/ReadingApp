@@ -121,9 +121,9 @@ class UpdateViewModel @Inject constructor(
                 updates = updates.plus("notes" to uiState.value.noteInput)
             }
 
-            // Rating
-            if (uiState.value.selectedRating.toDouble() != book.rating) {
-                updates = updates.plus("rating" to uiState.value.selectedRating.toDouble())
+            val storedRating = uiState.value.selectedRating.takeIf { it in 1..5 }?.toDouble()
+            if (storedRating != book.rating) {
+                updates = updates.plus("rating" to storedRating)
             }
 
             val selectedStatus: BookStatus = uiState.value.selectedStatus

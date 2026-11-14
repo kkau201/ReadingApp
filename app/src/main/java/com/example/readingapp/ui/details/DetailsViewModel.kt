@@ -10,6 +10,7 @@ import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.data.RemoteResult
 import com.example.readingapp.model.MBook
+import com.example.readingapp.model.toStoredDocument
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.BookRepository
 import com.example.readingapp.repo.FireRepository
@@ -254,28 +255,23 @@ class DetailsViewModel @Inject constructor(
 
         val db = FirebaseFirestore.getInstance()
         val (started, finished) = readingTimes(saved = null, status = status, finishedOn = finishedOn)
-        val bookWithId = book.copy(
+        val storedBook = book.copy(
             userId = userId,
             googleBookId = book.googleBookId ?: args.bookId,
             startedReading = started,
             finishedReading = finished,
             finishedOn = finishedOn?.display,
-            rating = null
+            rating = null,
+            notes = null
         )
-        val dbCollection = db.collection(BOOKS_COLLECTION)
-        dbCollection.add(bookWithId)
-            .addOnSuccessListener { documentRef ->
-                dbCollection.document(documentRef.id)
-                    .update(mapOf("id" to documentRef.id))
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            showToast(getString(R.string.book_saved_toast))
-                            fetchSavedBooks()
-                        }
-                    }
-                    .addOnFailureListener {
-                        Log.e("Error", "saveBook: Error updating doc", it)
-                    }
+        db.collection(BOOKS_COLLECTION)
+            .add(storedBook.toStoredDocument())
+            .addOnSuccessListener {
+                showToast(getString(R.string.book_saved_toast))
+                fetchSavedBooks()
+            }
+            .addOnFailureListener {
+                Log.e("Error", "saveBook: Error saving book", it)
             }
     }
 
