@@ -28,6 +28,7 @@ import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.home.HomeScreen
 import com.example.readingapp.ui.search.SearchScreen
+import com.example.readingapp.ui.session.SessionScreen
 import com.example.readingapp.ui.theme.AppTheme.spacing
 import com.example.readingapp.ui.theme.Beige
 import com.example.readingapp.ui.theme.LightPink
@@ -59,7 +60,7 @@ fun DashboardScreen(
         ) {
             when (uiState.currentTab) {
                 DashboardTab.Home -> HomeScreen()
-                DashboardTab.Session -> HomeScreen()
+                DashboardTab.Session -> SessionScreen()
                 DashboardTab.Search -> SearchScreen()
                 DashboardTab.Profile -> UserScreen()
             }

@@ -33,6 +33,8 @@ internal fun currentFinishedParts(): FinishedParts {
     return FinishedParts(year = maxFinishedYear(), month = null, day = "")
 }
 
+internal fun todaySessionParts(): FinishedParts = Timestamp.now().toFinishedParts()
+
 internal fun MBook?.finishedParts(): FinishedParts {
     val stored = this?.finishedOn?.takeIf { it.isNotBlank() }?.let(::parseFinishedOn)?.toParts()
     return stored ?: this?.finishedReading?.toFinishedParts() ?: currentFinishedParts()
@@ -40,18 +42,20 @@ internal fun MBook?.finishedParts(): FinishedParts {
 
 internal fun MBook.finishedDateLabel(): String? {
     if (bookStatus != BookStatus.FINISHED) return null
-    val parts = finishedParts()
-    val monthName = parts.month?.let { month ->
+    return finishedParts().toFinishedOn()?.readableLabel()
+}
+
+internal fun FinishedOn.readableLabel(): String {
+    val monthName = month?.let { monthNumber ->
         DateFormatSymbols.getInstance(Locale.getDefault()).months
-            .getOrNull(month - 1)
+            .getOrNull(monthNumber - 1)
             ?.takeIf { it.isNotBlank() }
             ?.trimEnd('.')
     }
-    val dayNumber = parts.day.toIntOrNull()
     return when {
-        monthName == null -> parts.year.toString()
-        dayNumber == null -> "$monthName ${parts.year}"
-        else -> "$dayNumber $monthName ${parts.year}"
+        monthName == null -> year.toString()
+        day == null -> "$monthName $year"
+        else -> "$day $monthName $year"
     }
 }
 

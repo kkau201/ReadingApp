@@ -1,7 +1,7 @@
 package com.example.readingapp.ui.dashboard
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Book
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Search
@@ -19,7 +19,7 @@ sealed class DashboardTab(
     val icon: ImageVector
 ) {
     data object Home : DashboardTab("Home", Icons.Rounded.Home)
-    data object Session : DashboardTab("Session", Icons.Rounded.Add)
+    data object Session : DashboardTab("Session", Icons.Rounded.Book)
     data object Search : DashboardTab("Search", Icons.Rounded.Search)
     data object Profile : DashboardTab("Profile", Icons.Rounded.Person)
 

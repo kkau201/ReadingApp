@@ -125,4 +125,39 @@
     <string name="cont_desc_decrease_goal">Fewer books</string>
     <string name="cont_desc_increase_goal">More books</string>
 
+    <string name="session_title">Sessions</string>
+    <string name="session_author">by %1$s</string>
+    <string name="session_progress">%1$d%%</string>
+    <string name="session_progress_of">%1$d of %2$d pages</string>
+    <string name="session_log">Log a session</string>
+    <string name="session_today">Today</string>
+    <string name="session_change_day">Change day</string>
+    <string name="session_use_today">Use today</string>
+    <string name="session_journal">Journal</string>
+    <string name="session_book">Book</string>
+    <string name="session_pages">Pages</string>
+    <string name="session_pages_hint">How many?</string>
+    <string name="session_pages_error">Enter the pages you read</string>
+    <string name="session_book_error">Choose a book</string>
+    <string name="session_date_error">Choose the day</string>
+    <string name="session_note">Note</string>
+    <string name="session_note_hint">Optional</string>
+    <string name="session_empty_title">Nothing logged yet</string>
+    <string name="session_empty_body">A session is one sitting with a book.</string>
+    <string name="session_no_books">Mark a book as reading, then log a session.</string>
+    <string name="session_saved">Session saved</string>
+    <string name="session_error">Couldn’t save that session</string>
+    <string name="session_removed">Session removed</string>
+    <string name="session_remove">Remove</string>
+    <string name="session_remove_title">Remove session?</string>
+    <string name="session_remove_message">This takes the sitting off your journal.</string>
+    <plurals name="session_pages_logged">
+        <item quantity="one">%d page logged</item>
+        <item quantity="other">%d pages logged</item>
+    </plurals>
+    <plurals name="session_pages_read">
+        <item quantity="one">%d page</item>
+        <item quantity="other">%d pages</item>
+    </plurals>
+
 </resources>

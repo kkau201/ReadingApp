@@ -46,7 +46,11 @@ import com.example.readingapp.R
 import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.BookStatus
 import com.example.readingapp.ui.components.LibraryPageTitle
+import com.example.readingapp.ui.components.PulledBook
+import com.example.readingapp.ui.components.PulledHeight
+import com.example.readingapp.ui.components.PulledWidth
 import com.example.readingapp.ui.components.ShelfSpineShape
+import com.example.readingapp.ui.components.onCloth
 import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
 import com.example.readingapp.ui.theme.AppTheme
@@ -56,8 +60,7 @@ import com.example.readingapp.ui.theme.Muted
 import com.example.readingapp.ui.user.update.Avatar
 
 private val SpineGap = 6.dp
-private val PulledWidth = 132.dp
-private val ShelfHeight = 206.dp
+private val ShelfHeight = PulledHeight
 private val ShelfEdge = Color(0xFFD3C3AB)
 private val SpineWidths = listOf(36.dp, 42.dp, 48.dp, 54.dp)
 private val SpineHeights = listOf(156.dp, 172.dp, 188.dp, 204.dp)
@@ -266,7 +269,8 @@ private fun ShelfRow(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(ShelfHeight),
+                            .height(ShelfHeight)
+                            .padding(horizontal = 2.dp),
                         horizontalArrangement = Arrangement.spacedBy(SpineGap),
                         verticalAlignment = Alignment.Bottom
                     ) {
@@ -324,7 +328,7 @@ private fun ShelfVolume(
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         if (pulled) {
-            PulledBook(book = book, style = style, onClick = onClick)
+            PulledBook(book = book, cloth = style.cloth, onClick = onClick)
         } else {
             BookSpine(book = book, style = style, onClick = onClick)
         }
@@ -369,49 +373,6 @@ private fun BookSpine(
     }
 }
 
-@Composable
-private fun PulledBook(
-    book: MBook,
-    style: SpineStyle,
-    onClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .width(PulledWidth)
-            .height(ShelfHeight)
-            .shadow(elevation = 10.dp, shape = RoundedCornerShape(6.dp), ambientColor = Color(0x221C1917), spotColor = Color(0x401C1917))
-            .clip(RoundedCornerShape(6.dp))
-            .background(style.cloth)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = stringResource(R.string.home_filter_reading).uppercase(),
-            color = style.ink.copy(alpha = 0.72f),
-            style = AppTheme.typography.labelSmall
-        )
-        Column {
-            Text(
-                text = book.title.orEmpty(),
-                color = style.ink,
-                style = AppTheme.typography.headlineSmall,
-                maxLines = 5,
-                overflow = TextOverflow.Ellipsis
-            )
-            book.authors?.firstOrNull()?.let { author ->
-                Text(
-                    text = author,
-                    color = style.ink.copy(alpha = 0.75f),
-                    style = AppTheme.typography.bodySmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-        }
-    }
-}
 
 private fun shelfStyles(books: List<MBook>): List<SpineStyle> {
     return shelfSwatches(books.map { it.shelfKey() }).map { swatch ->
@@ -422,11 +383,6 @@ private fun shelfStyles(books: List<MBook>): List<SpineStyle> {
             height = SpineHeights[(swatch.hash / 7).mod(SpineHeights.size)]
         )
     }
-}
-
-private fun Color.onCloth(): Color {
-    val luminance = 0.299f * red + 0.587f * green + 0.114f * blue
-    return if (luminance > 0.55f) Ink else Color.White
 }
 
 private data class SpineStyle(

@@ -2,10 +2,15 @@ package com.example.readingapp.repo
 
 import com.example.readingapp.data.DataOrException
 import com.example.readingapp.model.MBook
+import com.example.readingapp.model.MSession
 import com.example.readingapp.model.MUser
 import com.example.readingapp.model.StoredBook
+import com.example.readingapp.model.StoredSession
 import com.example.readingapp.model.toModel
+import com.example.readingapp.model.toSession
+import com.example.readingapp.model.toStoredDocument
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -20,12 +25,14 @@ import javax.inject.Inject
 class FireRepository @Inject constructor(
     private val queryBook: Query,
     private val queryUser: Query,
+    private val querySession: CollectionReference,
 ) {
 
     companion object {
         const val USER_ID = "user_id"
         const val USERS_COLLECTION = "users"
         const val BOOKS_COLLECTION = "books"
+        const val SESSIONS_COLLECTION = "sessions"
     }
 
     private val _user = MutableStateFlow<MUser?>(null)
@@ -95,6 +102,7 @@ class FireRepository @Inject constructor(
             id = id,
             title = getString(StoredBook.TITLE),
             authors = authorList,
+            imgUrl = getString(StoredBook.PHOTO),
             pageCount = getLong(StoredBook.PAGE_COUNT)?.toInt(),
             notes = getString(StoredBook.NOTES),
             rating = getDouble(StoredBook.RATING),
@@ -123,6 +131,24 @@ class FireRepository @Inject constructor(
         }
 
         return dataOrException
+    }
+
+    suspend fun fetchSessions(userId: String): List<MSession> {
+        return querySession
+            .whereEqualTo(StoredSession.USER_ID, userId)
+            .get()
+            .await()
+            .documents
+            .map { it.toSession() }
+            .sortedByDescending { it.readAt?.seconds ?: 0L }
+    }
+
+    suspend fun addSession(session: MSession) {
+        querySession.add(session.toStoredDocument()).await()
+    }
+
+    suspend fun deleteSession(sessionId: String) {
+        querySession.document(sessionId).delete().await()
     }
 
     fun updateBook(

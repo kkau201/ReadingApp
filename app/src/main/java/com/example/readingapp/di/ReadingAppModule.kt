@@ -10,6 +10,7 @@ import com.example.readingapp.config.Constants
 import com.example.readingapp.network.NetworkInterceptor
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.repo.FireRepository.Companion.BOOKS_COLLECTION
+import com.example.readingapp.repo.FireRepository.Companion.SESSIONS_COLLECTION
 import com.example.readingapp.repo.FireRepository.Companion.USERS_COLLECTION
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
@@ -65,7 +66,8 @@ object ReadingAppModule {
         val firestore = FirebaseFirestore.getInstance()
         return FireRepository(
             queryBook = firestore.collection(BOOKS_COLLECTION),
-            queryUser = firestore.collection(USERS_COLLECTION)
+            queryUser = firestore.collection(USERS_COLLECTION),
+            querySession = firestore.collection(SESSIONS_COLLECTION)
         )
     }
 }
