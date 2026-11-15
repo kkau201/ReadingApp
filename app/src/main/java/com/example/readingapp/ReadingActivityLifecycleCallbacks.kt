@@ -25,6 +25,8 @@ class ReadingActivityLifecycleCallbacks : Application.ActivityLifecycleCallbacks
 
     override fun onActivityDestroyed(activity: Activity) {
         Log.d("ReadingAppLifecycle", "onActivityDestroyed: " + activity.javaClass.name)
+        // Don't hold on to a destroyed Activity (avoids leaking it across rotation etc.)
+        if (currentActivity === activity) currentActivity = null
     }
 
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {

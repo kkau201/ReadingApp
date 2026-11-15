@@ -122,4 +122,9 @@ dependencies {
     implementation(Libs.Firebase.Auth)
     implementation(Libs.Firebase.Firestore)
 
+    // Credential Manager (Sign in with Google)
+    implementation(Libs.Credentials.Core)
+    implementation(Libs.Credentials.PlayServicesAuth)
+    implementation(Libs.Credentials.GoogleId)
+
 }

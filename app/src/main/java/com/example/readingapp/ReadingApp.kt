@@ -10,6 +10,11 @@ import dagger.hilt.android.HiltAndroidApp
 class ReadingApp: Application(), ActivityProvider {
     private val activityLifecycleCallbacks = ReadingActivityLifecycleCallbacks()
 
+    override fun onCreate() {
+        super.onCreate()
+        registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
+    }
+
     override fun currentActivity(): Activity? {
         return activityLifecycleCallbacks.currentActivity
     }

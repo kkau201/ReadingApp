@@ -11,6 +11,10 @@
     <string name="password">Password</string>
     <string name="password_hint">* At least 6 characters</string>
     <string name="already_user">Already have an account?</string>
+    <string name="continue_with_google">Continue with Google</string>
+    <string name="or_divider">or</string>
+    <string name="google_sign_in_failed">Google sign-in failed. Please try again.</string>
+    <string name="google_sign_in_not_configured">Google sign-in is not configured. Enable the Google provider in Firebase and download the updated google-services.json.</string>
 
     <string name="home_greeting">Hello, %1$s</string>
     <string name="home_title">Library</string>

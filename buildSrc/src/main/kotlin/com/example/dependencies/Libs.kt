@@ -38,6 +38,13 @@ object Libs {
         const val Firestore = "com.google.firebase:firebase-firestore"
     }
 
+    object Credentials {
+        private const val version = "1.6.0"
+        const val Core = "androidx.credentials:credentials:$version"
+        const val PlayServicesAuth = "androidx.credentials:credentials-play-services-auth:$version"
+        const val GoogleId = "com.google.android.libraries.identity.googleid:googleid:1.2.1"
+    }
+
     object Misc {
         const val Coil = "io.coil-kt:coil-compose:2.7.0"
         const val Retrofit = "com.squareup.retrofit2:retrofit:3.0.0"

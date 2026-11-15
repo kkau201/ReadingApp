@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "510052765953",
     "project_id": "readingapp-7bf89",
-    "storage_bucket": "readingapp-7bf89.appspot.com"
+    "storage_bucket": "readingapp-7bf89.firebasestorage.app"
   },
   "client": [
     {
@@ -12,7 +12,20 @@
           "package_name": "com.example.readingapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "510052765953-1iadrgqgp89bn3aqmi1bjdfdop7rf2d8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.readingapp",
+            "certificate_hash": "1af36709533539746631d222bc9e6f855a5dbe04"
+          }
+        },
+        {
+          "client_id": "510052765953-58js7k1q320jib0l89mo5tt8vcha581a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA5DeOoBFk2RD_dWYhbsnj58MlHMH6Y9dE"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "510052765953-58js7k1q320jib0l89mo5tt8vcha581a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

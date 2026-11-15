@@ -2,6 +2,8 @@ package com.example.readingapp.ui.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -16,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,6 +37,7 @@ import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.ui.components.InputForm
 import com.example.readingapp.ui.components.LibraryPageTitle
+import com.example.readingapp.ui.components.ReadingAppButton
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
@@ -93,11 +98,42 @@ fun LoginScreen(
             showPasswordHint = !isLogin,
             modifier = Modifier.padding(top = 32.dp)
         )
+        OrDivider(modifier = Modifier.padding(top = 24.dp))
+        ReadingAppButton(
+            text = stringResource(R.string.continue_with_google),
+            enabled = loadingState.value !is LoadingState.Loading,
+            backgroundColor = Paper,
+            contentColor = Ink,
+            onClick = {
+                keyboardController?.hide()
+                viewModel.onGoogleSignInClick()
+            },
+            modifier = Modifier
+                .padding(top = 24.dp)
+                .border(1.dp, Ink, CircleShape)
+        )
         SwitchScreenSection(
             screenState = uiState.value.loginScreenState,
             onSwitchClick = viewModel::onSwitchScreens,
             modifier = Modifier.padding(top = 20.dp)
         )
+    }
+}
+
+@Composable
+private fun OrDivider(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        HorizontalDivider(modifier = Modifier.weight(1f), color = Muted.copy(alpha = 0.4f))
+        Text(
+            text = stringResource(R.string.or_divider),
+            color = Muted,
+            style = AppTheme.typography.bodySmall
+        )
+        HorizontalDivider(modifier = Modifier.weight(1f), color = Muted.copy(alpha = 0.4f))
     }
 }
 
