@@ -75,7 +75,11 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun onRegisterClick() = launchSignIn("Register") {
-        authRepository.registerWithEmail(uiState.value.email.trim(), uiState.value.password)
+        val user = authRepository.registerWithEmail(uiState.value.email.trim(), uiState.value.password)
+        // Optional: a verified address lets Firebase keep the password if the user later
+        // signs in with Google using the same Gmail address.
+        if (authRepository.sendEmailVerification()) showToast(getString(R.string.verify_email_sent))
+        user
     }
 
     fun onGoogleSignInClick() = launchSignIn("Google sign-in") {

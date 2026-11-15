@@ -14,11 +14,14 @@ class FakeAuthRepository : AuthRepository {
     /** Thrown by [createUserDocument] when set (e.g. a network or rules failure). */
     var createDocumentError: Exception? = null
 
+    var verificationEmailSends = true
+
     val existingUserDocuments = mutableSetOf<String>()
     val createdUserDocuments = mutableListOf<Pair<String, String>>()
     val receivedIdTokens = mutableListOf<String>()
     val emailSignIns = mutableListOf<Pair<String, String>>()
     val emailRegistrations = mutableListOf<Pair<String, String>>()
+    var verificationEmailsRequested = 0
 
     override suspend fun signInWithEmail(email: String, password: String): AuthUser {
         emailSignIns += email to password
@@ -33,6 +36,11 @@ class FakeAuthRepository : AuthRepository {
     override suspend fun signInWithGoogle(idToken: String): AuthUser {
         receivedIdTokens += idToken
         return result()
+    }
+
+    override suspend fun sendEmailVerification(): Boolean {
+        verificationEmailsRequested++
+        return verificationEmailSends
     }
 
     override suspend fun userDocumentExists(uid: String): Boolean = uid in existingUserDocuments

@@ -24,6 +24,7 @@
     <string name="auth_error_too_many_requests">Too many attempts. Please wait a moment and try again.</string>
     <string name="auth_error_network">No internet connection. Check your connection and try again.</string>
     <string name="auth_error_recent_login">For your security, log out and log in again, then try again.</string>
+    <string name="verify_email_sent">We\'ve sent you an email to verify your address.</string>
 
     <string name="home_greeting">Hello, %1$s</string>
     <string name="home_title">Library</string>

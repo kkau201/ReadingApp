@@ -306,6 +306,35 @@ class LoginViewModelTest {
     }
 
     @Test
+    fun register_sendsVerificationEmailAndSaysSo() = runTest {
+        viewModel.onSwitchScreens(LoginScreenState.SIGN_UP)
+
+        viewModel.onSubmitClick()
+
+        assertEquals(1, authRepository.verificationEmailsRequested)
+        assertEquals(str(R.string.verify_email_sent), mainViewModel.toastFlow.value)
+    }
+
+    @Test
+    fun register_verificationEmailFails_noToastButStillSignsIn() = runTest {
+        collectNavigation()
+        authRepository.verificationEmailSends = false
+        viewModel.onSwitchScreens(LoginScreenState.SIGN_UP)
+
+        viewModel.onSubmitClick()
+
+        assertNull(mainViewModel.toastFlow.value)
+        assertEquals(listOf<NavigationEvent?>(dashboard), navigationEvents)
+    }
+
+    @Test
+    fun emailLogin_doesNotSendVerificationEmail() = runTest {
+        viewModel.onSubmitClick()
+
+        assertEquals(0, authRepository.verificationEmailsRequested)
+    }
+
+    @Test
     fun register_emailInUse_explainsHowToSignIn() = runTest {
         authRepository.signInError = AuthException(AuthFailure.EMAIL_IN_USE)
         viewModel.onSwitchScreens(LoginScreenState.SIGN_UP)
@@ -314,6 +343,7 @@ class LoginViewModelTest {
 
         assertEquals(str(R.string.auth_error_email_in_use), viewModel.uiState.value.errorMessage)
         assertTrue(authRepository.createdUserDocuments.isEmpty())
+        assertEquals(0, authRepository.verificationEmailsRequested)
     }
 
     @Test
