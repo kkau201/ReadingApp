@@ -9,7 +9,6 @@ import com.example.readingapp.model.StoredSession
 import com.example.readingapp.model.toModel
 import com.example.readingapp.model.toSession
 import com.example.readingapp.model.toStoredDocument
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
@@ -26,6 +25,8 @@ class FireRepository @Inject constructor(
     private val queryBook: Query,
     private val queryUser: CollectionReference,
     private val querySession: CollectionReference,
+    /** The signed-in user's uid (from AuthRepository), or null. */
+    private val currentUserId: () -> String?,
 ) {
 
     companion object {
@@ -58,7 +59,7 @@ class FireRepository @Inject constructor(
     }
 
     suspend fun fetchSavedBooksByUser(): DataOrException<List<MBook>, Boolean, Exception> {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: user.value?.userId
+        val userId = currentUserId() ?: user.value?.userId
         if (userId.isNullOrBlank()) {
             savedBooks.update { emptyList() }
             return DataOrException(data = emptyList())

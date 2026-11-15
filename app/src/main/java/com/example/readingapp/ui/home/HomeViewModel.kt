@@ -7,9 +7,9 @@ import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.NavigateTo
+import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val fireRepository: FireRepository,
+    private val authRepository: AuthRepository,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
 
@@ -32,7 +33,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 updateLoadingState(LoadingState.Loading())
-                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: throw ErrorType.UnknownUserException
+                val currentUserId = authRepository.currentUserId ?: throw ErrorType.UnknownUserException
                 val user = fireRepository.user.value ?: fireRepository.fetchUser(currentUserId).getOrThrow()
                 val books = fireRepository.fetchSavedBooksByUser().getOrThrow()
 

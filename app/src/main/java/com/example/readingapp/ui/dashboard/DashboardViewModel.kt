@@ -6,8 +6,8 @@ import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
+import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.repo.FireRepository
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val fireRepository: FireRepository,
+    private val authRepository: AuthRepository,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
     override val isNavigationDestination: Boolean = true
@@ -30,7 +31,7 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val currentUserId =
-                    FirebaseAuth.getInstance().currentUser?.uid ?: throw ErrorType.UnknownUserException
+                    authRepository.currentUserId ?: throw ErrorType.UnknownUserException
                 fireRepository.fetchUser(currentUserId).getOrThrow()
             } catch (e: Exception) {
                 updateLoadingState(LoadingState.Failed(e.message))

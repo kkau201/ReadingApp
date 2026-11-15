@@ -11,6 +11,7 @@ import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MSession
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.model.limitTo
+import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.components.BookStatus
 import com.example.readingapp.ui.components.DialogState
@@ -19,7 +20,6 @@ import com.example.readingapp.ui.details.update.MIN_FINISHED_YEAR
 import com.example.readingapp.ui.details.update.maxFinishedYear
 import com.example.readingapp.ui.details.update.toFinishedOn
 import com.example.readingapp.ui.details.update.todaySessionParts
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +32,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SessionViewModel @Inject constructor(
     private val fireRepository: FireRepository,
+    private val authRepository: AuthRepository,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
 
@@ -41,7 +42,7 @@ class SessionViewModel @Inject constructor(
     fun onLoad() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val userId = FirebaseAuth.getInstance().currentUser?.uid
+                val userId = authRepository.currentUserId
                     ?: throw ErrorType.UnknownUserException
                 val books = fireRepository.fetchSavedBooksByUser(userId).getOrThrow()
                     .filter { it.bookStatus == BookStatus.READING }
@@ -159,7 +160,7 @@ class SessionViewModel @Inject constructor(
             }
             return
         }
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val userId = authRepository.currentUserId ?: return
         val session = MSession(
             userId = userId,
             googleBookId = book.googleBookId ?: book.id,
@@ -214,7 +215,7 @@ class SessionViewModel @Inject constructor(
     }
 
     private fun deleteSession(sessionId: String) {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val userId = authRepository.currentUserId ?: return
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 fireRepository.deleteSession(sessionId)

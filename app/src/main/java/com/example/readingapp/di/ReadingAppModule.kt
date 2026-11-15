@@ -2,6 +2,7 @@ package com.example.readingapp.di
 
 import android.content.Context
 import com.example.readingapp.ReadingApp
+import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.common.ActivityProvider
 import com.example.readingapp.network.BookApi
 import com.example.readingapp.network.BooksApiKeyInterceptor
@@ -62,12 +63,13 @@ object ReadingAppModule {
 
     @Singleton
     @Provides
-    fun providesFireBookRepo(): FireRepository {
+    fun providesFireBookRepo(authRepository: AuthRepository): FireRepository {
         val firestore = FirebaseFirestore.getInstance()
         return FireRepository(
             queryBook = firestore.collection(BOOKS_COLLECTION),
             queryUser = firestore.collection(USERS_COLLECTION),
-            querySession = firestore.collection(SESSIONS_COLLECTION)
+            querySession = firestore.collection(SESSIONS_COLLECTION),
+            currentUserId = { authRepository.currentUserId }
         )
     }
 }

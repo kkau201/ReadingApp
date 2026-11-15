@@ -22,7 +22,8 @@ class FireRepositoryTest {
     private val repository = FireRepository(
         queryBook = mockk(relaxed = true),
         queryUser = users,
-        querySession = mockk(relaxed = true)
+        querySession = mockk(relaxed = true),
+        currentUserId = { UID }
     )
 
     init {

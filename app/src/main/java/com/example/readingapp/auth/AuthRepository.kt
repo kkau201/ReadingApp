@@ -19,6 +19,10 @@ data class AuthUser(
 
 /** Firebase Auth sign-in plus the matching Firestore user record. */
 interface AuthRepository {
+    /** The signed-in user, or null. */
+    val currentUser: AuthUser?
+    val currentUserId: String? get() = currentUser?.uid
+
     suspend fun signInWithEmail(email: String, password: String): AuthUser
     suspend fun registerWithEmail(email: String, password: String): AuthUser
     suspend fun signInWithGoogle(idToken: String): AuthUser
@@ -30,6 +34,11 @@ class FirebaseAuthRepository @Inject constructor() : AuthRepository {
 
     private fun users(): CollectionReference =
         FirebaseFirestore.getInstance().collection(USERS_COLLECTION)
+
+    override val currentUser: AuthUser?
+        get() = Firebase.auth.currentUser?.let {
+            AuthUser(uid = it.uid, displayName = it.displayName, email = it.email)
+        }
 
     override suspend fun signInWithEmail(email: String, password: String): AuthUser {
         return Firebase.auth.signInWithEmailAndPassword(email, password).await().toAuthUser()

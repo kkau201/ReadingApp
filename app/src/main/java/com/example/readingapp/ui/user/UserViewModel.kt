@@ -3,6 +3,7 @@ package com.example.readingapp.ui.user
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.R
+import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
@@ -23,6 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class UserViewModel @Inject constructor(
     private val fireRepository: FireRepository,
+    private val authRepository: AuthRepository,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
     val uiState: StateFlow<UserUiState>
@@ -47,7 +49,7 @@ class UserViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 updateLoadingState(LoadingState.Loading())
-                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+                val currentUserId = authRepository.currentUserId
                     ?: throw ErrorType.UnknownUserException
                 fireRepository.fetchUser(currentUserId).getOrThrow()
                 fireRepository.fetchSavedBooksByUser()

@@ -13,6 +13,7 @@ import com.example.readingapp.model.MBook
 import com.example.readingapp.model.toStoredDocument
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.BookRepository
+import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.repo.FireRepository.Companion.BOOKS_COLLECTION
 import com.example.readingapp.ui.components.BookStatus
@@ -29,7 +30,6 @@ import com.example.readingapp.ui.details.update.toFinishedOn
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import com.example.readingapp.ui.destinations.UpdateScreenDestination
 import com.google.firebase.Timestamp
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
@@ -44,6 +44,7 @@ import javax.inject.Inject
 class DetailsViewModel @Inject constructor(
     private val bookRepository: BookRepository,
     private val fireRepository: FireRepository,
+    private val authRepository: AuthRepository,
     savedStateHandle: SavedStateHandle,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
@@ -250,7 +251,7 @@ class DetailsViewModel @Inject constructor(
 
     private fun saveBook(status: BookStatus, finishedOn: FinishedOn? = null) {
         val book = uiState.value.book ?: return
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val userId = authRepository.currentUserId ?: return
         if (fireRepository.savedBooks.value.any { it.googleBookId == args.bookId }) return
 
         val db = FirebaseFirestore.getInstance()

@@ -4,6 +4,10 @@ class FakeAuthRepository : AuthRepository {
     var signedInUser =
         AuthUser(uid = "uid-1", displayName = "Jane Austen", email = "jane@example.com")
 
+    /** The user returned by [currentUser]; null means signed out. Set by sign-in calls. */
+    var current: AuthUser? = null
+    override val currentUser: AuthUser? get() = current
+
     /** Thrown by every sign-in / register call when set. */
     var signInError: Exception? = null
 
@@ -41,6 +45,7 @@ class FakeAuthRepository : AuthRepository {
 
     private fun result(): AuthUser {
         signInError?.let { throw it }
+        current = signedInUser
         return signedInUser
     }
 }

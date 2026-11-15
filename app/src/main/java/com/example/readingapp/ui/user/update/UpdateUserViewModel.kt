@@ -14,8 +14,8 @@ import com.example.readingapp.model.READING_GOAL
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.model.asReadingGoal
 import com.example.readingapp.model.limitTo
+import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.repo.FireRepository
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -29,6 +29,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @HiltViewModel
 class UpdateUserViewModel @Inject constructor(
     private val fireRepository: FireRepository,
+    private val authRepository: AuthRepository,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
     override val isNavigationDestination: Boolean = true
@@ -65,7 +66,7 @@ class UpdateUserViewModel @Inject constructor(
     private fun loadUser() = viewModelScope.launch {
         try {
             val currentUserId =
-                FirebaseAuth.getInstance().currentUser?.uid ?: throw ErrorType.UnknownUserException
+                authRepository.currentUserId ?: throw ErrorType.UnknownUserException
             fireRepository.fetchUser(currentUserId).getOrThrow()
         } catch (e: Exception) {
             updateLoadingState(LoadingState.Failed(e.message))
