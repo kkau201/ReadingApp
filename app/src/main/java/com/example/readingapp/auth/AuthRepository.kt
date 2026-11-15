@@ -5,6 +5,9 @@ import android.util.Log
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import com.example.readingapp.model.MUser
+import com.example.readingapp.model.USER_ID
+import com.example.readingapp.repo.FireRepository.Companion.BOOKS_COLLECTION
+import com.example.readingapp.repo.FireRepository.Companion.SESSIONS_COLLECTION
 import com.example.readingapp.repo.FireRepository.Companion.USERS_COLLECTION
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseException
@@ -46,6 +49,15 @@ interface AuthRepository {
     /** Signs out of Firebase and clears Credential Manager's sign-in state. */
     suspend fun signOut()
 
+    /**
+     * Whether the last sign-in is recent enough for Firebase to allow deleting the account.
+     * Checked before deleting any data, so we don't delete it and then fail to delete the account.
+     */
+    fun isRecentlySignedIn(): Boolean
+
+    /** Deletes the user's books, sessions and profile, then the account itself. */
+    suspend fun deleteAccount()
+
     suspend fun userDocumentExists(uid: String): Boolean
     suspend fun createUserDocument(uid: String, displayName: String)
 }
@@ -54,8 +66,8 @@ class FirebaseAuthRepository @Inject constructor(
     @ApplicationContext private val context: Context
 ) : AuthRepository {
 
-    private fun users(): CollectionReference =
-        FirebaseFirestore.getInstance().collection(USERS_COLLECTION)
+    private val db: FirebaseFirestore get() = FirebaseFirestore.getInstance()
+    private fun users(): CollectionReference = db.collection(USERS_COLLECTION)
 
     override val currentUser: AuthUser?
         get() = Firebase.auth.currentUser?.let {
@@ -100,6 +112,27 @@ class FirebaseAuthRepository @Inject constructor(
         clearCredentialState()
     }
 
+    override fun isRecentlySignedIn(): Boolean {
+        val lastSignIn = Firebase.auth.currentUser?.metadata?.lastSignInTimestamp ?: return false
+        return System.currentTimeMillis() - lastSignIn < RECENT_SIGN_IN_MILLIS
+    }
+
+    override suspend fun deleteAccount() = mapErrors {
+        val user = Firebase.auth.currentUser ?: throw AuthException(AuthFailure.UNKNOWN)
+
+        // Delete Firestore data first: once the account is gone, the rules no longer let us.
+        val owned = listOf(BOOKS_COLLECTION, SESSIONS_COLLECTION).flatMap { collection ->
+            db.collection(collection).whereEqualTo(USER_ID, user.uid).get().await()
+                .documents.map { it.reference }
+        } + users().document(user.uid)
+        owned.chunked(MAX_BATCH_WRITES).forEach { chunk ->
+            db.batch().apply { chunk.forEach { delete(it) } }.commit().await()
+        }
+
+        user.delete().await()
+        clearCredentialState()
+    }
+
     override suspend fun userDocumentExists(uid: String): Boolean {
         return users().document(uid).get().await().exists()
     }
@@ -136,5 +169,11 @@ class FirebaseAuthRepository @Inject constructor(
 
     private companion object {
         const val TAG = "AuthRepository"
+
+        /** Firebase asks for a fresh sign-in after about 5 minutes for sensitive operations. */
+        const val RECENT_SIGN_IN_MILLIS = 5 * 60 * 1000L
+
+        /** Firestore's limit on writes per batch. */
+        const val MAX_BATCH_WRITES = 500
     }
 }

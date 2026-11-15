@@ -16,6 +16,8 @@ class FakeAuthRepository : AuthRepository {
 
     var verificationEmailSends = true
     var passwordResetError: Exception? = null
+    var recentlySignedIn = true
+    var deleteError: Exception? = null
 
     val existingUserDocuments = mutableSetOf<String>()
     val createdUserDocuments = mutableListOf<Pair<String, String>>()
@@ -23,8 +25,9 @@ class FakeAuthRepository : AuthRepository {
     val emailSignIns = mutableListOf<Pair<String, String>>()
     val emailRegistrations = mutableListOf<Pair<String, String>>()
     val passwordResetEmails = mutableListOf<String>()
-    var signOutCount = 0
     var verificationEmailsRequested = 0
+    var signOutCount = 0
+    var deleteCount = 0
 
     override suspend fun signInWithEmail(email: String, password: String): AuthUser {
         emailSignIns += email to password
@@ -53,6 +56,14 @@ class FakeAuthRepository : AuthRepository {
 
     override suspend fun signOut() {
         signOutCount++
+        current = null
+    }
+
+    override fun isRecentlySignedIn(): Boolean = recentlySignedIn
+
+    override suspend fun deleteAccount() {
+        deleteCount++
+        deleteError?.let { throw it }
         current = null
     }
 

@@ -100,6 +100,13 @@
     <string name="logout_message">Are you sure you want to log out?</string>
     <string name="logout_yes">Yes</string>
     <string name="logout_no">No</string>
+    <string name="profile_delete_account">Delete account</string>
+    <string name="delete_account_title">Delete account?</string>
+    <string name="delete_account_message">This permanently deletes your profile, saved books and reading sessions. This can\'t be undone.</string>
+    <string name="delete_account_confirm">Delete</string>
+    <string name="delete_account_sign_in_again">For your security, log out and log in again, then delete your account.</string>
+    <string name="delete_account_done">Your account has been deleted</string>
+    <string name="delete_account_error">Couldn\'t delete your account. Please try again.</string>
     <string name="no_results">No results</string>
     <string name="login_error_title">Login error</string>
     <string name="login_error_message">Sorry, unable to get your account to log in</string>

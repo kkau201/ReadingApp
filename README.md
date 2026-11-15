@@ -38,5 +38,6 @@ The app reads that signature at runtime and hashes it, so the value matches the 
 
 ## To do
 
-- [ ] Add Google auth
-- [ ] Add delete account
+- [x] Add Google auth
+- [x] Add delete account (in app: Profile → Delete account)
+- [ ] Add a web page or form for requesting account deletion (required by Google Play alongside the in-app option)

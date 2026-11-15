@@ -84,7 +84,8 @@ fun UserScreen(
             books = uiState.books,
             readingGoal = uiState.user?.readingGoal ?: DEFAULT_READING_GOAL,
             onUpdateClick = viewModel::navigateToUpdateUser,
-            onLogoutClick = viewModel::onLogoutClick
+            onLogoutClick = viewModel::onLogoutClick,
+            onDeleteAccountClick = viewModel::onDeleteAccountClick
         )
     }
 }
@@ -98,7 +99,8 @@ fun UserContent(
     books: List<MBook> = emptyList(),
     readingGoal: Int = DEFAULT_READING_GOAL,
     onUpdateClick: () -> Unit,
-    onLogoutClick: () -> Unit
+    onLogoutClick: () -> Unit,
+    onDeleteAccountClick: () -> Unit = {}
 ) {
     val pagePadding = AppTheme.spacing.mdSpacing
     val name = userDisplayName.asProfileText()
@@ -146,6 +148,16 @@ fun UserContent(
                     .background(Ink)
                     .clickable(onClick = onLogoutClick)
                     .padding(horizontal = 20.dp, vertical = 14.dp)
+            )
+            Text(
+                text = stringResource(R.string.profile_delete_account),
+                color = Muted,
+                style = AppTheme.typography.labelLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable(onClick = onDeleteAccountClick)
+                    .padding(horizontal = 20.dp, vertical = 10.dp)
             )
             Text(
                 text = stringResource(R.string.profile_version, BuildConfig.VERSION_NAME),

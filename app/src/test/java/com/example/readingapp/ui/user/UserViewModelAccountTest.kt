@@ -2,9 +2,13 @@ package com.example.readingapp.ui.user
 
 import android.content.Context
 import com.example.readingapp.MainViewModel
+import com.example.readingapp.R
+import com.example.readingapp.auth.AuthException
+import com.example.readingapp.auth.AuthFailure
 import com.example.readingapp.auth.AuthUser
 import com.example.readingapp.auth.FakeAuthRepository
 import com.example.readingapp.common.DependencyContextWrapper
+import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.nav.NavigationEvent
 import com.example.readingapp.repo.FireRepository
@@ -22,11 +26,12 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/** Logout on the profile screen. */
+/** Logout and account deletion on the profile screen. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class UserViewModelAccountTest {
 
@@ -78,6 +83,76 @@ class UserViewModelAccountTest {
         verify { fireRepository.clearUserData() }
         assertEquals(listOf<NavigationEvent?>(toLogin), navigationEvents)
         assertNull(mainViewModel.dialogFlow.value)
+    }
+
+    @Test
+    fun deleteAccount_confirmed_deletesEverythingAndGoesToLogin() = runTest {
+        collectNavigation()
+
+        viewModel.onDeleteAccountClick()
+        assertEquals(str(R.string.delete_account_message), dialog().message)
+        dialog().onPrimaryClick!!()
+
+        assertEquals(1, authRepository.deleteCount)
+        verify { fireRepository.clearUserData() }
+        assertEquals(str(R.string.delete_account_done), mainViewModel.toastFlow.value)
+        assertEquals(listOf<NavigationEvent?>(toLogin), navigationEvents)
+        assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+    }
+
+    @Test
+    fun deleteAccount_cancelled_doesNothing() = runTest {
+        collectNavigation()
+
+        viewModel.onDeleteAccountClick()
+        dialog().onSecondaryClick!!()
+
+        assertEquals(0, authRepository.deleteCount)
+        assertTrue(navigationEvents.isEmpty())
+        assertNull(mainViewModel.dialogFlow.value)
+    }
+
+    @Test
+    fun deleteAccount_oldSignIn_asksToSignInAgainBeforeDeletingAnything() = runTest {
+        collectNavigation()
+        authRepository.recentlySignedIn = false
+
+        viewModel.onDeleteAccountClick()
+
+        assertEquals(str(R.string.delete_account_sign_in_again), dialog().message)
+        assertEquals(0, authRepository.deleteCount)
+
+        // The dialog's button logs the user out so they can sign in again.
+        dialog().onPrimaryClick!!()
+        assertEquals(1, authRepository.signOutCount)
+        assertEquals(listOf<NavigationEvent?>(toLogin), navigationEvents)
+    }
+
+    @Test
+    fun deleteAccount_firebaseWantsRecentLogin_asksToSignInAgain() = runTest {
+        collectNavigation()
+        authRepository.deleteError = AuthException(AuthFailure.REQUIRES_RECENT_LOGIN)
+
+        viewModel.onDeleteAccountClick()
+        dialog().onPrimaryClick!!()
+
+        assertEquals(str(R.string.delete_account_sign_in_again), dialog().message)
+        assertTrue(navigationEvents.isEmpty())
+        assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+    }
+
+    @Test
+    fun deleteAccount_otherFailure_showsErrorAndStays() = runTest {
+        collectNavigation()
+        authRepository.deleteError = IllegalStateException("Firestore unavailable")
+
+        viewModel.onDeleteAccountClick()
+        dialog().onPrimaryClick!!()
+
+        assertEquals(str(R.string.delete_account_error), mainViewModel.toastFlow.value)
+        assertTrue(navigationEvents.isEmpty())
+        verify(exactly = 0) { fireRepository.clearUserData() }
+        assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
     }
 
     private fun str(id: Int) = "res:$id"
