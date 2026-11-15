@@ -35,9 +35,8 @@ class SessionViewModel @Inject constructor(
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
 
-    private val _uiState = MutableStateFlow(SessionUiState().withToday())
     val uiState: StateFlow<SessionUiState>
-        get() = _uiState
+        field = MutableStateFlow(SessionUiState().withToday())
 
     fun onLoad() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -49,7 +48,7 @@ class SessionViewModel @Inject constructor(
                     .sortedBy { it.title.orEmpty() }
                 val sessions = fireRepository.fetchSessions(userId)
                 withContext(Dispatchers.Main) {
-                    _uiState.update { state ->
+                    uiState.update { state ->
                         val selected = state.selectedBookId?.takeIf { id ->
                             books.any { it.shelfId() == id }
                         } ?: books.firstOrNull()?.shelfId()
@@ -70,7 +69,7 @@ class SessionViewModel @Inject constructor(
     }
 
     fun onStartLog() {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.withToday().copy(
                 logging = true,
                 changingDate = false,
@@ -87,7 +86,7 @@ class SessionViewModel @Inject constructor(
     }
 
     fun onCancelLog() {
-        _uiState.update {
+        uiState.update {
             it.withToday().copy(
                 logging = false,
                 changingDate = false,
@@ -101,35 +100,35 @@ class SessionViewModel @Inject constructor(
     }
 
     fun onChangeDay() {
-        _uiState.update { it.copy(changingDate = true, dateError = false) }
+        uiState.update { it.copy(changingDate = true, dateError = false) }
     }
 
     fun onUseToday() {
-        _uiState.update { it.withToday().copy(changingDate = false, dateError = false) }
+        uiState.update { it.withToday().copy(changingDate = false, dateError = false) }
     }
 
     fun onBookSelected(bookId: String) {
-        _uiState.update { it.copy(selectedBookId = bookId, bookError = false) }
+        uiState.update { it.copy(selectedBookId = bookId, bookError = false) }
     }
 
     fun onPagesChanged(input: String) {
-        _uiState.update {
+        uiState.update {
             it.copy(pagesInput = input.filter(Char::isDigit).take(5), pagesError = false)
         }
     }
 
     fun onNoteChanged(input: String) {
-        _uiState.update { it.copy(noteInput = input.limitTo(TextLimits.SESSION_NOTE)) }
+        uiState.update { it.copy(noteInput = input.limitTo(TextLimits.SESSION_NOTE)) }
     }
 
     fun onYearChanged(year: Int) {
-        _uiState.update {
+        uiState.update {
             it.copy(year = year.coerceIn(MIN_FINISHED_YEAR, maxFinishedYear()), dateError = false)
         }
     }
 
     fun onMonthChanged(month: Int?) {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 month = month,
                 day = if (month == null) "" else state.day,
@@ -139,19 +138,19 @@ class SessionViewModel @Inject constructor(
     }
 
     fun onDayChanged(input: String) {
-        _uiState.update {
+        uiState.update {
             it.copy(day = input.filter(Char::isDigit).take(2), dateError = false)
         }
     }
 
     fun onSaveSession() {
-        val state = _uiState.value
+        val state = uiState.value
         val book = state.books.find { it.shelfId() == state.selectedBookId }
         val pages = state.pagesInput.toIntOrNull()?.takeIf { it > 0 }
         val readOn = FinishedParts(state.year, state.month, state.day).toFinishedOn()
             ?.takeIf { it.day != null }
         if (book == null || pages == null || readOn == null) {
-            _uiState.update {
+            uiState.update {
                 it.copy(
                     bookError = book == null,
                     pagesError = pages == null,
@@ -175,7 +174,7 @@ class SessionViewModel @Inject constructor(
                 fireRepository.addSession(session)
                 val sessions = fireRepository.fetchSessions(userId)
                 withContext(Dispatchers.Main) {
-                    _uiState.update {
+                    uiState.update {
                         it.withToday().copy(
                             sessions = sessions,
                             logging = false,
@@ -221,7 +220,7 @@ class SessionViewModel @Inject constructor(
                 fireRepository.deleteSession(sessionId)
                 val sessions = fireRepository.fetchSessions(userId)
                 withContext(Dispatchers.Main) {
-                    _uiState.update { it.copy(sessions = sessions) }
+                    uiState.update { it.copy(sessions = sessions) }
                     showToast(getString(R.string.session_removed))
                 }
             } catch (e: Exception) {

@@ -23,9 +23,8 @@ class DashboardViewModel @Inject constructor(
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
     override val isNavigationDestination: Boolean = true
 
-    private val _uiState: MutableStateFlow<DashboardUiState> = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState>
-        get() = _uiState
+        field: MutableStateFlow<DashboardUiState> = MutableStateFlow(DashboardUiState())
 
     fun onLoad() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -42,6 +41,6 @@ class DashboardViewModel @Inject constructor(
 
 
     fun onTabClick(tab: DashboardTab) {
-        _uiState.update { it.copy(currentTab = tab) }
+        uiState.update { it.copy(currentTab = tab) }
     }
 }

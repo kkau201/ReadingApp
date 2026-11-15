@@ -34,27 +34,25 @@ class FireRepository @Inject constructor(
         const val SESSIONS_COLLECTION = "sessions"
     }
 
-    private val _user = MutableStateFlow<MUser?>(null)
     val user: StateFlow<MUser?>
-        get() = _user
+        field = MutableStateFlow<MUser?>(null)
 
-    private val _savedBooks = MutableStateFlow<List<MBook>>(emptyList())
     val savedBooks: StateFlow<List<MBook>>
-        get() = _savedBooks
+        field = MutableStateFlow<List<MBook>>(emptyList())
 
     /**
      * Drops everything cached for the signed-in user. This repository is a singleton, so call
      * this on sign-out or the next user to sign in on the device would briefly see this data.
      */
     fun clearUserData() {
-        _user.value = null
-        _savedBooks.value = emptyList()
+        user.value = null
+        savedBooks.value = emptyList()
     }
 
     suspend fun fetchUser(userId: String?): DataOrException<MUser?, Boolean, Exception> {
         val result = getUserDetailsFromDatabase(userId)
 
-        _user.update { result.data }
+        user.update { result.data }
 
         return result
     }
@@ -62,7 +60,7 @@ class FireRepository @Inject constructor(
     suspend fun fetchSavedBooksByUser(): DataOrException<List<MBook>, Boolean, Exception> {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: user.value?.userId
         if (userId.isNullOrBlank()) {
-            _savedBooks.update { emptyList() }
+            savedBooks.update { emptyList() }
             return DataOrException(data = emptyList())
         }
         return fetchSavedBooksByUser(userId)
@@ -71,7 +69,7 @@ class FireRepository @Inject constructor(
     suspend fun fetchSavedBooksByUser(userId: String): DataOrException<List<MBook>, Boolean, Exception> {
         val result = getAllBooksFromDatabase(userId)
         val savedBooks = result.data?.filter { it.userId == userId } ?: emptyList()
-        _savedBooks.update { savedBooks }
+        this.savedBooks.update { savedBooks }
         result.data = savedBooks
         return result
     }
@@ -105,7 +103,7 @@ class FireRepository @Inject constructor(
     }
 
     private fun DocumentSnapshot.toStoredBook(): MBook {
-        val authorList = (get(StoredBook.AUTHORS) as? List<*>)?.mapNotNull { it as? String }
+        val authorList = (get(StoredBook.AUTHORS) as? List<*>)?.filterIsInstance<String>()
         return MBook(
             id = id,
             title = getString(StoredBook.TITLE),
@@ -171,9 +169,9 @@ class FireRepository @Inject constructor(
         onErrorListener: (Exception) -> Unit
     ) {
         val updates = bookUpdates.mapValues { (_, value) ->
-            when {
-                value == null -> FieldValue.delete()
-                value is String && value.isBlank() -> FieldValue.delete()
+            when (value) {
+                null -> FieldValue.delete()
+                is String if value.isBlank() -> FieldValue.delete()
                 else -> value
             }
         }

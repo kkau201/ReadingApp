@@ -25,9 +25,8 @@ class HomeViewModel @Inject constructor(
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
 
-    private val _uiState: MutableStateFlow<HomeUiState?> = MutableStateFlow(null)
     val uiState: StateFlow<HomeUiState?>
-        get() = _uiState
+        field: MutableStateFlow<HomeUiState?> = MutableStateFlow(null)
 
     fun onLoad() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -38,7 +37,7 @@ class HomeViewModel @Inject constructor(
                 val books = fireRepository.fetchSavedBooksByUser().getOrThrow()
 
                 withContext(Dispatchers.Main) {
-                    _uiState.update {
+                    uiState.update {
                         HomeUiState(
                             displayName = user?.displayName,
                             userAvatar = user?.avatar,
