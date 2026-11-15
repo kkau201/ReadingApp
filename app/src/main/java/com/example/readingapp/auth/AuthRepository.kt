@@ -1,6 +1,9 @@
 package com.example.readingapp.auth
 
+import android.content.Context
 import android.util.Log
+import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.CredentialManager
 import com.example.readingapp.model.MUser
 import com.example.readingapp.repo.FireRepository.Companion.USERS_COLLECTION
 import com.google.firebase.Firebase
@@ -10,6 +13,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
@@ -39,11 +43,16 @@ interface AuthRepository {
     /** Firebase doesn't reveal whether the account exists, so this succeeds either way. */
     suspend fun sendPasswordResetEmail(email: String)
 
+    /** Signs out of Firebase and clears Credential Manager's sign-in state. */
+    suspend fun signOut()
+
     suspend fun userDocumentExists(uid: String): Boolean
     suspend fun createUserDocument(uid: String, displayName: String)
 }
 
-class FirebaseAuthRepository @Inject constructor() : AuthRepository {
+class FirebaseAuthRepository @Inject constructor(
+    @ApplicationContext private val context: Context
+) : AuthRepository {
 
     private fun users(): CollectionReference =
         FirebaseFirestore.getInstance().collection(USERS_COLLECTION)
@@ -86,6 +95,11 @@ class FirebaseAuthRepository @Inject constructor() : AuthRepository {
         Unit
     }
 
+    override suspend fun signOut() {
+        Firebase.auth.signOut()
+        clearCredentialState()
+    }
+
     override suspend fun userDocumentExists(uid: String): Boolean {
         return users().document(uid).get().await().exists()
     }
@@ -93,6 +107,17 @@ class FirebaseAuthRepository @Inject constructor() : AuthRepository {
     override suspend fun createUserDocument(uid: String, displayName: String) {
         val user = MUser(userId = uid, displayName = displayName).toMap()
         users().document(uid).set(user).await()
+    }
+
+    private suspend fun clearCredentialState() {
+        // Best effort: signing out of Firebase is what matters; this just resets Google sign-in.
+        try {
+            CredentialManager.create(context).clearCredentialState(ClearCredentialStateRequest())
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.d(TAG, "Couldn't clear credential state: $e")
+        }
     }
 
     private fun AuthResult.toAuthUser(): AuthUser {

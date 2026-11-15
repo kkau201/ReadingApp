@@ -23,6 +23,7 @@ class FakeAuthRepository : AuthRepository {
     val emailSignIns = mutableListOf<Pair<String, String>>()
     val emailRegistrations = mutableListOf<Pair<String, String>>()
     val passwordResetEmails = mutableListOf<String>()
+    var signOutCount = 0
     var verificationEmailsRequested = 0
 
     override suspend fun signInWithEmail(email: String, password: String): AuthUser {
@@ -48,6 +49,11 @@ class FakeAuthRepository : AuthRepository {
     override suspend fun sendPasswordResetEmail(email: String) {
         passwordResetEmails += email
         passwordResetError?.let { throw it }
+    }
+
+    override suspend fun signOut() {
+        signOutCount++
+        current = null
     }
 
     override suspend fun userDocumentExists(uid: String): Boolean = uid in existingUserDocuments

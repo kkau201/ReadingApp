@@ -13,7 +13,6 @@ import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.LoginScreenDestination
 import com.example.readingapp.ui.destinations.UpdateUserScreenDestination
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -72,15 +71,21 @@ class UserViewModel @Inject constructor(
                 message = getString(R.string.logout_message),
                 primaryButtonText = getString(R.string.logout_yes),
                 onPrimaryClick = {
-                    FirebaseAuth.getInstance().signOut()
-                    fireRepository.clearUserData()
                     dismissDialog()
-                    // Drop every signed-in screen so Back can't return to them.
-                    navigate(NavigateTo(LoginScreenDestination, clearBackStack = true))
+                    logOut()
                 },
                 secondaryButtonText = getString(R.string.logout_no),
                 onSecondaryClick = { dismissDialog() }
             )
         )
+    }
+
+    private fun logOut() {
+        viewModelScope.launch {
+            authRepository.signOut()
+            fireRepository.clearUserData()
+            // Drop every signed-in screen so Back can't return to them.
+            navigate(NavigateTo(LoginScreenDestination, clearBackStack = true))
+        }
     }
 }
