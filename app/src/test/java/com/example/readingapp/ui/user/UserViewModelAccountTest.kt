@@ -106,6 +106,77 @@ class UserViewModelAccountTest {
 
     // endregion
 
+    // region Verify email reminder
+
+    @Test
+    fun unverifiedEmailAccount_showsReminderWithTheirAddress() = runTest {
+        authRepository.emailUnverified = true
+
+        viewModel.loadUser()
+
+        assertEquals("jane@example.com", viewModel.uiState.value.unverifiedEmail)
+    }
+
+    @Test
+    fun verifiedAccount_noReminder() = runTest {
+        authRepository.emailUnverified = false
+
+        viewModel.loadUser()
+
+        assertNull(viewModel.uiState.value.unverifiedEmail)
+    }
+
+    @Test
+    fun verifyingThenReturning_hidesReminder() = runTest {
+        authRepository.emailUnverified = true
+        viewModel.loadUser()
+        assertNotNull(viewModel.uiState.value.unverifiedEmail)
+
+        // User taps the link in the email, then comes back to the app (screen resumes).
+        authRepository.emailUnverified = false
+        viewModel.loadUser()
+
+        assertNull(viewModel.uiState.value.unverifiedEmail)
+    }
+
+    @Test
+    fun resend_sendsOnceAndConfirms() = runTest {
+        authRepository.emailUnverified = true
+        viewModel.loadUser()
+
+        viewModel.onResendVerificationClick()
+        viewModel.onResendVerificationClick()
+
+        assertEquals(1, authRepository.verificationEmailsRequested)
+        assertTrue(viewModel.uiState.value.verificationResent)
+        assertEquals(str(R.string.verify_email_resent), mainViewModel.toastFlow.value)
+    }
+
+    @Test
+    fun resend_fails_saysSoAndAllowsRetry() = runTest {
+        authRepository.emailUnverified = true
+        authRepository.verificationEmailSends = false
+        viewModel.loadUser()
+
+        viewModel.onResendVerificationClick()
+
+        assertEquals(str(R.string.verify_email_resend_failed), mainViewModel.toastFlow.value)
+        assertEquals(false, viewModel.uiState.value.verificationResent)
+    }
+
+    @Test
+    fun notNow_hidesReminderEvenWhenScreenReloads() = runTest {
+        authRepository.emailUnverified = true
+        viewModel.loadUser()
+
+        viewModel.onDismissVerificationClick()
+        viewModel.loadUser()
+
+        assertNull(viewModel.uiState.value.unverifiedEmail)
+    }
+
+    // endregion
+
     // region Delete account: Google
 
     @Test

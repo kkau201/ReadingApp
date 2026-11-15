@@ -43,7 +43,12 @@ class UserViewModel @Inject constructor(
 
     private var isWatchingProfile = false
 
+    /** "Not now" on the verify-email card hides it until the app is next opened. */
+    private var verifyReminderDismissed = false
+
     fun loadUser() {
+        // Runs on every resume, so a link clicked in the email app is picked up on return.
+        checkEmailVerification()
         if (!isWatchingProfile) {
             isWatchingProfile = true
             viewModelScope.launch {
@@ -74,6 +79,33 @@ class UserViewModel @Inject constructor(
 
     fun navigateToUpdateUser() {
         navigate(NavigateTo(UpdateUserScreenDestination))
+    }
+
+    private fun checkEmailVerification() {
+        viewModelScope.launch {
+            val email = authRepository.currentUser?.email
+            val show = !verifyReminderDismissed &&
+                email != null &&
+                authRepository.needsEmailVerification()
+            uiState.update { it.copy(unverifiedEmail = if (show) email else null) }
+        }
+    }
+
+    fun onResendVerificationClick() {
+        if (uiState.value.verificationResent) return
+        viewModelScope.launch {
+            if (authRepository.sendEmailVerification()) {
+                uiState.update { it.copy(verificationResent = true) }
+                showToast(getString(R.string.verify_email_resent))
+            } else {
+                showToast(getString(R.string.verify_email_resend_failed))
+            }
+        }
+    }
+
+    fun onDismissVerificationClick() {
+        verifyReminderDismissed = true
+        uiState.update { it.copy(unverifiedEmail = null) }
     }
 
     fun onLogoutClick() {

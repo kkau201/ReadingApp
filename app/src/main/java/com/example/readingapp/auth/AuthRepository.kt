@@ -47,6 +47,13 @@ interface AuthRepository {
     /** Sends a verification email to the signed-in user. Returns false if it couldn't be sent. */
     suspend fun sendEmailVerification(): Boolean
 
+    /**
+     * True for an email/password account whose address isn't verified yet. Refreshes the status
+     * from Firebase first, so a link the user just clicked in the email is picked up.
+     * Google accounts are always verified.
+     */
+    suspend fun needsEmailVerification(): Boolean
+
     /** Firebase doesn't reveal whether the account exists, so this succeeds either way. */
     suspend fun sendPasswordResetEmail(email: String)
 
@@ -123,6 +130,21 @@ class FirebaseAuthRepository @Inject constructor(
             Log.d(TAG, "Couldn't send verification email: $e")
             false
         }
+    }
+
+    override suspend fun needsEmailVerification(): Boolean {
+        val user = Firebase.auth.currentUser ?: return false
+        try {
+            user.reload().await()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Offline etc.: fall back to the last known status.
+            Log.d(TAG, "Couldn't refresh the user: $e")
+        }
+        val refreshed = Firebase.auth.currentUser ?: return false
+        val usesPassword = refreshed.providerData.any { it.providerId == EmailAuthProvider.PROVIDER_ID }
+        return usesPassword && !refreshed.isEmailVerified
     }
 
     override suspend fun sendPasswordResetEmail(email: String) = mapErrors {

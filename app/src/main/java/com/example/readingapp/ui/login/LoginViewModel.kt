@@ -16,6 +16,7 @@ import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.messageRes
 import com.example.readingapp.nav.NavigateTo
+import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.DashboardScreenDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,7 +77,19 @@ class LoginViewModel @Inject constructor(
         val user = authRepository.registerWithEmail(uiState.value.email.trim(), uiState.value.password)
         // Optional: a verified address lets Firebase keep the password if the user later
         // signs in with Google using the same Gmail address.
-        if (authRepository.sendEmailVerification()) showToast(getString(R.string.verify_email_sent))
+        if (authRepository.sendEmailVerification()) {
+            // Shown once, on top of the Dashboard. Naming the address also helps spot a typo.
+            val email = user.email ?: uiState.value.email.trim()
+            showDialog(
+                DialogState(
+                    title = getString(R.string.verify_email_sent_title),
+                    message = getString(R.string.verify_email_sent_message, email),
+                    primaryButtonText = getString(R.string.verify_email_sent_ok),
+                    onPrimaryClick = { dismissDialog() },
+                    onDismissRequest = { dismissDialog() }
+                )
+            )
+        }
         user
     }
 

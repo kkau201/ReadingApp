@@ -39,6 +39,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -85,7 +86,11 @@ fun UserScreen(
             readingGoal = uiState.user?.readingGoal ?: DEFAULT_READING_GOAL,
             onUpdateClick = viewModel::navigateToUpdateUser,
             onLogoutClick = viewModel::onLogoutClick,
-            onDeleteAccountClick = viewModel::onDeleteAccountClick
+            onDeleteAccountClick = viewModel::onDeleteAccountClick,
+            unverifiedEmail = uiState.unverifiedEmail,
+            verificationResent = uiState.verificationResent,
+            onResendVerification = viewModel::onResendVerificationClick,
+            onDismissVerification = viewModel::onDismissVerificationClick
         )
     }
 }
@@ -100,7 +105,11 @@ fun UserContent(
     readingGoal: Int = DEFAULT_READING_GOAL,
     onUpdateClick: () -> Unit,
     onLogoutClick: () -> Unit,
-    onDeleteAccountClick: () -> Unit = {}
+    onDeleteAccountClick: () -> Unit = {},
+    unverifiedEmail: String? = null,
+    verificationResent: Boolean = false,
+    onResendVerification: () -> Unit = {},
+    onDismissVerification: () -> Unit = {}
 ) {
     val pagePadding = AppTheme.spacing.mdSpacing
     val name = userDisplayName.asProfileText()
@@ -120,6 +129,15 @@ fun UserContent(
             onEditClick = onUpdateClick,
             modifier = Modifier.padding(horizontal = pagePadding)
         )
+        unverifiedEmail?.let { email ->
+            VerifyEmailCard(
+                email = email,
+                resent = verificationResent,
+                onResend = onResendVerification,
+                onDismiss = onDismissVerification,
+                modifier = Modifier.padding(horizontal = pagePadding)
+            )
+        }
         ReadingStampCard(
             books = books,
             goal = readingGoal,
@@ -325,6 +343,78 @@ private fun NowReading(books: List<MBook>) {
             }
         }
     }
+}
+
+/** Gentle reminder for email accounts that haven't verified their address. */
+@Composable
+private fun VerifyEmailCard(
+    email: String,
+    resent: Boolean,
+    onResend: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color.White)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        ProfileSectionTitle(text = stringResource(R.string.verify_email_card_title))
+        Text(
+            text = stringResource(R.string.verify_email_card_body, email),
+            color = Muted,
+            style = AppTheme.typography.bodyMedium
+        )
+        Row(
+            modifier = Modifier.padding(top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            if (resent) {
+                Text(
+                    text = stringResource(R.string.verify_email_resent),
+                    color = Muted,
+                    style = AppTheme.typography.labelLarge,
+                    modifier = Modifier.weight(1f)
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.verify_email_resend),
+                    color = Color.White,
+                    style = AppTheme.typography.labelLarge,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(Ink)
+                        .clickable(onClick = onResend)
+                        .padding(horizontal = 18.dp, vertical = 10.dp)
+                )
+            }
+            Text(
+                text = stringResource(R.string.verify_email_dismiss),
+                color = Muted,
+                style = AppTheme.typography.labelLarge,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable(onClick = onDismiss)
+                    .padding(horizontal = 8.dp, vertical = 10.dp)
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF7F4EF)
+@Composable
+private fun VerifyEmailCardPreview() {
+    VerifyEmailCard(
+        email = "jane@example.com",
+        resent = false,
+        onResend = {},
+        onDismiss = {},
+        modifier = Modifier.padding(24.dp)
+    )
 }
 
 @Composable

@@ -306,24 +306,29 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun register_sendsVerificationEmailAndSaysSo() = runTest {
+    fun register_sendsVerificationEmailAndShowsCheckYourEmailDialog() = runTest {
         viewModel.onSwitchScreens(LoginScreenState.SIGN_UP)
 
         viewModel.onSubmitClick()
 
         assertEquals(1, authRepository.verificationEmailsRequested)
-        assertEquals(str(R.string.verify_email_sent), mainViewModel.toastFlow.value)
+        val dialog = mainViewModel.dialogFlow.value
+        assertEquals(str(R.string.verify_email_sent_title), dialog?.title)
+        assertEquals(str(R.string.verify_email_sent_message), dialog?.message)
+
+        dialog?.onPrimaryClick?.invoke()
+        assertNull(mainViewModel.dialogFlow.value)
     }
 
     @Test
-    fun register_verificationEmailFails_noToastButStillSignsIn() = runTest {
+    fun register_verificationEmailFails_noDialogButStillSignsIn() = runTest {
         collectNavigation()
         authRepository.verificationEmailSends = false
         viewModel.onSwitchScreens(LoginScreenState.SIGN_UP)
 
         viewModel.onSubmitClick()
 
-        assertNull(mainViewModel.toastFlow.value)
+        assertNull(mainViewModel.dialogFlow.value)
         assertEquals(listOf<NavigationEvent?>(dashboard), navigationEvents)
     }
 

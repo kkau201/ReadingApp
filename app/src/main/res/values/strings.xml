@@ -32,7 +32,15 @@
     <string name="forgot_password">Forgot password?</string>
     <string name="reset_password_enter_email">Enter your email above, then tap Forgot password.</string>
     <string name="reset_password_sent">If an account exists for %1$s, we\'ve sent a link to reset the password.</string>
-    <string name="verify_email_sent">We\'ve sent you an email to verify your address.</string>
+    <string name="verify_email_sent_title">Check your email</string>
+    <string name="verify_email_sent_message">We\'ve sent a verification link to %1$s. If you don\'t see it in a few minutes, check your spam folder.</string>
+    <string name="verify_email_sent_ok">Got it</string>
+    <string name="verify_email_card_title">Verify your email</string>
+    <string name="verify_email_card_body">We sent a link to %1$s. If you can\'t find it, check your spam folder. Verifying helps you get back in if you forget your password.</string>
+    <string name="verify_email_resend">Resend email</string>
+    <string name="verify_email_resent">Sent. Check your inbox and spam folder.</string>
+    <string name="verify_email_resend_failed">Couldn\'t send the email. Please try again later.</string>
+    <string name="verify_email_dismiss">Not now</string>
 
     <string name="home_greeting">Hello, %1$s</string>
     <string name="home_title">Library</string>
