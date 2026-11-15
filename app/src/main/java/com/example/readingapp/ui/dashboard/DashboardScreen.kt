@@ -1,22 +1,41 @@
 package com.example.readingapp.ui.dashboard
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -69,37 +88,117 @@ fun DashboardScreen(
     }
 }
 
+private val NavBarHeight = 80.dp
+private val NavBarHorizontalPadding = 12.dp
+private val IndicatorHeight = 48.dp
+/** Gap between the pill and the edges of its tab slot. */
+private val IndicatorInset = 10.dp
+private val NavIconSize = 26.dp
+
+/**
+ * Dark bottom bar. A large light pill sits behind the current tab and slides to whichever tab
+ * is tapped; the current tab's icon is filled and dark, the others outlined and dimmed.
+ *
+ * Built by hand rather than with Material's NavigationBar, whose indicator is a fixed small
+ * size and fades between tabs instead of sliding.
+ */
 @Composable
 fun DashboardBottomNav(
     currentTab: DashboardTab,
     onTabClick: (DashboardTab) -> Unit
 ) {
-    NavigationBar(
-        modifier = Modifier.clip(
-            RoundedCornerShape(topStart = spacing.mdSpacing, topEnd = spacing.mdSpacing)
-        ),
-        containerColor = Ink,
+    val tabs = DashboardTab.values()
+    val selectedIndex = tabs.indexOf(currentTab)
+
+    Surface(
+        color = Ink,
+        shape = RoundedCornerShape(topStart = spacing.mdSpacing, topEnd = spacing.mdSpacing)
     ) {
-        DashboardTab.values().forEach { tab ->
-            NavigationBarItem(
-                selected = tab == currentTab,
-                icon = {
-                    Icon(
-                        imageVector = tab.icon,
-                        contentDescription = tab.label,
-                        tint = LightPink,
-                        modifier = Modifier.size(30.dp)
-                    )
-                },
-                onClick = { onTabClick(tab) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = LightPink,
-                    unselectedIconColor = LightPink,
-                    indicatorColor = Color.Transparent,
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxWidth()
+                // Keep the icons above the gesture bar; the dark background extends behind it.
+                .navigationBarsPadding()
+                .height(NavBarHeight)
+                .padding(horizontal = NavBarHorizontalPadding)
+        ) {
+            val slotWidth = maxWidth / tabs.size
+            val indicatorWidth = slotWidth - IndicatorInset * 2
+            val indicatorOffset by animateDpAsState(
+                targetValue = slotWidth * selectedIndex + IndicatorInset,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMediumLow
                 ),
+                label = "navIndicatorOffset"
             )
+
+            // The sliding pill. Offset is read in the layout phase, so animating it doesn't
+            // recompose the bar on every frame.
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .offset { IntOffset(indicatorOffset.roundToPx(), 0) }
+                    .size(width = indicatorWidth, height = IndicatorHeight)
+                    .clip(CircleShape)
+                    .background(LightPink)
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .selectableGroup()
+            ) {
+                tabs.forEachIndexed { index, tab ->
+                    DashboardNavItem(
+                        tab = tab,
+                        selected = index == selectedIndex,
+                        onClick = { onTabClick(tab) },
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                    )
+                }
+            }
         }
     }
+}
+
+@Composable
+private fun DashboardNavItem(
+    tab: DashboardTab,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val iconColor by animateColorAsState(
+        targetValue = if (selected) Ink else LightPink.copy(alpha = 0.55f),
+        label = "navIconColor"
+    )
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier.selectable(
+            selected = selected,
+            onClick = onClick,
+            role = Role.Tab,
+            interactionSource = null,
+            indication = ripple(bounded = false, radius = IndicatorHeight / 2, color = LightPink)
+        )
+    ) {
+        Icon(
+            imageVector = if (selected) tab.selectedIcon else tab.icon,
+            // No visible label, so the icon names the tab for screen readers.
+            contentDescription = stringResource(tab.label),
+            tint = iconColor,
+            modifier = Modifier.size(NavIconSize)
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF1EFEB)
+@Composable
+private fun DashboardBottomNavPreview() {
+    DashboardBottomNav(currentTab = DashboardTab.Session, onTabClick = {})
 }
 
 @Composable

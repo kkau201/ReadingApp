@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name">Reading App</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_session">Session</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_profile">Profile</string>
     <string name="login">Login</string>
     <string name="register">Register</string>
 
