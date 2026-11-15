@@ -41,6 +41,8 @@
     <string name="verify_email_resent">Sent. Check your inbox and spam folder.</string>
     <string name="verify_email_resend_failed">Couldn\'t send the email. Please try again later.</string>
     <string name="verify_email_dismiss">Not now</string>
+    <string name="verify_email_done_title">Email verified</string>
+    <string name="verify_email_done_body">Thanks! If you ever forget your password, you can reset it by email.</string>
 
     <string name="home_greeting">Hello, %1$s</string>
     <string name="home_title">Library</string>

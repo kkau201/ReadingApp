@@ -22,13 +22,27 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +72,7 @@ import com.example.readingapp.ui.components.LibraryPageTitle
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.Paper
 import com.example.readingapp.ui.theme.Cover
+import com.example.readingapp.ui.theme.Green
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
 import com.example.readingapp.ui.user.update.Avatar
@@ -90,7 +105,9 @@ fun UserScreen(
             unverifiedEmail = uiState.unverifiedEmail,
             verificationResent = uiState.verificationResent,
             onResendVerification = viewModel::onResendVerificationClick,
-            onDismissVerification = viewModel::onDismissVerificationClick
+            onDismissVerification = viewModel::onDismissVerificationClick,
+            emailJustVerified = uiState.emailJustVerified,
+            onEmailVerifiedShown = viewModel::onEmailVerifiedShown
         )
     }
 }
@@ -109,7 +126,9 @@ fun UserContent(
     unverifiedEmail: String? = null,
     verificationResent: Boolean = false,
     onResendVerification: () -> Unit = {},
-    onDismissVerification: () -> Unit = {}
+    onDismissVerification: () -> Unit = {},
+    emailJustVerified: Boolean = false,
+    onEmailVerifiedShown: () -> Unit = {}
 ) {
     val pagePadding = AppTheme.spacing.mdSpacing
     val name = userDisplayName.asProfileText()
@@ -129,15 +148,18 @@ fun UserContent(
             onEditClick = onUpdateClick,
             modifier = Modifier.padding(horizontal = pagePadding)
         )
-        unverifiedEmail?.let { email ->
-            VerifyEmailCard(
-                email = email,
-                resent = verificationResent,
-                onResend = onResendVerification,
-                onDismiss = onDismissVerification,
-                modifier = Modifier.padding(horizontal = pagePadding)
-            )
-        }
+        EmailVerificationCard(
+            card = when {
+                emailJustVerified -> VerifyCard.Verified
+                unverifiedEmail != null -> VerifyCard.Pending(unverifiedEmail)
+                else -> null
+            },
+            resent = verificationResent,
+            onResend = onResendVerification,
+            onDismiss = onDismissVerification,
+            onVerifiedShown = onEmailVerifiedShown,
+            modifier = Modifier.padding(horizontal = pagePadding)
+        )
         ReadingStampCard(
             books = books,
             goal = readingGoal,
@@ -343,6 +365,102 @@ private fun NowReading(books: List<MBook>) {
             }
         }
     }
+}
+
+private sealed interface VerifyCard {
+    data class Pending(val email: String) : VerifyCard
+    data object Verified : VerifyCard
+}
+
+/** How long the "Email verified" card stays before sliding away. */
+private const val VERIFIED_CARD_MILLIS = 4_000L
+
+/**
+ * The verify-email reminder, or the "Email verified" thanks that replaces it. Slides in and out,
+ * and cross-fades between the two. Only takes up space in the column while visible.
+ */
+@Composable
+private fun EmailVerificationCard(
+    card: VerifyCard?,
+    resent: Boolean,
+    onResend: () -> Unit,
+    onDismiss: () -> Unit,
+    onVerifiedShown: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val visible = remember { MutableTransitionState(card != null) }
+    visible.targetState = card != null
+    // Keep showing the last card while it animates out.
+    var lastCard by remember { mutableStateOf(card) }
+    if (card != null && card != lastCard) lastCard = card
+
+    if (visible.currentState || visible.targetState) {
+        AnimatedVisibility(
+            visibleState = visible,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically(),
+            modifier = modifier
+        ) {
+            AnimatedContent(
+                targetState = lastCard,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "verifyCard"
+            ) { shown ->
+                when (shown) {
+                    is VerifyCard.Pending -> VerifyEmailCard(
+                        email = shown.email,
+                        resent = resent,
+                        onResend = onResend,
+                        onDismiss = onDismiss
+                    )
+                    VerifyCard.Verified -> EmailVerifiedCard()
+                    null -> Unit
+                }
+            }
+        }
+    }
+
+    if (card == VerifyCard.Verified) {
+        LaunchedEffect(Unit) {
+            delay(VERIFIED_CARD_MILLIS)
+            onVerifiedShown()
+        }
+    }
+}
+
+/** Shown briefly once the app notices the user has verified their email. */
+@Composable
+private fun EmailVerifiedCard(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color.White)
+            .padding(20.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.CheckCircle,
+            contentDescription = null,
+            tint = Green,
+            modifier = Modifier.size(32.dp)
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            ProfileSectionTitle(text = stringResource(R.string.verify_email_done_title))
+            Text(
+                text = stringResource(R.string.verify_email_done_body),
+                color = Muted,
+                style = AppTheme.typography.bodyMedium
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF7F4EF)
+@Composable
+private fun EmailVerifiedCardPreview() {
+    EmailVerifiedCard(modifier = Modifier.padding(24.dp))
 }
 
 /** Gentle reminder for email accounts that haven't verified their address. */

@@ -10,7 +10,9 @@ import com.example.readingapp.repo.FireRepository.Companion.BOOKS_COLLECTION
 import com.example.readingapp.repo.FireRepository.Companion.SESSIONS_COLLECTION
 import com.example.readingapp.repo.FireRepository.Companion.USERS_COLLECTION
 import com.google.firebase.Firebase
+import androidx.core.content.edit
 import com.google.firebase.FirebaseException
+import com.google.firebase.auth.ActionCodeSettings
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.GoogleAuthProvider
@@ -31,6 +33,15 @@ data class AuthUser(
 /** How the signed-in user proves who they are again before a sensitive operation. */
 enum class ReauthMethod { GOOGLE, PASSWORD }
 
+enum class EmailVerificationStatus {
+    /** Verified long ago, or a Google account: nothing to show. */
+    NOT_NEEDED,
+    /** Email/password account whose address isn't verified yet. */
+    PENDING,
+    /** Was pending on this device and is now verified: say thanks, once. */
+    JUST_VERIFIED
+}
+
 /**
  * Firebase Auth plus the matching Firestore user record. Failures from Firebase are thrown as
  * [AuthException] so callers can show a clear message without depending on Firebase.
@@ -48,11 +59,11 @@ interface AuthRepository {
     suspend fun sendEmailVerification(): Boolean
 
     /**
-     * True for an email/password account whose address isn't verified yet. Refreshes the status
-     * from Firebase first, so a link the user just clicked in the email is picked up.
-     * Google accounts are always verified.
+     * Whether the signed-in user still needs to verify their email, or has just done so.
+     * Refreshes the status from Firebase first, so a link the user just clicked is picked up.
+     * [EmailVerificationStatus.JUST_VERIFIED] is returned only once per verification.
      */
-    suspend fun needsEmailVerification(): Boolean
+    suspend fun checkEmailVerification(): EmailVerificationStatus
 
     /** Firebase doesn't reveal whether the account exists, so this succeeds either way. */
     suspend fun sendPasswordResetEmail(email: String)
@@ -122,7 +133,13 @@ class FirebaseAuthRepository @Inject constructor(
     override suspend fun sendEmailVerification(): Boolean {
         val user = Firebase.auth.currentUser ?: return false
         return try {
-            user.sendEmailVerification().await()
+            // The "verified" web page gets a Continue button that opens the app (via App Link).
+            val settings = ActionCodeSettings.newBuilder()
+                .setUrl(VERIFIED_CONTINUE_URL)
+                .setHandleCodeInApp(false)
+                .build()
+            user.sendEmailVerification(settings).await()
+            markAwaitingVerification(user.uid, true)
             true
         } catch (e: CancellationException) {
             throw e
@@ -132,8 +149,8 @@ class FirebaseAuthRepository @Inject constructor(
         }
     }
 
-    override suspend fun needsEmailVerification(): Boolean {
-        val user = Firebase.auth.currentUser ?: return false
+    override suspend fun checkEmailVerification(): EmailVerificationStatus {
+        val user = Firebase.auth.currentUser ?: return EmailVerificationStatus.NOT_NEEDED
         try {
             user.reload().await()
         } catch (e: CancellationException) {
@@ -142,10 +159,36 @@ class FirebaseAuthRepository @Inject constructor(
             // Offline etc.: fall back to the last known status.
             Log.d(TAG, "Couldn't refresh the user: $e")
         }
-        val refreshed = Firebase.auth.currentUser ?: return false
-        val usesPassword = refreshed.providerData.any { it.providerId == EmailAuthProvider.PROVIDER_ID }
-        return usesPassword && !refreshed.isEmailVerified
+        val refreshed = Firebase.auth.currentUser ?: return EmailVerificationStatus.NOT_NEEDED
+        val usesPassword =
+            refreshed.providerData.any { it.providerId == EmailAuthProvider.PROVIDER_ID }
+        return when {
+            !usesPassword -> EmailVerificationStatus.NOT_NEEDED
+            !refreshed.isEmailVerified -> {
+                markAwaitingVerification(refreshed.uid, true)
+                EmailVerificationStatus.PENDING
+            }
+            isAwaitingVerification(refreshed.uid) -> {
+                markAwaitingVerification(refreshed.uid, false)
+                EmailVerificationStatus.JUST_VERIFIED
+            }
+            else -> EmailVerificationStatus.NOT_NEEDED
+        }
     }
+
+    // Remembered on the device so "just verified" can be shown even if the app was closed
+    // while the user tapped the link.
+    private val prefs get() = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    private fun isAwaitingVerification(uid: String) = prefs.getBoolean(awaitingKey(uid), false)
+
+    private fun markAwaitingVerification(uid: String, awaiting: Boolean) {
+        prefs.edit {
+            if (awaiting) putBoolean(awaitingKey(uid), true) else remove(awaitingKey(uid))
+        }
+    }
+
+    private fun awaitingKey(uid: String) = "awaiting_email_verification_$uid"
 
     override suspend fun sendPasswordResetEmail(email: String) = mapErrors {
         Firebase.auth.sendPasswordResetEmail(email).await()
@@ -188,6 +231,7 @@ class FirebaseAuthRepository @Inject constructor(
         }
 
         user.delete().await()
+        markAwaitingVerification(user.uid, false)
         clearCredentialState()
     }
 
@@ -227,6 +271,14 @@ class FirebaseAuthRepository @Inject constructor(
 
     private companion object {
         const val TAG = "AuthRepository"
+        const val PREFS_NAME = "auth"
+
+        /**
+         * Where the "Continue" button on Firebase's verified page goes. On Firebase Hosting
+         * (free web.app address, already an authorized domain); AndroidManifest.xml opens it
+         * in the app via an App Link, and hosting/public/verified is the fallback web page.
+         */
+        const val VERIFIED_CONTINUE_URL = "https://readingapp-7bf89.web.app/verified"
 
         /** Firestore's limit on writes per batch. */
         const val MAX_BATCH_WRITES = 500

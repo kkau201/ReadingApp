@@ -15,7 +15,7 @@ class FakeAuthRepository : AuthRepository {
     var createDocumentError: Exception? = null
 
     var verificationEmailSends = true
-    var emailUnverified = false
+    var verificationStatus = EmailVerificationStatus.NOT_NEEDED
     var passwordResetError: Exception? = null
     var reauthMethod = ReauthMethod.GOOGLE
     var reauthError: Exception? = null
@@ -53,7 +53,7 @@ class FakeAuthRepository : AuthRepository {
         return verificationEmailSends
     }
 
-    override suspend fun needsEmailVerification(): Boolean = emailUnverified
+    override suspend fun checkEmailVerification(): EmailVerificationStatus = verificationStatus
 
     override suspend fun sendPasswordResetEmail(email: String) {
         passwordResetEmails += email

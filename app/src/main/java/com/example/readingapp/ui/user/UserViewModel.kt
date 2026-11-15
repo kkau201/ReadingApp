@@ -9,6 +9,7 @@ import com.example.readingapp.R
 import com.example.readingapp.auth.AuthException
 import com.example.readingapp.auth.AuthFailure
 import com.example.readingapp.auth.AuthRepository
+import com.example.readingapp.auth.EmailVerificationStatus
 import com.example.readingapp.auth.GoogleIdTokenProvider
 import com.example.readingapp.auth.NoActivityException
 import com.example.readingapp.auth.ReauthMethod
@@ -84,11 +85,24 @@ class UserViewModel @Inject constructor(
     private fun checkEmailVerification() {
         viewModelScope.launch {
             val email = authRepository.currentUser?.email
-            val show = !verifyReminderDismissed &&
-                email != null &&
-                authRepository.needsEmailVerification()
-            uiState.update { it.copy(unverifiedEmail = if (show) email else null) }
+            when (authRepository.checkEmailVerification()) {
+                EmailVerificationStatus.PENDING -> uiState.update {
+                    it.copy(unverifiedEmail = email.takeUnless { verifyReminderDismissed })
+                }
+                // Shown even if "Not now" was tapped: it's good news, and shown only once.
+                EmailVerificationStatus.JUST_VERIFIED -> uiState.update {
+                    it.copy(unverifiedEmail = null, emailJustVerified = true)
+                }
+                EmailVerificationStatus.NOT_NEEDED -> uiState.update {
+                    it.copy(unverifiedEmail = null)
+                }
+            }
         }
+    }
+
+    /** The "Email verified" card has been on screen long enough; let it go. */
+    fun onEmailVerifiedShown() {
+        uiState.update { it.copy(emailJustVerified = false) }
     }
 
     fun onResendVerificationClick() {

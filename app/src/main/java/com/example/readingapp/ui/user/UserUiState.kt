@@ -9,5 +9,7 @@ data class UserUiState(
     /** Set while the "Verify your email" card should show; it's the address the link went to. */
     val unverifiedEmail: String? = null,
     /** True once a verification email has been resent from the card, to avoid repeat sends. */
-    val verificationResent: Boolean = false
+    val verificationResent: Boolean = false,
+    /** True briefly after the app notices the email was just verified, to say thanks. */
+    val emailJustVerified: Boolean = false
 )

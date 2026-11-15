@@ -16,3 +16,4 @@ buildSrc/build/
 local.properties
 secrets.properties
 .idea
+.firebase/

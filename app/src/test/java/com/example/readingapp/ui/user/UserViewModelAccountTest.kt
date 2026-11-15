@@ -7,6 +7,7 @@ import com.example.readingapp.R
 import com.example.readingapp.auth.AuthException
 import com.example.readingapp.auth.AuthFailure
 import com.example.readingapp.auth.AuthUser
+import com.example.readingapp.auth.EmailVerificationStatus
 import com.example.readingapp.auth.FakeAuthRepository
 import com.example.readingapp.auth.FakeGoogleIdTokenProvider
 import com.example.readingapp.auth.ReauthMethod
@@ -28,6 +29,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -110,38 +112,57 @@ class UserViewModelAccountTest {
 
     @Test
     fun unverifiedEmailAccount_showsReminderWithTheirAddress() = runTest {
-        authRepository.emailUnverified = true
+        authRepository.verificationStatus = EmailVerificationStatus.PENDING
 
         viewModel.loadUser()
 
         assertEquals("jane@example.com", viewModel.uiState.value.unverifiedEmail)
+        assertFalse(viewModel.uiState.value.emailJustVerified)
     }
 
     @Test
-    fun verifiedAccount_noReminder() = runTest {
-        authRepository.emailUnverified = false
+    fun verifiedAccount_noReminderAndNoThanks() = runTest {
+        authRepository.verificationStatus = EmailVerificationStatus.NOT_NEEDED
 
         viewModel.loadUser()
 
         assertNull(viewModel.uiState.value.unverifiedEmail)
+        assertFalse(viewModel.uiState.value.emailJustVerified)
     }
 
     @Test
-    fun verifyingThenReturning_hidesReminder() = runTest {
-        authRepository.emailUnverified = true
+    fun verifyingThenReturning_swapsReminderForThanksThenClears() = runTest {
+        authRepository.verificationStatus = EmailVerificationStatus.PENDING
         viewModel.loadUser()
         assertNotNull(viewModel.uiState.value.unverifiedEmail)
 
         // User taps the link in the email, then comes back to the app (screen resumes).
-        authRepository.emailUnverified = false
+        authRepository.verificationStatus = EmailVerificationStatus.JUST_VERIFIED
         viewModel.loadUser()
 
         assertNull(viewModel.uiState.value.unverifiedEmail)
+        assertTrue(viewModel.uiState.value.emailJustVerified)
+
+        // After the card has shown for a moment.
+        viewModel.onEmailVerifiedShown()
+        assertFalse(viewModel.uiState.value.emailJustVerified)
+    }
+
+    @Test
+    fun justVerified_thanksShownEvenAfterNotNow() = runTest {
+        authRepository.verificationStatus = EmailVerificationStatus.PENDING
+        viewModel.loadUser()
+        viewModel.onDismissVerificationClick()
+
+        authRepository.verificationStatus = EmailVerificationStatus.JUST_VERIFIED
+        viewModel.loadUser()
+
+        assertTrue(viewModel.uiState.value.emailJustVerified)
     }
 
     @Test
     fun resend_sendsOnceAndConfirms() = runTest {
-        authRepository.emailUnverified = true
+        authRepository.verificationStatus = EmailVerificationStatus.PENDING
         viewModel.loadUser()
 
         viewModel.onResendVerificationClick()
@@ -154,7 +175,7 @@ class UserViewModelAccountTest {
 
     @Test
     fun resend_fails_saysSoAndAllowsRetry() = runTest {
-        authRepository.emailUnverified = true
+        authRepository.verificationStatus = EmailVerificationStatus.PENDING
         authRepository.verificationEmailSends = false
         viewModel.loadUser()
 
@@ -166,7 +187,7 @@ class UserViewModelAccountTest {
 
     @Test
     fun notNow_hidesReminderEvenWhenScreenReloads() = runTest {
-        authRepository.emailUnverified = true
+        authRepository.verificationStatus = EmailVerificationStatus.PENDING
         viewModel.loadUser()
 
         viewModel.onDismissVerificationClick()

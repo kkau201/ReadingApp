@@ -16,14 +16,30 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ReadingApp"
         tools:targetApi="37">
+        <!-- singleTask: opening the app from a link brings back the existing screen
+             (e.g. Profile) instead of starting a second copy of the app. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.ReadingApp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- "Continue" on Firebase's email-verified page opens the app (App Link).
+                 Verified by hosting/public/.well-known/assetlinks.json. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="readingapp-7bf89.web.app"
+                    android:pathPrefix="/verified" />
             </intent-filter>
         </activity>
     </application>
