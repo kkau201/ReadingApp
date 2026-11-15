@@ -73,7 +73,8 @@ class UserViewModel @Inject constructor(
                     FirebaseAuth.getInstance().signOut()
                     fireRepository.clearUserData()
                     dismissDialog()
-                    navigate(NavigateTo(LoginScreenDestination))
+                    // Drop every signed-in screen so Back can't return to them.
+                    navigate(NavigateTo(LoginScreenDestination, clearBackStack = true))
                 },
                 secondaryButtonText = getString(R.string.logout_no),
                 onSecondaryClick = { dismissDialog() }

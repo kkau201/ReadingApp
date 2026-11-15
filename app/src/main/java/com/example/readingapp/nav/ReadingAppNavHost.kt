@@ -55,9 +55,15 @@ sealed interface NavigationEvent
 
 data object NavigateBack : NavigationEvent
 
+/**
+ * @param popCurrent remove the current screen before navigating.
+ * @param clearBackStack remove every screen before navigating, so [to] becomes the only entry
+ *   and Back exits the app (e.g. after logout).
+ */
 data class NavigateTo(
     val to: Direction,
-    val popCurrent: Boolean = false
+    val popCurrent: Boolean = false,
+    val clearBackStack: Boolean = false
 ) : NavigationEvent
 
 data class PopTo(

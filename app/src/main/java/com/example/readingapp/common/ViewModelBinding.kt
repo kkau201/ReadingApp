@@ -7,6 +7,7 @@ import com.example.readingapp.mainActivity
 import com.example.readingapp.nav.NavigateBack
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.nav.PopTo
+import com.example.readingapp.ui.NavGraphs
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.spec.Direction
 
@@ -24,8 +25,15 @@ fun ViewModelBinding(
                 if (navEvent != null) {
                     when (navEvent) {
                         is NavigateTo -> {
-                            if (navEvent.popCurrent) navigator.popBackStack()
-                            navigator.navigate(navEvent.to)
+                            if (navEvent.clearBackStack) {
+                                navigator.navigate(navEvent.to) {
+                                    popUpTo(NavGraphs.root) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            } else {
+                                if (navEvent.popCurrent) navigator.popBackStack()
+                                navigator.navigate(navEvent.to)
+                            }
                         }
 
                         is NavigateBack -> {
