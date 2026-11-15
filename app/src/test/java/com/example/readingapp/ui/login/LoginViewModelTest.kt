@@ -3,6 +3,7 @@ package com.example.readingapp.ui.login
 import android.content.Context
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.NoCredentialException
+import androidx.lifecycle.viewModelScope
 import com.example.readingapp.MainViewModel
 import com.example.readingapp.R
 import com.example.readingapp.auth.AuthUser
@@ -28,7 +29,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import androidx.lifecycle.viewModelScope
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -92,7 +92,8 @@ class LoginViewModelTest {
 
     @Test
     fun googleSignIn_noGoogleName_usesEmailPrefixAsDisplayName() = runTest {
-        authRepository.signedInUser = AuthUser(uid = "uid-2", displayName = " ", email = "bookworm@gmail.com")
+        authRepository.signedInUser =
+            AuthUser(uid = "uid-2", displayName = " ", email = "bookworm@gmail.com")
 
         viewModel.onGoogleSignInClick()
 
@@ -180,11 +181,15 @@ class LoginViewModelTest {
     @Test
     fun googleSignIn_firebaseFailure_showsFirebaseMessageAndStaysOnLogin() = runTest {
         collectNavigation()
-        authRepository.signInError = IllegalStateException("The supplied auth credential is malformed")
+        authRepository.signInError =
+            IllegalStateException("The supplied auth credential is malformed")
 
         viewModel.onGoogleSignInClick()
 
-        assertEquals("The supplied auth credential is malformed", viewModel.uiState.value.errorMessage)
+        assertEquals(
+            "The supplied auth credential is malformed",
+            viewModel.uiState.value.errorMessage
+        )
         assertTrue(navigationEvents.isEmpty())
         assertTrue(authRepository.createdUserDocuments.isEmpty())
         assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
@@ -209,6 +214,7 @@ class LoginViewModelTest {
     @Test
     fun emailLogin_success_signsInWithFormValuesAndNavigates() = runTest {
         collectNavigation()
+        authRepository.existingUserDocuments += "uid-1"
         viewModel.onEmailChange("reader@example.com")
         viewModel.onPasswordChange("secret")
 
@@ -218,6 +224,43 @@ class LoginViewModelTest {
         assertTrue(authRepository.createdUserDocuments.isEmpty())
         assertEquals(listOf<NavigationEvent?>(dashboard), navigationEvents)
         assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+    }
+
+    @Test
+    fun emailLogin_missingUserDocument_createsItBeforeNavigating() = runTest {
+        // e.g. sign-up created the account but the profile write failed
+        collectNavigation()
+        authRepository.signedInUser =
+            AuthUser(uid = "uid-4", displayName = null, email = "lost.reader@example.com")
+
+        viewModel.onSubmitClick()
+
+        assertEquals(listOf("uid-4" to "lost.reader"), authRepository.createdUserDocuments)
+        assertEquals(listOf<NavigationEvent?>(dashboard), navigationEvents)
+    }
+
+    @Test
+    fun register_profileWriteFails_showsErrorAndNextLoginRepairsIt() = runTest {
+        collectNavigation()
+        authRepository.signedInUser =
+            AuthUser(uid = "uid-5", displayName = null, email = "new.reader@example.com")
+        authRepository.createDocumentError = IllegalStateException("Network error")
+        viewModel.onSwitchScreens(LoginScreenState.SIGN_UP)
+
+        viewModel.onSubmitClick()
+
+        // Account exists, but no profile: stay on the screen and say so.
+        assertEquals("Network error", viewModel.uiState.value.errorMessage)
+        assertTrue(navigationEvents.isEmpty())
+        assertTrue(authRepository.createdUserDocuments.isEmpty())
+
+        // Later the user logs in with the same account and the profile gets created.
+        authRepository.createDocumentError = null
+        viewModel.onSwitchScreens(LoginScreenState.LOGIN)
+        viewModel.onSubmitClick()
+
+        assertEquals(listOf("uid-5" to "new.reader"), authRepository.createdUserDocuments)
+        assertEquals(listOf<NavigationEvent?>(dashboard), navigationEvents)
     }
 
     @Test
@@ -235,14 +278,18 @@ class LoginViewModelTest {
     @Test
     fun register_success_createsUserDocumentFromEmailAndNavigates() = runTest {
         collectNavigation()
-        authRepository.signedInUser = AuthUser(uid = "uid-3", displayName = null, email = "new.reader@example.com")
+        authRepository.signedInUser =
+            AuthUser(uid = "uid-3", displayName = null, email = "new.reader@example.com")
         viewModel.onSwitchScreens(LoginScreenState.SIGN_UP)
         viewModel.onEmailChange("new.reader@example.com")
         viewModel.onPasswordChange("secret1")
 
         viewModel.onSubmitClick()
 
-        assertEquals(listOf("new.reader@example.com" to "secret1"), authRepository.emailRegistrations)
+        assertEquals(
+            listOf("new.reader@example.com" to "secret1"),
+            authRepository.emailRegistrations
+        )
         assertEquals(listOf("uid-3" to "new.reader"), authRepository.createdUserDocuments)
         assertEquals(listOf<NavigationEvent?>(dashboard), navigationEvents)
     }
@@ -276,7 +323,10 @@ class LoginViewModelTest {
 
         viewModel.onSubmitClick()
 
-        assertEquals(listOf("new.reader@example.com" to "secret1"), authRepository.emailRegistrations)
+        assertEquals(
+            listOf("new.reader@example.com" to "secret1"),
+            authRepository.emailRegistrations
+        )
     }
 
     // endregion
@@ -333,7 +383,10 @@ class LoginViewModelTest {
 
         viewModel.onSwitchScreens(LoginScreenState.SIGN_UP)
 
-        assertEquals(LoginUiState(loginScreenState = LoginScreenState.SIGN_UP), viewModel.uiState.value)
+        assertEquals(
+            LoginUiState(loginScreenState = LoginScreenState.SIGN_UP),
+            viewModel.uiState.value
+        )
     }
 
     // endregion

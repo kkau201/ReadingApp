@@ -1,12 +1,13 @@
 package com.example.readingapp.ui.login
 
 import android.util.Log
-import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.core.util.PatternsCompat
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.R
 import com.example.readingapp.auth.AuthRepository
+import com.example.readingapp.auth.AuthUser
 import com.example.readingapp.auth.GoogleIdTokenProvider
 import com.example.readingapp.auth.NoActivityException
 import com.example.readingapp.common.BaseViewModel
@@ -70,23 +71,34 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun onRegisterClick() = launchSignIn("Register") {
-        val user = authRepository.registerWithEmail(uiState.value.email.trim(), uiState.value.password)
-        authRepository.createUserDocument(user.uid, defaultDisplayName(null, user.email))
+        authRepository.registerWithEmail(uiState.value.email.trim(), uiState.value.password)
     }
 
     fun onGoogleSignInClick() = launchSignIn("Google sign-in") {
         val idToken = googleIdTokenProvider.requestIdToken()
-        val user = authRepository.signInWithGoogle(idToken)
+        authRepository.signInWithGoogle(idToken)
+    }
+
+    /**
+     * Creates the user's profile document if it's missing. Runs after every sign-in, because
+     * creating the Auth account and writing the profile aren't atomic: if the write failed during
+     * sign-up (or an older build never wrote one), the next sign-in repairs it.
+     */
+    private suspend fun ensureUserDocument(user: AuthUser) {
         if (!authRepository.userDocumentExists(user.uid)) {
-            authRepository.createUserDocument(user.uid, defaultDisplayName(user.displayName, user.email))
+            authRepository.createUserDocument(
+                user.uid,
+                defaultDisplayName(user.displayName, user.email)
+            )
         }
     }
 
     /**
-     * Runs a sign-in [action] with the shared loading/error handling, then opens the Dashboard.
+     * Runs a sign-in [action] with the shared loading/error handling, makes sure the signed-in
+     * user has a profile document, then opens the Dashboard.
      * Ignored while another sign-in is already loading.
      */
-    private fun launchSignIn(name: String, action: suspend () -> Unit) {
+    private fun launchSignIn(name: String, action: suspend () -> AuthUser) {
         Log.d(TAG, "$name clicked")
         _uiState.update { it.copy(errorMessage = null) }
         if (getLoadingState().value is LoadingState.Loading) return
@@ -94,7 +106,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             updateLoadingState(LoadingState.Loading())
             try {
-                action()
+                ensureUserDocument(action())
                 navigate(NavigateTo(to = DashboardScreenDestination, popCurrent = true))
             } catch (e: GetCredentialCancellationException) {
                 // User dismissed the Google account picker: not an error.

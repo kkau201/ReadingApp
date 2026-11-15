@@ -1,10 +1,14 @@
 package com.example.readingapp.auth
 
 class FakeAuthRepository : AuthRepository {
-    var signedInUser = AuthUser(uid = "uid-1", displayName = "Jane Austen", email = "jane@example.com")
+    var signedInUser =
+        AuthUser(uid = "uid-1", displayName = "Jane Austen", email = "jane@example.com")
 
     /** Thrown by every sign-in / register call when set. */
     var signInError: Exception? = null
+
+    /** Thrown by [createUserDocument] when set (e.g. a network or rules failure). */
+    var createDocumentError: Exception? = null
 
     val existingUserDocuments = mutableSetOf<String>()
     val createdUserDocuments = mutableListOf<Pair<String, String>>()
@@ -30,6 +34,7 @@ class FakeAuthRepository : AuthRepository {
     override suspend fun userDocumentExists(uid: String): Boolean = uid in existingUserDocuments
 
     override suspend fun createUserDocument(uid: String, displayName: String) {
+        createDocumentError?.let { throw it }
         createdUserDocuments += uid to displayName
         existingUserDocuments += uid
     }
