@@ -4,11 +4,11 @@ import com.example.readingapp.model.DISPLAY_NAME
 import com.example.readingapp.model.USER_ID
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.QuerySnapshot
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -17,31 +17,62 @@ import org.junit.Test
 
 class FireRepositoryTest {
 
-    private val userDocument = mockk<DocumentSnapshot>(relaxed = true).also { doc ->
-        every { doc.id } returns "doc-1"
-        every { doc.get(USER_ID) } returns "uid-1"
-        every { doc.get(DISPLAY_NAME) } returns "Jane Austen"
-        every { doc.contains(any<String>()) } returns false
-    }
-    private val queryUser = mockk<Query> {
-        every { get() } returns Tasks.forResult(
-            mockk<QuerySnapshot> { every { documents } returns listOf(userDocument) }
-        )
-    }
+    private val users = mockk<CollectionReference>()
+    private val userRef = mockk<DocumentReference>()
     private val repository = FireRepository(
         queryBook = mockk(relaxed = true),
-        queryUser = queryUser,
-        querySession = mockk<CollectionReference>(relaxed = true)
+        queryUser = users,
+        querySession = mockk(relaxed = true)
     )
+
+    init {
+        every { users.document(UID) } returns userRef
+    }
+
+    @Test
+    fun fetchUser_readsDocumentKeyedByUid() = runTest {
+        every { userRef.get() } returns Tasks.forResult(userSnapshot("Jane Austen"))
+
+        repository.fetchUser(UID)
+
+        assertEquals("Jane Austen", repository.user.value?.displayName)
+        // Never scans the whole collection.
+        verify(exactly = 0) { users.get() }
+    }
+
+    @Test
+    fun fetchUser_noDocument_returnsNull() = runTest {
+        every { userRef.get() } returns Tasks.forResult(missingSnapshot())
+
+        repository.fetchUser(UID)
+
+        assertNull(repository.user.value)
+    }
 
     @Test
     fun clearUserData_removesCachedUserAndBooks() = runTest {
-        repository.fetchUser("uid-1")
-        assertEquals("Jane Austen", repository.user.value?.displayName)
+        every { userRef.get() } returns Tasks.forResult(userSnapshot("Jane Austen"))
+        repository.fetchUser(UID)
 
         repository.clearUserData()
 
         assertNull(repository.user.value)
         assertTrue(repository.savedBooks.value.isEmpty())
+    }
+
+    private fun userSnapshot(displayName: String) =
+        mockk<DocumentSnapshot>(relaxed = true).also { doc ->
+            every { doc.exists() } returns true
+            every { doc.id } returns UID
+            every { doc.get(USER_ID) } returns UID
+            every { doc.get(DISPLAY_NAME) } returns displayName
+            every { doc.contains(any<String>()) } returns false
+        }
+
+    private fun missingSnapshot() =
+        mockk<DocumentSnapshot>().also { doc -> every { doc.exists() } returns false }
+
+    private companion object {
+        const val UID = "uid-1"
     }
 }

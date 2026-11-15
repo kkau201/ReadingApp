@@ -24,12 +24,11 @@ import javax.inject.Inject
 
 class FireRepository @Inject constructor(
     private val queryBook: Query,
-    private val queryUser: Query,
+    private val queryUser: CollectionReference,
     private val querySession: CollectionReference,
 ) {
 
     companion object {
-        const val USER_ID = "user_id"
         const val USERS_COLLECTION = "users"
         const val BOOKS_COLLECTION = "books"
         const val SESSIONS_COLLECTION = "sessions"
@@ -127,8 +126,10 @@ class FireRepository @Inject constructor(
         val dataOrException = DataOrException<MUser?, Boolean, Exception>()
         try {
             dataOrException.loading = true
-            val userDocument = queryUser.get().await().documents
-                .find { it.get(USER_ID)?.equals(currentUserId) == true }
+            // User documents are keyed by the Firebase Auth uid: users/{uid}.
+            val userDocument = currentUserId
+                ?.let { queryUser.document(it).get().await() }
+                ?.takeIf { it.exists() }
             userDocument?.let { document ->
                 val unused = listOf("profession", "profile_color").filter { document.contains(it) }
                 if (unused.isNotEmpty()) {

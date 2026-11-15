@@ -1,12 +1,12 @@
 package com.example.readingapp.auth
 
 import com.example.readingapp.model.MUser
-import com.example.readingapp.model.USER_ID
 import com.example.readingapp.repo.FireRepository.Companion.USERS_COLLECTION
 import com.google.firebase.Firebase
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -27,6 +27,9 @@ interface AuthRepository {
 }
 
 class FirebaseAuthRepository @Inject constructor() : AuthRepository {
+
+    private fun users(): CollectionReference =
+        FirebaseFirestore.getInstance().collection(USERS_COLLECTION)
 
     override suspend fun signInWithEmail(email: String, password: String): AuthUser {
         return Firebase.auth.signInWithEmailAndPassword(email, password).await().toAuthUser()
@@ -49,16 +52,11 @@ class FirebaseAuthRepository @Inject constructor() : AuthRepository {
     }
 
     override suspend fun userDocumentExists(uid: String): Boolean {
-        return !FirebaseFirestore.getInstance().collection(USERS_COLLECTION)
-            .whereEqualTo(USER_ID, uid)
-            .limit(1)
-            .get()
-            .await()
-            .isEmpty
+        return users().document(uid).get().await().exists()
     }
 
     override suspend fun createUserDocument(uid: String, displayName: String) {
         val user = MUser(userId = uid, displayName = displayName).toMap()
-        FirebaseFirestore.getInstance().collection(USERS_COLLECTION).add(user).await()
+        users().document(uid).set(user).await()
     }
 }
