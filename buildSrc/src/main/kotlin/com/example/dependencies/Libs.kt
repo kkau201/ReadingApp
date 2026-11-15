@@ -45,6 +45,11 @@ object Libs {
         const val GoogleId = "com.google.android.libraries.identity.googleid:googleid:1.2.1"
     }
 
+    object Testing {
+        const val CoroutinesTest = "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0"
+        const val Mockk = "io.mockk:mockk:1.14.12"
+    }
+
     object Misc {
         const val Coil = "io.coil-kt:coil-compose:2.7.0"
         const val Retrofit = "com.squareup.retrofit2:retrofit:3.0.0"

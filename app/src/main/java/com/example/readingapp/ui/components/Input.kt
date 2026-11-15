@@ -44,7 +44,9 @@ fun EmailInput(
         onValueChange = onEmailChange,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
-        enabled = loading == LoadingState.Idle,
+        // Only lock the field while a request is in flight. The loading state is shared across
+        // screens, so it may still be Success/Failed from the previous screen (e.g. after logout).
+        enabled = loading !is LoadingState.Loading,
         modifier = modifier
     )
 }
@@ -66,7 +68,9 @@ fun PasswordInput(
         onValueChange = onPasswordChange,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
-        enabled = loading == LoadingState.Idle,
+        // Only lock the field while a request is in flight. The loading state is shared across
+        // screens, so it may still be Success/Failed from the previous screen (e.g. after logout).
+        enabled = loading !is LoadingState.Loading,
         visualTransformation = if (passwordVisible) {
             VisualTransformation.None
         } else {

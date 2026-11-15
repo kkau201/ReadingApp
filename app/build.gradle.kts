@@ -41,6 +41,10 @@ android {
         compose = true
         buildConfig = true
     }
+    testOptions {
+        // Lets local unit tests call android.util.Log etc. without crashing.
+        unitTests.isReturnDefaultValues = true
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -73,6 +77,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     testImplementation("junit:junit:4.13.2")
+    testImplementation(Libs.Testing.CoroutinesTest)
+    testImplementation(Libs.Testing.Mockk)
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     androidTestImplementation(platform("androidx.compose:compose-bom:2026.09.00"))
