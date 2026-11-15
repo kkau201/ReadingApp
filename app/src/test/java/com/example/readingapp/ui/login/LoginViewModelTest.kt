@@ -6,6 +6,8 @@ import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.MainViewModel
 import com.example.readingapp.R
+import com.example.readingapp.auth.AuthException
+import com.example.readingapp.auth.AuthFailure
 import com.example.readingapp.auth.AuthUser
 import com.example.readingapp.auth.FakeAuthRepository
 import com.example.readingapp.auth.FakeGoogleIdTokenProvider
@@ -39,9 +41,10 @@ class LoginViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val context = mockk<Context> {
-        every { getString(R.string.google_sign_in_failed) } returns SIGN_IN_FAILED
-        every { getString(R.string.sign_in_failed) } returns GENERIC_FAILURE
+    /** Every string resource resolves to "res:<id>", so tests can assert which one was shown. */
+    private val context = mockk<Context>().also { context ->
+        every { context.getString(any()) } answers { str(firstArg()) }
+        every { context.getString(any(), *anyVararg()) } answers { str(firstArg()) }
     }
     private val tokenProvider = FakeGoogleIdTokenProvider()
     private val authRepository = FakeAuthRepository()
@@ -151,45 +154,41 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun googleSignIn_errorWithoutMessage_showsGenericFailure() = runTest {
-        authRepository.signInError = IllegalStateException()
+    fun googleSignIn_unexpectedError_showsGenericMessageNotRawText() = runTest {
+        authRepository.signInError = IllegalStateException("internal details")
 
         viewModel.onGoogleSignInClick()
 
-        assertEquals(GENERIC_FAILURE, viewModel.uiState.value.errorMessage)
+        assertEquals(str(R.string.sign_in_failed), viewModel.uiState.value.errorMessage)
     }
 
     @Test
-    fun googleSignIn_noActivity_showsGenericError() = runTest {
+    fun googleSignIn_noActivity_showsGoogleError() = runTest {
         tokenProvider.onRequest = { throw NoActivityException() }
 
         viewModel.onGoogleSignInClick()
 
-        assertEquals(SIGN_IN_FAILED, viewModel.uiState.value.errorMessage)
+        assertEquals(str(R.string.google_sign_in_failed), viewModel.uiState.value.errorMessage)
     }
 
     @Test
-    fun googleSignIn_credentialError_showsGenericError() = runTest {
+    fun googleSignIn_credentialError_showsGoogleError() = runTest {
         tokenProvider.onRequest = { throw NoCredentialException("no accounts") }
 
         viewModel.onGoogleSignInClick()
 
-        assertEquals(SIGN_IN_FAILED, viewModel.uiState.value.errorMessage)
+        assertEquals(str(R.string.google_sign_in_failed), viewModel.uiState.value.errorMessage)
         assertTrue(authRepository.receivedIdTokens.isEmpty())
     }
 
     @Test
-    fun googleSignIn_firebaseFailure_showsFirebaseMessageAndStaysOnLogin() = runTest {
+    fun googleSignIn_emailHasPasswordAccount_tellsUserToLogInWithPassword() = runTest {
         collectNavigation()
-        authRepository.signInError =
-            IllegalStateException("The supplied auth credential is malformed")
+        authRepository.signInError = AuthException(AuthFailure.ACCOUNT_EXISTS_WITH_DIFFERENT_SIGN_IN)
 
         viewModel.onGoogleSignInClick()
 
-        assertEquals(
-            "The supplied auth credential is malformed",
-            viewModel.uiState.value.errorMessage
-        )
+        assertEquals(str(R.string.auth_error_use_password), viewModel.uiState.value.errorMessage)
         assertTrue(navigationEvents.isEmpty())
         assertTrue(authRepository.createdUserDocuments.isEmpty())
         assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
@@ -199,7 +198,7 @@ class LoginViewModelTest {
     fun googleSignIn_clearsPreviousError() = runTest {
         tokenProvider.onRequest = { throw NoCredentialException() }
         viewModel.onGoogleSignInClick()
-        assertEquals(SIGN_IN_FAILED, viewModel.uiState.value.errorMessage)
+        assertEquals(str(R.string.google_sign_in_failed), viewModel.uiState.value.errorMessage)
 
         tokenProvider.onRequest = { "fake-id-token" }
         viewModel.onGoogleSignInClick()
@@ -244,13 +243,13 @@ class LoginViewModelTest {
         collectNavigation()
         authRepository.signedInUser =
             AuthUser(uid = "uid-5", displayName = null, email = "new.reader@example.com")
-        authRepository.createDocumentError = IllegalStateException("Network error")
+        authRepository.createDocumentError = IllegalStateException("Firestore write failed")
         viewModel.onSwitchScreens(LoginScreenState.SIGN_UP)
 
         viewModel.onSubmitClick()
 
         // Account exists, but no profile: stay on the screen and say so.
-        assertEquals("Network error", viewModel.uiState.value.errorMessage)
+        assertEquals(str(R.string.sign_in_failed), viewModel.uiState.value.errorMessage)
         assertTrue(navigationEvents.isEmpty())
         assertTrue(authRepository.createdUserDocuments.isEmpty())
 
@@ -264,15 +263,27 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun emailLogin_failure_showsMessageAndStaysOnLogin() = runTest {
+    fun emailLogin_wrongPassword_showsFriendlyMessageAndStaysOnLogin() = runTest {
         collectNavigation()
-        authRepository.signInError = IllegalStateException("The password is invalid")
+        authRepository.signInError = AuthException(AuthFailure.INVALID_CREDENTIALS)
 
         viewModel.onSubmitClick()
 
-        assertEquals("The password is invalid", viewModel.uiState.value.errorMessage)
+        assertEquals(
+            str(R.string.auth_error_invalid_credentials),
+            viewModel.uiState.value.errorMessage
+        )
         assertTrue(navigationEvents.isEmpty())
         assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+    }
+
+    @Test
+    fun emailLogin_offline_showsNetworkMessage() = runTest {
+        authRepository.signInError = AuthException(AuthFailure.NETWORK)
+
+        viewModel.onSubmitClick()
+
+        assertEquals(str(R.string.auth_error_network), viewModel.uiState.value.errorMessage)
     }
 
     @Test
@@ -295,13 +306,13 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun register_failure_doesNotCreateUserDocument() = runTest {
-        authRepository.signInError = IllegalStateException("The email address is already in use")
+    fun register_emailInUse_explainsHowToSignIn() = runTest {
+        authRepository.signInError = AuthException(AuthFailure.EMAIL_IN_USE)
         viewModel.onSwitchScreens(LoginScreenState.SIGN_UP)
 
         viewModel.onSubmitClick()
 
-        assertEquals("The email address is already in use", viewModel.uiState.value.errorMessage)
+        assertEquals(str(R.string.auth_error_email_in_use), viewModel.uiState.value.errorMessage)
         assertTrue(authRepository.createdUserDocuments.isEmpty())
     }
 
@@ -391,8 +402,5 @@ class LoginViewModelTest {
 
     // endregion
 
-    private companion object {
-        const val SIGN_IN_FAILED = "Google sign-in failed"
-        const val GENERIC_FAILURE = "Something went wrong"
-    }
+    private fun str(id: Int) = "res:$id"
 }

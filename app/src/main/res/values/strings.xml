@@ -15,6 +15,15 @@
     <string name="or_divider">or</string>
     <string name="google_sign_in_failed">Google sign-in failed. Please try again.</string>
     <string name="sign_in_failed">Something went wrong. Please try again.</string>
+    <string name="auth_error_invalid_credentials">Email or password is incorrect. If you signed up with Google, use Continue with Google.</string>
+    <string name="auth_error_invalid_email">Enter a valid email address.</string>
+    <string name="auth_error_email_in_use">An account with this email already exists. Log in instead, or use Continue with Google if you signed up with Google.</string>
+    <string name="auth_error_use_password">This email is already registered with a password. Log in with your email and password.</string>
+    <string name="auth_error_weak_password">Choose a stronger password (at least 6 characters).</string>
+    <string name="auth_error_user_disabled">This account has been disabled.</string>
+    <string name="auth_error_too_many_requests">Too many attempts. Please wait a moment and try again.</string>
+    <string name="auth_error_network">No internet connection. Check your connection and try again.</string>
+    <string name="auth_error_recent_login">For your security, log out and log in again, then try again.</string>
 
     <string name="home_greeting">Hello, %1$s</string>
     <string name="home_title">Library</string>

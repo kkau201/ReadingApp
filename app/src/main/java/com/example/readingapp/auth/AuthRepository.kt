@@ -3,6 +3,7 @@ package com.example.readingapp.auth
 import com.example.readingapp.model.MUser
 import com.example.readingapp.repo.FireRepository.Companion.USERS_COLLECTION
 import com.google.firebase.Firebase
+import com.google.firebase.FirebaseException
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
@@ -17,7 +18,10 @@ data class AuthUser(
     val email: String?
 )
 
-/** Firebase Auth sign-in plus the matching Firestore user record. */
+/**
+ * Firebase Auth plus the matching Firestore user record. Failures from Firebase are thrown as
+ * [AuthException] so callers can show a clear message without depending on Firebase.
+ */
 interface AuthRepository {
     /** The signed-in user, or null. */
     val currentUser: AuthUser?
@@ -40,24 +44,19 @@ class FirebaseAuthRepository @Inject constructor() : AuthRepository {
             AuthUser(uid = it.uid, displayName = it.displayName, email = it.email)
         }
 
-    override suspend fun signInWithEmail(email: String, password: String): AuthUser {
-        return Firebase.auth.signInWithEmailAndPassword(email, password).await().toAuthUser()
+    override suspend fun signInWithEmail(email: String, password: String): AuthUser = mapErrors {
+        Firebase.auth.signInWithEmailAndPassword(email, password).await().toAuthUser()
     }
 
-    override suspend fun registerWithEmail(email: String, password: String): AuthUser {
-        return Firebase.auth.createUserWithEmailAndPassword(email, password).await().toAuthUser()
+    override suspend fun registerWithEmail(email: String, password: String): AuthUser = mapErrors {
+        Firebase.auth.createUserWithEmailAndPassword(email, password).await().toAuthUser()
     }
 
-    override suspend fun signInWithGoogle(idToken: String): AuthUser {
-        return Firebase.auth
+    override suspend fun signInWithGoogle(idToken: String): AuthUser = mapErrors {
+        Firebase.auth
             .signInWithCredential(GoogleAuthProvider.getCredential(idToken, null))
             .await()
             .toAuthUser()
-    }
-
-    private fun AuthResult.toAuthUser(): AuthUser {
-        val user = user ?: throw IllegalStateException("No Firebase user after sign-in")
-        return AuthUser(uid = user.uid, displayName = user.displayName, email = user.email)
     }
 
     override suspend fun userDocumentExists(uid: String): Boolean {
@@ -67,5 +66,19 @@ class FirebaseAuthRepository @Inject constructor() : AuthRepository {
     override suspend fun createUserDocument(uid: String, displayName: String) {
         val user = MUser(userId = uid, displayName = displayName).toMap()
         users().document(uid).set(user).await()
+    }
+
+    private fun AuthResult.toAuthUser(): AuthUser {
+        val user = user ?: throw IllegalStateException("No Firebase user after sign-in")
+        return AuthUser(uid = user.uid, displayName = user.displayName, email = user.email)
+    }
+
+    /** Rethrows Firebase failures as [AuthException]. */
+    private suspend fun <T> mapErrors(block: suspend () -> T): T {
+        return try {
+            block()
+        } catch (e: FirebaseException) {
+            throw AuthException(e.toAuthFailure(), e)
+        }
     }
 }

@@ -6,6 +6,7 @@ import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.R
+import com.example.readingapp.auth.AuthException
 import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.auth.AuthUser
 import com.example.readingapp.auth.GoogleIdTokenProvider
@@ -13,6 +14,7 @@ import com.example.readingapp.auth.NoActivityException
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
+import com.example.readingapp.common.messageRes
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.model.limitTo
 import com.example.readingapp.nav.NavigateTo
@@ -128,8 +130,11 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun errorMessageFor(e: Exception): String = when (e) {
+        is AuthException -> getString(e.failure.messageRes())
         is NoActivityException, is GetCredentialException -> getString(R.string.google_sign_in_failed)
-        else -> e.message ?: getString(R.string.sign_in_failed)
+        // Anything else (e.g. a Firestore error writing the profile) gets a generic message
+        // rather than a raw, untranslated exception message.
+        else -> getString(R.string.sign_in_failed)
     }
 
     private companion object {
