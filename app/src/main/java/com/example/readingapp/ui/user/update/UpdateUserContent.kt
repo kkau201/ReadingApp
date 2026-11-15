@@ -46,6 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.example.readingapp.R
 import com.example.readingapp.model.MAX_READING_GOAL
+import com.example.readingapp.model.TextLimits
+import com.example.readingapp.ui.components.characterCounter
 import com.example.readingapp.model.MIN_READING_GOAL
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.Cover
@@ -87,6 +89,12 @@ fun UpdateUserContent(
                 label = stringResource(R.string.update_user_name_label),
                 value = uiState.displayNameInput,
                 onValueChange = onDisplayNameInputChange,
+                maxLength = TextLimits.DISPLAY_NAME,
+                error = if (uiState.displayNameError) {
+                    stringResource(R.string.update_user_name_error)
+                } else {
+                    null
+                },
                 imeAction = ImeAction.Next,
                 modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 28.dp)
             )
@@ -94,6 +102,7 @@ fun UpdateUserContent(
                 label = stringResource(R.string.update_user_bio_label),
                 value = uiState.bioInput,
                 onValueChange = onBioInputChange,
+                maxLength = TextLimits.QUOTE,
                 singleLine = false,
                 modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp)
             )
@@ -147,7 +156,9 @@ private fun ProfileTextField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
+    maxLength: Int,
     modifier: Modifier = Modifier,
+    error: String? = null,
     singleLine: Boolean = true,
     imeAction: ImeAction = ImeAction.Done
 ) {
@@ -170,11 +181,20 @@ private fun ProfileTextField(
             ),
             singleLine = singleLine,
             minLines = if (singleLine) 1 else 3,
+            supportingText = characterCounter(value.length, maxLength),
             keyboardOptions = KeyboardOptions(imeAction = imeAction),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp)
         )
+        if (error != null) {
+            Text(
+                text = error,
+                color = Ink,
+                style = AppTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
     }
 }
 

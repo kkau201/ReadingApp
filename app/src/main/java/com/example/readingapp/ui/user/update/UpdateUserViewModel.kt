@@ -11,7 +11,9 @@ import com.example.readingapp.model.AVATAR_URL
 import com.example.readingapp.model.DISPLAY_NAME
 import com.example.readingapp.model.QUOTE
 import com.example.readingapp.model.READING_GOAL
+import com.example.readingapp.model.TextLimits
 import com.example.readingapp.model.asReadingGoal
+import com.example.readingapp.model.limitTo
 import com.example.readingapp.repo.FireRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -44,8 +46,10 @@ class UpdateUserViewModel @Inject constructor(
                 uiState.update { state ->
                     state.copy(
                         userId = user?.id,
-                        displayNameInput = user?.displayName ?: "",
-                        bioInput = user?.quote ?: "",
+                        // Name and bio are always saved together, so trim values stored under
+                        // older, longer limits or the save would be rejected by the rules.
+                        displayNameInput = (user?.displayName ?: "").limitTo(TextLimits.DISPLAY_NAME),
+                        bioInput = (user?.quote ?: "").limitTo(TextLimits.QUOTE),
                         readingGoal = user?.readingGoal.asReadingGoal(),
                         selectedAvatar = Avatar.entries.find { avatar -> avatar.id == user?.avatarUrl }
                             ?: Avatar.AVATAR_1
@@ -70,11 +74,16 @@ class UpdateUserViewModel @Inject constructor(
     }
 
     fun onDisplayNameInputChange(input: String) {
-        uiState.update { it.copy(displayNameInput = input) }
+        uiState.update {
+            it.copy(
+                displayNameInput = input.limitTo(TextLimits.DISPLAY_NAME),
+                displayNameError = false
+            )
+        }
     }
 
     fun onBioInputChange(input: String) {
-        uiState.update { it.copy(bioInput = input) }
+        uiState.update { it.copy(bioInput = input.limitTo(TextLimits.QUOTE)) }
     }
 
     fun onReadingGoalChange(goal: Int) {
@@ -88,12 +97,17 @@ class UpdateUserViewModel @Inject constructor(
     }
 
     fun onUpdateClick() {
+        val displayName = displayNameForSave(uiState.value.displayNameInput)
+        if (displayName == null) {
+            uiState.update { it.copy(displayNameError = true) }
+            return
+        }
         uiState.value.userId?.let { id ->
             updateLoadingState(LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN))
             fireRepository.updateUser(
                 userId = id,
                 userUpdates = mapOf(
-                    DISPLAY_NAME to uiState.value.displayNameInput,
+                    DISPLAY_NAME to displayName,
                     QUOTE to uiState.value.bioInput,
                     AVATAR_URL to uiState.value.selectedAvatar?.id,
                     READING_GOAL to uiState.value.readingGoal.asReadingGoal()
@@ -116,3 +130,9 @@ class UpdateUserViewModel @Inject constructor(
         }
     }
 }
+
+/**
+ * The display name to save: the input with surrounding spaces removed, or null if nothing is
+ * left (a name is required, and firestore.rules rejects an empty one).
+ */
+internal fun displayNameForSave(input: String): String? = input.trim().takeIf { it.isNotEmpty() }

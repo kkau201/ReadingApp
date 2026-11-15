@@ -11,9 +11,9 @@ rules_version = '2';
 // Document ID: the owner's Firebase Auth uid (users/{uid})
 // Fields (all required, no others allowed):
 //   - user_id: string (== document ID, immutable)
-//   - display_name: string (0-100 chars; the app allows clearing it)
+//   - display_name: string (1-16 chars, required)
 //   - avatar_url: string | null ('' or 'avatar_1'..'avatar_7')
-//   - quote: string (0-1000 chars)
+//   - quote: string (0-100 chars)
 //   - reading_goal: int (1-24)
 //
 // Collection: books
@@ -25,7 +25,7 @@ rules_version = '2';
 //   - authors: list<string> (optional, 1-10 entries, each 1-200 chars)
 //   - book_photo_url: string (optional, http(s) URL, max 2000 chars)
 //   - page_count: int (optional, 1-100000)
-//   - notes: string (optional, 1-5000 chars)
+//   - notes: string (optional, 1-1000 chars)
 //   - rating: number (optional, 1-5)
 //   - started_reading: timestamp (optional)
 //   - finished_reading: timestamp (optional)
@@ -41,7 +41,7 @@ rules_version = '2';
 //   - read_at: timestamp (required)
 //   - google_book_id: string (optional, 1-100 chars)
 //   - title: string (optional, 1-500 chars)
-//   - note: string (optional, 1-2000 chars)
+//   - note: string (optional, 1-500 chars)
 //
 // Queries the app runs (all must stay allowed):
 //   - users/{uid} get
@@ -113,10 +113,11 @@ service cloud.firestore {
       return data.keys().hasAll(fields) &&
         data.keys().hasOnly(fields) &&
         data.user_id == userId &&
-        data.display_name is string && data.display_name.size() <= 100 &&
+        data.display_name is string &&
+          data.display_name.size() >= 1 && data.display_name.size() <= 16 &&
         (data.avatar_url == null || data.avatar_url in
           ['', 'avatar_1', 'avatar_2', 'avatar_3', 'avatar_4', 'avatar_5', 'avatar_6', 'avatar_7']) &&
-        data.quote is string && data.quote.size() <= 1000 &&
+        data.quote is string && data.quote.size() <= 100 &&
         data.reading_goal is int && data.reading_goal >= 1 && data.reading_goal <= 24;
     }
 
@@ -133,7 +134,7 @@ service cloud.firestore {
         (!('authors' in data) || isValidAuthors(data.authors)) &&
         (!('book_photo_url' in data) || isValidUrl(data.book_photo_url)) &&
         optionalIntInRange(data, 'page_count', 1, 100000) &&
-        optionalString(data, 'notes', 1, 5000) &&
+        optionalString(data, 'notes', 1, 1000) &&
         (!('rating' in data) || (data.rating is number && data.rating >= 1 && data.rating <= 5)) &&
         optionalTimestamp(data, 'started_reading') &&
         optionalTimestamp(data, 'finished_reading') &&
@@ -151,7 +152,7 @@ service cloud.firestore {
         data.read_at is timestamp &&
         optionalString(data, 'google_book_id', 1, 100) &&
         optionalString(data, 'title', 1, 500) &&
-        optionalString(data, 'note', 1, 2000);
+        optionalString(data, 'note', 1, 500);
     }
 
     // =============================================================

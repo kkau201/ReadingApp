@@ -49,7 +49,9 @@ import androidx.compose.ui.window.DialogProperties
 import com.example.readingapp.R
 import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MSession
+import com.example.readingapp.model.TextLimits
 import com.example.readingapp.ui.components.LibraryPageTitle
+import com.example.readingapp.ui.components.characterCounter
 import com.example.readingapp.ui.components.PulledBook
 import com.example.readingapp.ui.components.PulledHeight
 import com.example.readingapp.ui.components.PulledWidth
@@ -629,6 +631,7 @@ private fun NoteField(
             },
             textStyle = AppTheme.typography.bodyLarge.copy(color = Ink),
             minLines = 2,
+            supportingText = characterCounter(value.length, TextLimits.SESSION_NOTE),
             shape = FieldShape,
             colors = sessionFieldColors(),
             modifier = Modifier

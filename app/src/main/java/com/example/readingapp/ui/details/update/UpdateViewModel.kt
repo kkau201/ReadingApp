@@ -8,6 +8,8 @@ import com.example.readingapp.R
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
+import com.example.readingapp.model.TextLimits
+import com.example.readingapp.model.limitTo
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.components.BookStatus
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
@@ -48,7 +50,10 @@ class UpdateViewModel @Inject constructor(
                         bookId = savedBook?.id,
                         book = savedBook,
                         isSaved = savedBook != null,
-                        noteInput = savedBook?.notes ?: "",
+                        // Notes saved under an older, longer limit are cut on load. They then
+                        // differ from the stored value, so the next save writes the shorter
+                        // version; otherwise firestore.rules would reject every update.
+                        noteInput = (savedBook?.notes ?: "").limitTo(TextLimits.BOOK_NOTES),
                         selectedStatus = savedBook?.bookStatus ?: BookStatus.LIBRARY,
                         selectedRating = savedBook?.rating?.toInt() ?: 0,
                         finishedYear = parts.year,
@@ -67,7 +72,7 @@ class UpdateViewModel @Inject constructor(
 
     fun onNoteInputChanged(input: String) {
         _uiState.update { state ->
-            state.copy(noteInput = input)
+            state.copy(noteInput = input.limitTo(TextLimits.BOOK_NOTES))
         }
     }
 

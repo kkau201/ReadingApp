@@ -28,8 +28,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.readingapp.R
 import com.example.readingapp.model.MBook
+import com.example.readingapp.model.TextLimits
 import com.example.readingapp.ui.components.BookStatus
 import com.example.readingapp.ui.components.OutlineStar
+import com.example.readingapp.ui.components.characterCounter
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.Cover
 import com.example.readingapp.ui.theme.Ink
@@ -216,6 +218,7 @@ private fun NotesField(
                 disabledIndicatorColor = Color.Transparent
             ),
             minLines = 5,
+            supportingText = characterCounter(noteInput.length, TextLimits.BOOK_NOTES),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp)

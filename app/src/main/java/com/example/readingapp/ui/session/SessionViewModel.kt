@@ -9,6 +9,8 @@ import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
 import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MSession
+import com.example.readingapp.model.TextLimits
+import com.example.readingapp.model.limitTo
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.components.BookStatus
 import com.example.readingapp.ui.components.DialogState
@@ -117,7 +119,7 @@ class SessionViewModel @Inject constructor(
     }
 
     fun onNoteChanged(input: String) {
-        _uiState.update { it.copy(noteInput = input) }
+        _uiState.update { it.copy(noteInput = input.limitTo(TextLimits.SESSION_NOTE)) }
     }
 
     fun onYearChanged(year: Int) {

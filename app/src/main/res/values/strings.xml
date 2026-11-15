@@ -120,6 +120,7 @@
 
     <string name="update_user_title">Edit profile</string>
     <string name="update_user_name_label">Name</string>
+    <string name="update_user_name_error">Enter a name</string>
     <string name="update_user_bio_label">Bio</string>
     <string name="update_user_avatar_label">Avatar</string>
     <string name="update_user_goal_label">Books this year</string>
