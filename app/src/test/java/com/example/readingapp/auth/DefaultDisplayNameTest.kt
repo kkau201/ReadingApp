@@ -1,4 +1,4 @@
-package com.example.readingapp.ui.login
+package com.example.readingapp.auth
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

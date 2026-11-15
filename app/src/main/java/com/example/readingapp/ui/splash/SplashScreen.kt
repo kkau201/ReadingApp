@@ -15,7 +15,6 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
-import com.example.readingapp.common.collectWithLifecycle
 import com.example.readingapp.ui.theme.AppTheme
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
@@ -27,12 +26,8 @@ fun SplashScreen(
     viewModel: SplashViewModel = hiltViewModel(),
     navigator: DestinationsNavigator
 ) {
+    // SplashViewModel decides where to go (login, dashboard or an error dialog) on its own.
     ViewModelBinding(viewModel = viewModel, navigator = navigator)
-
-    viewModel.userData.collectWithLifecycle {
-        if (it.loading == false && it.data != null) viewModel.navigateToHomeScreen()
-        if (it.e != null) viewModel.showErrorLoadingUser()
-    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

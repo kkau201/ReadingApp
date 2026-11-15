@@ -60,6 +60,16 @@ interface AuthRepository {
 
     suspend fun userDocumentExists(uid: String): Boolean
     suspend fun createUserDocument(uid: String, displayName: String)
+
+    /**
+     * Creates the user's profile document if it's missing. Creating the Auth account and writing
+     * the profile aren't atomic: if the write failed during sign-up, this repairs it later.
+     */
+    suspend fun ensureUserDocument(user: AuthUser) {
+        if (!userDocumentExists(user.uid)) {
+            createUserDocument(user.uid, defaultDisplayName(user.displayName, user.email))
+        }
+    }
 }
 
 class FirebaseAuthRepository @Inject constructor(

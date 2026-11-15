@@ -3,56 +3,63 @@ package com.example.readingapp.ui.splash
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.R
+import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
-import com.example.readingapp.data.DataOrException
-import com.example.readingapp.model.MUser
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.DashboardScreenDestination
 import com.example.readingapp.ui.destinations.LoginScreenDestination
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class SplashViewModel @Inject constructor(
     dependencyContextWrapper: DependencyContextWrapper,
-    fireRepository: FireRepository
+    private val fireRepository: FireRepository,
+    private val authRepository: AuthRepository
 ) : BaseViewModel(dependencyContextWrapper) {
     override val isNavigationDestination: Boolean = true
 
-    val userData: MutableStateFlow<DataOrException<MUser?, Boolean, Exception>> =
-        MutableStateFlow(DataOrException())
-
     init {
         viewModelScope.launch {
-            delay(1000)
-            // Show splash screen for 5 seconds
-            val user = FirebaseAuth.getInstance().currentUser
-            if (user?.email.isNullOrEmpty()) {
-                Log.d("SplashViewModel", "Navigate to login screen")
-                delay(4000)
+            // Brief pause so the splash animation is visible.
+            delay(SPLASH_MILLIS.milliseconds)
+
+            val user = authRepository.currentUser
+            if (user == null) {
+                Log.d(TAG, "Not signed in: navigate to login screen")
                 navigate(NavigateTo(to = LoginScreenDestination, popCurrent = true))
+                return@launch
             }
-            else {
-                Log.d("SplashViewModel", "Navigate to home screen")
-                userData.update { fireRepository.fetchUser(user?.uid) }
+
+            // A signed-in user may have no profile if its write failed during sign-up:
+            // create it here instead of sending them through the login screen to repair it.
+            try {
+                authRepository.ensureUserDocument(user)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.d(TAG, "Couldn't ensure user document: $e")
+            }
+
+            val result = fireRepository.fetchUser(user.uid)
+            if (result.data != null) {
+                Log.d(TAG, "Navigate to home screen")
+                navigate(NavigateTo(to = DashboardScreenDestination, popCurrent = true))
+            } else {
+                showErrorLoadingUser()
             }
         }
     }
 
-    fun navigateToHomeScreen() {
-        navigate(NavigateTo(to = DashboardScreenDestination, popCurrent = true))
-    }
-
-    fun showErrorLoadingUser() {
-        Log.e("ReadingAppTesting", "Error loading user")
+    private fun showErrorLoadingUser() {
+        Log.e(TAG, "Error loading user")
         showDialog(
             DialogState(
                 title = getString(R.string.login_error_title),
@@ -64,5 +71,10 @@ class SplashViewModel @Inject constructor(
                 }
             )
         )
+    }
+
+    private companion object {
+        const val TAG = "SplashViewModel"
+        const val SPLASH_MILLIS = 1000L
     }
 }

@@ -15,8 +15,6 @@ import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.messageRes
-import com.example.readingapp.model.TextLimits
-import com.example.readingapp.model.limitTo
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.ui.destinations.DashboardScreenDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -114,20 +112,6 @@ class LoginViewModel @Inject constructor(
     }
 
     /**
-     * Creates the user's profile document if it's missing. Runs after every sign-in, because
-     * creating the Auth account and writing the profile aren't atomic: if the write failed during
-     * sign-up (or an older build never wrote one), the next sign-in repairs it.
-     */
-    private suspend fun ensureUserDocument(user: AuthUser) {
-        if (!authRepository.userDocumentExists(user.uid)) {
-            authRepository.createUserDocument(
-                user.uid,
-                defaultDisplayName(user.displayName, user.email)
-            )
-        }
-    }
-
-    /**
      * Runs a sign-in [action] with the shared loading/error handling, makes sure the signed-in
      * user has a profile document, then opens the Dashboard.
      * Ignored while another sign-in is already loading.
@@ -140,7 +124,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             updateLoadingState(LoadingState.Loading())
             try {
-                ensureUserDocument(action())
+                authRepository.ensureUserDocument(action())
                 navigate(NavigateTo(to = DashboardScreenDestination, popCurrent = true))
             } catch (e: GetCredentialCancellationException) {
                 // User dismissed the Google account picker: not an error.
@@ -178,14 +162,3 @@ class LoginViewModel @Inject constructor(
  */
 internal fun isValidEmail(input: String): Boolean =
     PatternsCompat.EMAIL_ADDRESS.matcher(input.trim()).matches()
-
-/**
- * Display name for a new user record: the account's name if it has one, otherwise the part of
- * the email before '@', otherwise "Reader". Cut to [TextLimits.DISPLAY_NAME].
- */
-internal fun defaultDisplayName(displayName: String?, email: String?): String {
-    val name = displayName?.takeIf { it.isNotBlank() }
-        ?: email?.substringBefore('@').orEmpty().ifBlank { "Reader" }
-    // Google names and email prefixes can be longer than firestore.rules allows.
-    return name.trim().limitTo(TextLimits.DISPLAY_NAME).trimEnd()
-}
