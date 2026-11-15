@@ -13,6 +13,9 @@ internal object StoredBook {
     const val USER_ID = "user_id"
     const val GOOGLE_BOOK_ID = "google_book_id"
 
+    /** Must match the authors list limit in firestore.rules. */
+    const val MAX_AUTHORS = 10
+
     val fields = listOf(
         TITLE,
         AUTHORS,
@@ -34,6 +37,7 @@ internal fun MBook.toStoredDocument(): Map<String, Any> = buildMap {
         authors
         ?.map { it.trim() }
         ?.filter { it.isNotEmpty() }
+        ?.take(StoredBook.MAX_AUTHORS)
         ?.takeIf { it.isNotEmpty() }
         ?.let { put(StoredBook.AUTHORS, it) }
     pageCount?.takeIf { it > 0 }?.let { put(StoredBook.PAGE_COUNT, it) }
