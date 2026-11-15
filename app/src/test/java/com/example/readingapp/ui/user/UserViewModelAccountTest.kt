@@ -1,12 +1,15 @@
 package com.example.readingapp.ui.user
 
 import android.content.Context
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.example.readingapp.MainViewModel
 import com.example.readingapp.R
 import com.example.readingapp.auth.AuthException
 import com.example.readingapp.auth.AuthFailure
 import com.example.readingapp.auth.AuthUser
 import com.example.readingapp.auth.FakeAuthRepository
+import com.example.readingapp.auth.FakeGoogleIdTokenProvider
+import com.example.readingapp.auth.ReauthMethod
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.NavigateTo
@@ -25,13 +28,14 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/** Logout and account deletion on the profile screen. */
+/** Logout and account deletion (with on-the-spot reauthentication) on the profile screen. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class UserViewModelAccountTest {
 
@@ -44,6 +48,7 @@ class UserViewModelAccountTest {
     private val authRepository = FakeAuthRepository().apply {
         current = AuthUser(uid = "uid-1", displayName = "Jane Austen", email = "jane@example.com")
     }
+    private val tokenProvider = FakeGoogleIdTokenProvider()
     private val fireRepository = spyk(
         FireRepository(
             queryBook = mockk(relaxed = true),
@@ -60,7 +65,12 @@ class UserViewModelAccountTest {
 
     @Before
     fun setUp() {
-        viewModel = UserViewModel(fireRepository, authRepository, DependencyContextWrapper(context))
+        viewModel = UserViewModel(
+            fireRepository,
+            authRepository,
+            tokenProvider,
+            DependencyContextWrapper(context)
+        )
         viewModel.setMainViewModel(mainViewModel)
     }
 
@@ -71,6 +81,15 @@ class UserViewModelAccountTest {
     }
 
     private fun dialog(): DialogState = mainViewModel.dialogFlow.value ?: error("No dialog shown")
+
+    private fun typePassword(password: String) = dialog().passwordInput!!.onValueChange(password)
+
+    private fun assertNothingDeleted() {
+        assertEquals(0, authRepository.deleteCount)
+        verify(exactly = 0) { fireRepository.clearUserData() }
+    }
+
+    // region Logout
 
     @Test
     fun logout_signsOutClearsCacheAndGoesToLogin() = runTest {
@@ -85,19 +104,53 @@ class UserViewModelAccountTest {
         assertNull(mainViewModel.dialogFlow.value)
     }
 
+    // endregion
+
+    // region Delete account: Google
+
     @Test
-    fun deleteAccount_confirmed_deletesEverythingAndGoesToLogin() = runTest {
+    fun deleteGoogleAccount_confirmWithGoogle_reauthsThenDeletesAndGoesToLogin() = runTest {
         collectNavigation()
 
         viewModel.onDeleteAccountClick()
-        assertEquals(str(R.string.delete_account_message), dialog().message)
+        assertEquals(str(R.string.delete_account_message_google), dialog().message)
+        assertNull(dialog().passwordInput)
         dialog().onPrimaryClick!!()
 
+        assertEquals(1, tokenProvider.requestCount)
+        assertEquals(listOf("fake-id-token"), authRepository.googleReauthTokens)
         assertEquals(1, authRepository.deleteCount)
         verify { fireRepository.clearUserData() }
         assertEquals(str(R.string.delete_account_done), mainViewModel.toastFlow.value)
         assertEquals(listOf<NavigationEvent?>(toLogin), navigationEvents)
         assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+        // No logout detour any more.
+        assertEquals(0, authRepository.signOutCount)
+    }
+
+    @Test
+    fun deleteGoogleAccount_pickerClosed_deletesNothingAndSaysNothing() = runTest {
+        collectNavigation()
+        tokenProvider.onRequest = { throw GetCredentialCancellationException("closed") }
+
+        viewModel.onDeleteAccountClick()
+        dialog().onPrimaryClick!!()
+
+        assertNothingDeleted()
+        assertNull(mainViewModel.toastFlow.value)
+        assertTrue(navigationEvents.isEmpty())
+        assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+    }
+
+    @Test
+    fun deleteGoogleAccount_differentGoogleAccountPicked_deletesNothing() = runTest {
+        authRepository.reauthError = AuthException(AuthFailure.WRONG_ACCOUNT)
+
+        viewModel.onDeleteAccountClick()
+        dialog().onPrimaryClick!!()
+
+        assertNothingDeleted()
+        assertEquals(str(R.string.auth_error_wrong_account), mainViewModel.toastFlow.value)
     }
 
     @Test
@@ -107,42 +160,72 @@ class UserViewModelAccountTest {
         viewModel.onDeleteAccountClick()
         dialog().onSecondaryClick!!()
 
-        assertEquals(0, authRepository.deleteCount)
+        assertEquals(0, tokenProvider.requestCount)
+        assertNothingDeleted()
         assertTrue(navigationEvents.isEmpty())
         assertNull(mainViewModel.dialogFlow.value)
     }
 
+    // endregion
+
+    // region Delete account: email/password
+
     @Test
-    fun deleteAccount_oldSignIn_asksToSignInAgainBeforeDeletingAnything() = runTest {
+    fun deletePasswordAccount_correctPassword_reauthsThenDeletes() = runTest {
         collectNavigation()
-        authRepository.recentlySignedIn = false
+        authRepository.reauthMethod = ReauthMethod.PASSWORD
 
         viewModel.onDeleteAccountClick()
-
-        assertEquals(str(R.string.delete_account_sign_in_again), dialog().message)
-        assertEquals(0, authRepository.deleteCount)
-
-        // The dialog's button logs the user out so they can sign in again.
+        assertEquals(str(R.string.delete_account_message_password), dialog().message)
+        assertNotNull(dialog().passwordInput)
+        typePassword("secret1")
+        assertEquals("secret1", dialog().passwordInput!!.value)
         dialog().onPrimaryClick!!()
-        assertEquals(1, authRepository.signOutCount)
+
+        assertEquals(listOf("secret1"), authRepository.passwordReauths)
+        assertEquals(0, tokenProvider.requestCount)
+        assertEquals(1, authRepository.deleteCount)
         assertEquals(listOf<NavigationEvent?>(toLogin), navigationEvents)
     }
 
     @Test
-    fun deleteAccount_firebaseWantsRecentLogin_asksToSignInAgain() = runTest {
-        collectNavigation()
-        authRepository.deleteError = AuthException(AuthFailure.REQUIRES_RECENT_LOGIN)
+    fun deletePasswordAccount_emptyPassword_asksForItWithoutTrying() = runTest {
+        authRepository.reauthMethod = ReauthMethod.PASSWORD
 
         viewModel.onDeleteAccountClick()
         dialog().onPrimaryClick!!()
 
-        assertEquals(str(R.string.delete_account_sign_in_again), dialog().message)
-        assertTrue(navigationEvents.isEmpty())
-        assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+        assertEquals(
+            str(R.string.delete_account_password_required),
+            dialog().passwordInput!!.error
+        )
+        assertTrue(authRepository.passwordReauths.isEmpty())
+        assertNothingDeleted()
     }
 
     @Test
-    fun deleteAccount_otherFailure_showsErrorAndStays() = runTest {
+    fun deletePasswordAccount_wrongPassword_reopensDialogWithErrorAndDeletesNothing() = runTest {
+        authRepository.reauthMethod = ReauthMethod.PASSWORD
+        authRepository.reauthError = AuthException(AuthFailure.INVALID_CREDENTIALS)
+
+        viewModel.onDeleteAccountClick()
+        typePassword("wrong")
+        dialog().onPrimaryClick!!()
+
+        assertNothingDeleted()
+        assertEquals(str(R.string.delete_account_wrong_password), dialog().passwordInput!!.error)
+        assertEquals("", dialog().passwordInput!!.value)
+        assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+
+        // Typing again clears the error.
+        typePassword("s")
+        assertNull(dialog().passwordInput!!.error)
+    }
+
+    // endregion
+
+    @Test
+    fun deleteAccount_deletionFailsAfterReauth_showsErrorAndStays() = runTest {
         collectNavigation()
         authRepository.deleteError = IllegalStateException("Firestore unavailable")
 

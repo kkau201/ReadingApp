@@ -12,6 +12,7 @@ import com.example.readingapp.repo.FireRepository.Companion.USERS_COLLECTION
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.CollectionReference
@@ -26,6 +27,9 @@ data class AuthUser(
     val displayName: String?,
     val email: String?
 )
+
+/** How the signed-in user proves who they are again before a sensitive operation. */
+enum class ReauthMethod { GOOGLE, PASSWORD }
 
 /**
  * Firebase Auth plus the matching Firestore user record. Failures from Firebase are thrown as
@@ -49,13 +53,22 @@ interface AuthRepository {
     /** Signs out of Firebase and clears Credential Manager's sign-in state. */
     suspend fun signOut()
 
-    /**
-     * Whether the last sign-in is recent enough for Firebase to allow deleting the account.
-     * Checked before deleting any data, so we don't delete it and then fail to delete the account.
-     */
-    fun isRecentlySignedIn(): Boolean
+    /** Google if the account can sign in with Google, otherwise its email password. */
+    fun reauthMethod(): ReauthMethod
 
-    /** Deletes the user's books, sessions and profile, then the account itself. */
+    /**
+     * Confirms the signed-in user's identity with a fresh Google ID token. Firebase requires a
+     * recent sign-in before deleting an account; this satisfies it without logging out.
+     */
+    suspend fun reauthenticateWithGoogle(idToken: String)
+
+    /** Same as [reauthenticateWithGoogle], using the account's email and [password]. */
+    suspend fun reauthenticateWithPassword(password: String)
+
+    /**
+     * Deletes the user's books, sessions and profile, then the account itself.
+     * Call right after reauthenticating, or Firebase may refuse to delete the account.
+     */
     suspend fun deleteAccount()
 
     suspend fun userDocumentExists(uid: String): Boolean
@@ -122,9 +135,22 @@ class FirebaseAuthRepository @Inject constructor(
         clearCredentialState()
     }
 
-    override fun isRecentlySignedIn(): Boolean {
-        val lastSignIn = Firebase.auth.currentUser?.metadata?.lastSignInTimestamp ?: return false
-        return System.currentTimeMillis() - lastSignIn < RECENT_SIGN_IN_MILLIS
+    override fun reauthMethod(): ReauthMethod {
+        val providers = Firebase.auth.currentUser?.providerData.orEmpty().map { it.providerId }
+        return if (GoogleAuthProvider.PROVIDER_ID in providers) ReauthMethod.GOOGLE else ReauthMethod.PASSWORD
+    }
+
+    override suspend fun reauthenticateWithGoogle(idToken: String) = mapErrors {
+        val user = Firebase.auth.currentUser ?: throw AuthException(AuthFailure.UNKNOWN)
+        user.reauthenticate(GoogleAuthProvider.getCredential(idToken, null)).await()
+        Unit
+    }
+
+    override suspend fun reauthenticateWithPassword(password: String) = mapErrors {
+        val user = Firebase.auth.currentUser ?: throw AuthException(AuthFailure.UNKNOWN)
+        val email = user.email ?: throw AuthException(AuthFailure.UNKNOWN)
+        user.reauthenticate(EmailAuthProvider.getCredential(email, password)).await()
+        Unit
     }
 
     override suspend fun deleteAccount() = mapErrors {
@@ -179,9 +205,6 @@ class FirebaseAuthRepository @Inject constructor(
 
     private companion object {
         const val TAG = "AuthRepository"
-
-        /** Firebase asks for a fresh sign-in after about 5 minutes for sensitive operations. */
-        const val RECENT_SIGN_IN_MILLIS = 5 * 60 * 1000L
 
         /** Firestore's limit on writes per batch. */
         const val MAX_BATCH_WRITES = 500

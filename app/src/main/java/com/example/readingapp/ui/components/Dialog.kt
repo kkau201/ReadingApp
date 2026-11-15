@@ -15,8 +15,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +27,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,6 +50,7 @@ data class DialogState(
     val content: Map<String, String> = emptyMap(),
     val choices: List<DialogChoice> = emptyList(),
     val finishedDate: DialogFinishedDate? = null,
+    val passwordInput: DialogPasswordInput? = null,
     val primaryButtonText: String? = null,
     val onPrimaryClick: (() -> Unit)? = null,
     val secondaryButtonText: String? = null,
@@ -55,6 +62,14 @@ data class DialogChoice(
     val text: String,
     val selected: Boolean = false,
     val onClick: () -> Unit
+)
+
+/** A password field shown above the dialog's buttons (e.g. to confirm account deletion). */
+data class DialogPasswordInput(
+    val label: String,
+    val value: String,
+    val error: String? = null,
+    val onValueChange: (String) -> Unit
 )
 
 data class DialogFinishedDate(
@@ -125,6 +140,12 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
                                 .padding(top = 8.dp)
                         )
                     }
+                    passwordInput?.let { input ->
+                        DialogPasswordField(
+                            input = input,
+                            modifier = Modifier.padding(top = 20.dp)
+                        )
+                    }
                     if (choices.isNotEmpty() || primaryButtonText != null || secondaryButtonText != null) {
                         Column(
                             modifier = Modifier.padding(top = 24.dp),
@@ -176,6 +197,56 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
 }
 
 @Composable
+private fun DialogPasswordField(
+    input: DialogPasswordInput,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = input.label,
+            color = Muted,
+            style = AppTheme.typography.labelLarge
+        )
+        TextField(
+            value = input.value,
+            onValueChange = input.onValueChange,
+            singleLine = true,
+            isError = input.error != null,
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            ),
+            textStyle = AppTheme.typography.bodyLarge.copy(color = Ink),
+            shape = RoundedCornerShape(16.dp),
+            colors = TextFieldDefaults.colors(
+                focusedTextColor = Ink,
+                unfocusedTextColor = Ink,
+                cursorColor = Ink,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                errorContainerColor = Color.White,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+                .border(1.dp, if (input.error != null) Ink else Cover, RoundedCornerShape(16.dp))
+        )
+        input.error?.let {
+            Text(
+                text = it,
+                color = Ink,
+                style = AppTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+    }
+}
+
+@Composable
 private fun DialogButton(
     text: String,
     container: Color,
@@ -213,6 +284,26 @@ fun DialogPreviewOneButton() {
         message = "Are you sure you want to test?",
         primaryButtonText = "Yes",
         onPrimaryClick = {}
+    ))
+}
+
+@Preview
+@Composable
+fun DialogPreviewPasswordInput() {
+    ReadingAppDialog(state = DialogState(
+        title = "Delete account?",
+        message = "This permanently deletes your profile, saved books and reading sessions. " +
+            "This can't be undone.\n\nEnter your password to confirm.",
+        passwordInput = DialogPasswordInput(
+            label = "Password",
+            value = "secret",
+            error = "Incorrect password. Try again.",
+            onValueChange = {}
+        ),
+        primaryButtonText = "Delete",
+        onPrimaryClick = {},
+        secondaryButtonText = "Cancel",
+        onSecondaryClick = {}
     ))
 }
 

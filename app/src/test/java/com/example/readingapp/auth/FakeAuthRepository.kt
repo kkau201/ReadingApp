@@ -16,7 +16,8 @@ class FakeAuthRepository : AuthRepository {
 
     var verificationEmailSends = true
     var passwordResetError: Exception? = null
-    var recentlySignedIn = true
+    var reauthMethod = ReauthMethod.GOOGLE
+    var reauthError: Exception? = null
     var deleteError: Exception? = null
 
     val existingUserDocuments = mutableSetOf<String>()
@@ -27,6 +28,8 @@ class FakeAuthRepository : AuthRepository {
     val passwordResetEmails = mutableListOf<String>()
     var verificationEmailsRequested = 0
     var signOutCount = 0
+    val googleReauthTokens = mutableListOf<String>()
+    val passwordReauths = mutableListOf<String>()
     var deleteCount = 0
 
     override suspend fun signInWithEmail(email: String, password: String): AuthUser {
@@ -59,7 +62,17 @@ class FakeAuthRepository : AuthRepository {
         current = null
     }
 
-    override fun isRecentlySignedIn(): Boolean = recentlySignedIn
+    override fun reauthMethod(): ReauthMethod = reauthMethod
+
+    override suspend fun reauthenticateWithGoogle(idToken: String) {
+        googleReauthTokens += idToken
+        reauthError?.let { throw it }
+    }
+
+    override suspend fun reauthenticateWithPassword(password: String) {
+        passwordReauths += password
+        reauthError?.let { throw it }
+    }
 
     override suspend fun deleteAccount() {
         deleteCount++

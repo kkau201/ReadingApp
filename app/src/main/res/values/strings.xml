@@ -24,6 +24,7 @@
     <string name="auth_error_too_many_requests">Too many attempts. Please wait a moment and try again.</string>
     <string name="auth_error_network">No internet connection. Check your connection and try again.</string>
     <string name="auth_error_recent_login">For your security, log out and log in again, then try again.</string>
+    <string name="auth_error_wrong_account">That\'s a different Google account. Choose the account you\'re signed in with.</string>
     <string name="forgot_password">Forgot password?</string>
     <string name="reset_password_enter_email">Enter your email above, then tap Forgot password.</string>
     <string name="reset_password_sent">If an account exists for %1$s, we\'ve sent a link to reset the password.</string>
@@ -102,9 +103,12 @@
     <string name="logout_no">No</string>
     <string name="profile_delete_account">Delete account</string>
     <string name="delete_account_title">Delete account?</string>
-    <string name="delete_account_message">This permanently deletes your profile, saved books and reading sessions. This can\'t be undone.</string>
+    <string name="delete_account_message_google">This permanently deletes your profile, saved books and reading sessions. This can\'t be undone.\n\nTo confirm, choose your Google account next.</string>
+    <string name="delete_account_message_password">This permanently deletes your profile, saved books and reading sessions. This can\'t be undone.\n\nEnter your password to confirm.</string>
+    <string name="delete_account_password_label">Password</string>
+    <string name="delete_account_password_required">Enter your password</string>
+    <string name="delete_account_wrong_password">Incorrect password. Try again.</string>
     <string name="delete_account_confirm">Delete</string>
-    <string name="delete_account_sign_in_again">For your security, log out and log in again, then delete your account.</string>
     <string name="delete_account_done">Your account has been deleted</string>
     <string name="delete_account_error">Couldn\'t delete your account. Please try again.</string>
     <string name="no_results">No results</string>

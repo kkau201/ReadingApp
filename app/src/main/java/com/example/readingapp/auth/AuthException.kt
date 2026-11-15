@@ -3,6 +3,7 @@ package com.example.readingapp.auth
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.FirebaseTooManyRequestsException
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
@@ -24,6 +25,8 @@ enum class AuthFailure {
     NETWORK,
     /** Deleting the account needs a recent sign-in. */
     REQUIRES_RECENT_LOGIN,
+    /** Reauthenticated with a different account than the one signed in (e.g. another Google account). */
+    WRONG_ACCOUNT,
     UNKNOWN
 }
 
@@ -32,6 +35,7 @@ class AuthException(val failure: AuthFailure, cause: Throwable? = null) :
 
 /** Maps a Firebase exception to an [AuthFailure]. Order matters: some types extend others. */
 internal fun FirebaseException.toAuthFailure(): AuthFailure = when (this) {
+    is FirebaseAuthException if errorCode == "ERROR_USER_MISMATCH" -> AuthFailure.WRONG_ACCOUNT
     is FirebaseNetworkException -> AuthFailure.NETWORK
     is FirebaseTooManyRequestsException -> AuthFailure.TOO_MANY_REQUESTS
     is FirebaseAuthRecentLoginRequiredException -> AuthFailure.REQUIRES_RECENT_LOGIN

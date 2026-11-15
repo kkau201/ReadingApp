@@ -1,12 +1,17 @@
 package com.example.readingapp.ui.user
 
 import android.util.Log
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.R
 import com.example.readingapp.auth.AuthException
 import com.example.readingapp.auth.AuthFailure
 import com.example.readingapp.auth.AuthRepository
+import com.example.readingapp.auth.GoogleIdTokenProvider
+import com.example.readingapp.auth.NoActivityException
+import com.example.readingapp.auth.ReauthMethod
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
@@ -14,6 +19,7 @@ import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.messageRes
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.FireRepository
+import com.example.readingapp.ui.components.DialogPasswordInput
 import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.LoginScreenDestination
 import com.example.readingapp.ui.destinations.UpdateUserScreenDestination
@@ -29,6 +35,7 @@ import kotlin.coroutines.cancellation.CancellationException
 class UserViewModel @Inject constructor(
     private val fireRepository: FireRepository,
     private val authRepository: AuthRepository,
+    private val googleIdTokenProvider: GoogleIdTokenProvider,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
     val uiState: StateFlow<UserUiState>
@@ -85,21 +92,28 @@ class UserViewModel @Inject constructor(
         )
     }
 
+    /**
+     * Firebase only deletes an account after a recent sign-in, so the user confirms who they are
+     * on the spot: with the Google account picker, or by typing their password.
+     */
     fun onDeleteAccountClick() {
-        // Firebase only deletes an account after a recent sign-in. Check first, so we never
-        // delete the user's data and then fail to delete the account itself.
-        if (!authRepository.isRecentlySignedIn()) {
-            showSignInAgainDialog()
-            return
+        when (authRepository.reauthMethod()) {
+            ReauthMethod.GOOGLE -> showGoogleDeleteDialog()
+            ReauthMethod.PASSWORD -> showPasswordDeleteDialog(password = "", error = null)
         }
+    }
+
+    private fun showGoogleDeleteDialog() {
         showDialog(
             DialogState(
                 title = getString(R.string.delete_account_title),
-                message = getString(R.string.delete_account_message),
+                message = getString(R.string.delete_account_message_google),
                 primaryButtonText = getString(R.string.delete_account_confirm),
                 onPrimaryClick = {
                     dismissDialog()
-                    deleteAccount()
+                    deleteAccount {
+                        authRepository.reauthenticateWithGoogle(googleIdTokenProvider.requestIdToken())
+                    }
                 },
                 secondaryButtonText = getString(R.string.update_cancel),
                 onSecondaryClick = { dismissDialog() }
@@ -107,47 +121,84 @@ class UserViewModel @Inject constructor(
         )
     }
 
-    private fun deleteAccount() {
+    private fun showPasswordDeleteDialog(password: String, error: String?) {
+        showDialog(
+            DialogState(
+                title = getString(R.string.delete_account_title),
+                message = getString(R.string.delete_account_message_password),
+                passwordInput = DialogPasswordInput(
+                    label = getString(R.string.delete_account_password_label),
+                    value = password,
+                    error = error,
+                    onValueChange = { showPasswordDeleteDialog(password = it, error = null) }
+                ),
+                primaryButtonText = getString(R.string.delete_account_confirm),
+                onPrimaryClick = {
+                    if (password.isEmpty()) {
+                        showPasswordDeleteDialog(
+                            password = password,
+                            error = getString(R.string.delete_account_password_required)
+                        )
+                    } else {
+                        dismissDialog()
+                        deleteAccount(
+                            onWrongPassword = {
+                                showPasswordDeleteDialog(
+                                    password = "",
+                                    error = getString(R.string.delete_account_wrong_password)
+                                )
+                            }
+                        ) {
+                            authRepository.reauthenticateWithPassword(password)
+                        }
+                    }
+                },
+                secondaryButtonText = getString(R.string.update_cancel),
+                onSecondaryClick = { dismissDialog() }
+            )
+        )
+    }
+
+    /**
+     * Runs [reauthenticate], then deletes the account. Nothing is deleted unless the user
+     * successfully confirms who they are first.
+     */
+    private fun deleteAccount(
+        onWrongPassword: (() -> Unit)? = null,
+        reauthenticate: suspend () -> Unit
+    ) {
         if (getLoadingState().value is LoadingState.Loading) return
         viewModelScope.launch {
             updateLoadingState(LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN))
             try {
+                reauthenticate()
                 authRepository.deleteAccount()
                 fireRepository.clearUserData()
                 showToast(getString(R.string.delete_account_done))
                 navigate(NavigateTo(LoginScreenDestination, clearBackStack = true))
+            } catch (e: GetCredentialCancellationException) {
+                // User closed the Google account picker: they changed their mind.
+                Log.d(TAG, "Delete account cancelled: ${e.message}")
             } catch (e: CancellationException) {
                 throw e
             } catch (e: AuthException) {
                 Log.d(TAG, "Delete account failed: $e")
-                if (e.failure == AuthFailure.REQUIRES_RECENT_LOGIN) {
-                    showSignInAgainDialog()
+                if (e.failure == AuthFailure.INVALID_CREDENTIALS && onWrongPassword != null) {
+                    onWrongPassword()
                 } else {
                     showToast(getString(e.failure.messageRes()))
                 }
             } catch (e: Exception) {
                 Log.d(TAG, "Delete account failed: $e")
-                showToast(getString(R.string.delete_account_error))
+                val message = when (e) {
+                    is NoActivityException, is GetCredentialException -> R.string.google_sign_in_failed
+                    else -> R.string.delete_account_error
+                }
+                showToast(getString(message))
             } finally {
                 updateLoadingState(LoadingState.Idle)
             }
         }
-    }
-
-    private fun showSignInAgainDialog() {
-        showDialog(
-            DialogState(
-                title = getString(R.string.delete_account_title),
-                message = getString(R.string.delete_account_sign_in_again),
-                primaryButtonText = getString(R.string.profile_logout),
-                onPrimaryClick = {
-                    dismissDialog()
-                    logOut()
-                },
-                secondaryButtonText = getString(R.string.update_cancel),
-                onSecondaryClick = { dismissDialog() }
-            )
-        )
     }
 
     private fun logOut() {

@@ -16,5 +16,6 @@ fun AuthFailure.messageRes(): Int = when (this) {
     AuthFailure.TOO_MANY_REQUESTS -> R.string.auth_error_too_many_requests
     AuthFailure.NETWORK -> R.string.auth_error_network
     AuthFailure.REQUIRES_RECENT_LOGIN -> R.string.auth_error_recent_login
+    AuthFailure.WRONG_ACCOUNT -> R.string.auth_error_wrong_account
     AuthFailure.UNKNOWN -> R.string.sign_in_failed
 }
