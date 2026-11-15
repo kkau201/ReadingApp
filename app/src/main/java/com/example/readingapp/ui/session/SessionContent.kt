@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
@@ -29,11 +30,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.fadeIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.foundation.Image
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -105,12 +114,14 @@ fun SessionContent(
                 text = stringResource(R.string.session_title),
                 modifier = Modifier.padding(horizontal = AppTheme.spacing.mdSpacing)
             )
-            if (state.books.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.session_no_books),
-                    color = Muted,
-                    style = AppTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = AppTheme.spacing.mdSpacing)
+            if (!state.booksLoaded) {
+                // Still loading: show nothing rather than flashing the empty state.
+            } else if (state.books.isEmpty()) {
+                NoReadingBooks(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = AppTheme.spacing.mdSpacing)
+                        .padding(top = 24.dp)
                 )
             } else {
                 ReadingCarousel(
@@ -145,6 +156,54 @@ fun SessionContent(
             )
         }
     }
+}
+
+/** Empty state when no book is marked as reading: the diver illustration plus a hint. */
+@Composable
+private fun NoReadingBooks(modifier: Modifier = Modifier) {
+    // Fade in when first shown, so it eases in after loading instead of popping in.
+    val visible = remember { MutableTransitionState(false).apply { targetState = true } }
+    AnimatedVisibility(visibleState = visible, enter = fadeIn(), modifier = modifier) {
+        NoReadingBooksContent()
+    }
+}
+
+@Composable
+private fun NoReadingBooksContent(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(R.drawable.illustration_dive_into_book),
+            // Decorative: the text below says what this screen needs.
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(Ink),
+            modifier = Modifier.width(150.dp)
+        )
+        Text(
+            text = stringResource(R.string.session_no_books_title),
+            color = Ink,
+            style = AppTheme.typography.titleLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 28.dp)
+        )
+        Text(
+            text = stringResource(R.string.session_no_books),
+            color = Muted,
+            style = AppTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .widthIn(max = 320.dp)
+                .padding(top = 8.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF7F4EF)
+@Composable
+private fun NoReadingBooksPreview() {
+    NoReadingBooksContent(modifier = Modifier.fillMaxWidth().padding(24.dp))
 }
 
 @OptIn(ExperimentalFoundationApi::class)

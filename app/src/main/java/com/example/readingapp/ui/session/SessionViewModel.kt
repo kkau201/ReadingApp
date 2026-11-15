@@ -55,6 +55,7 @@ class SessionViewModel @Inject constructor(
                         } ?: books.firstOrNull()?.shelfId()
                         state.copy(
                             books = books,
+                            booksLoaded = true,
                             sessions = sessions,
                             selectedBookId = selected
                         )

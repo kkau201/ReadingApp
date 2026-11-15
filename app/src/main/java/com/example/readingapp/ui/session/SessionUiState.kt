@@ -5,6 +5,11 @@ import com.example.readingapp.model.MSession
 
 data class SessionUiState(
     val books: List<MBook> = emptyList(),
+    /**
+     * False until the reading books have loaded once, so an empty [books] list while loading
+     * isn't mistaken for "no books" (which would flash the empty state).
+     */
+    val booksLoaded: Boolean = false,
     val sessions: List<MSession> = emptyList(),
     val selectedBookId: String? = null,
     val pagesInput: String = "",
