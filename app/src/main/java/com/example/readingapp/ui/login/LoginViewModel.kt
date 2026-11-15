@@ -87,6 +87,32 @@ class LoginViewModel @Inject constructor(
         authRepository.signInWithGoogle(idToken)
     }
 
+    /** Sends a password reset link to the email typed in the form. */
+    fun onForgotPasswordClick() {
+        val email = uiState.value.email.trim()
+        if (!isValidEmail(email)) {
+            _uiState.update { it.copy(errorMessage = getString(R.string.reset_password_enter_email)) }
+            return
+        }
+        _uiState.update { it.copy(errorMessage = null) }
+        if (getLoadingState().value is LoadingState.Loading) return
+
+        viewModelScope.launch {
+            updateLoadingState(LoadingState.Loading())
+            try {
+                authRepository.sendPasswordResetEmail(email)
+                showToast(getString(R.string.reset_password_sent, email))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.d(TAG, "Password reset failed: $e")
+                _uiState.update { it.copy(errorMessage = errorMessageFor(e)) }
+            } finally {
+                updateLoadingState(LoadingState.Idle)
+            }
+        }
+    }
+
     /**
      * Creates the user's profile document if it's missing. Runs after every sign-in, because
      * creating the Auth account and writing the profile aren't atomic: if the write failed during

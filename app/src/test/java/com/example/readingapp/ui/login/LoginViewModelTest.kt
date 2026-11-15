@@ -372,6 +372,50 @@ class LoginViewModelTest {
 
     // endregion
 
+    // region Forgot password
+
+    @Test
+    fun forgotPassword_noValidEmail_asksForEmailWithoutSending() = runTest {
+        viewModel.onEmailChange("reader@")
+
+        viewModel.onForgotPasswordClick()
+
+        assertEquals(
+            str(R.string.reset_password_enter_email),
+            viewModel.uiState.value.errorMessage
+        )
+        assertTrue(authRepository.passwordResetEmails.isEmpty())
+    }
+
+    @Test
+    fun forgotPassword_validEmail_sendsResetToTrimmedEmailAndConfirms() = runTest {
+        viewModel.onEmailChange(" reader@example.com ")
+
+        viewModel.onForgotPasswordClick()
+
+        assertEquals(listOf("reader@example.com"), authRepository.passwordResetEmails)
+        assertEquals(str(R.string.reset_password_sent), mainViewModel.toastFlow.value)
+        assertNull(viewModel.uiState.value.errorMessage)
+        assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+    }
+
+    @Test
+    fun forgotPassword_failure_showsFriendlyMessage() = runTest {
+        authRepository.passwordResetError = AuthException(AuthFailure.TOO_MANY_REQUESTS)
+        viewModel.onEmailChange("reader@example.com")
+
+        viewModel.onForgotPasswordClick()
+
+        assertEquals(
+            str(R.string.auth_error_too_many_requests),
+            viewModel.uiState.value.errorMessage
+        )
+        assertNull(mainViewModel.toastFlow.value)
+        assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+    }
+
+    // endregion
+
     // region Form validation
 
     @Test

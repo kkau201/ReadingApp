@@ -36,6 +36,9 @@ interface AuthRepository {
     /** Sends a verification email to the signed-in user. Returns false if it couldn't be sent. */
     suspend fun sendEmailVerification(): Boolean
 
+    /** Firebase doesn't reveal whether the account exists, so this succeeds either way. */
+    suspend fun sendPasswordResetEmail(email: String)
+
     suspend fun userDocumentExists(uid: String): Boolean
     suspend fun createUserDocument(uid: String, displayName: String)
 }
@@ -76,6 +79,11 @@ class FirebaseAuthRepository @Inject constructor() : AuthRepository {
             Log.d(TAG, "Couldn't send verification email: $e")
             false
         }
+    }
+
+    override suspend fun sendPasswordResetEmail(email: String) = mapErrors {
+        Firebase.auth.sendPasswordResetEmail(email).await()
+        Unit
     }
 
     override suspend fun userDocumentExists(uid: String): Boolean {

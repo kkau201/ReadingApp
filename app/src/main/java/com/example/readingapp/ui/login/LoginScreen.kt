@@ -98,6 +98,20 @@ fun LoginScreen(
             showPasswordHint = !isLogin,
             modifier = Modifier.padding(top = 32.dp)
         )
+        if (isLogin) {
+            Text(
+                text = stringResource(R.string.forgot_password),
+                color = Ink,
+                style = AppTheme.typography.labelLarge,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 16.dp)
+                    .clickable(enabled = loadingState.value !is LoadingState.Loading) {
+                        keyboardController?.hide()
+                        viewModel.onForgotPasswordClick()
+                    }
+            )
+        }
         OrDivider(modifier = Modifier.padding(top = 24.dp))
         ReadingAppButton(
             text = stringResource(R.string.continue_with_google),
