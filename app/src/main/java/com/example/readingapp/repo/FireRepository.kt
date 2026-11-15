@@ -43,6 +43,15 @@ class FireRepository @Inject constructor(
     val savedBooks: StateFlow<List<MBook>>
         get() = _savedBooks
 
+    /**
+     * Drops everything cached for the signed-in user. This repository is a singleton, so call
+     * this on sign-out or the next user to sign in on the device would briefly see this data.
+     */
+    fun clearUserData() {
+        _user.value = null
+        _savedBooks.value = emptyList()
+    }
+
     suspend fun fetchUser(userId: String?): DataOrException<MUser?, Boolean, Exception> {
         val result = getUserDetailsFromDatabase(userId)
 

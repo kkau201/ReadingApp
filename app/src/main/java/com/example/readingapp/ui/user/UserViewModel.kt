@@ -71,6 +71,7 @@ class UserViewModel @Inject constructor(
                 primaryButtonText = getString(R.string.logout_yes),
                 onPrimaryClick = {
                     FirebaseAuth.getInstance().signOut()
+                    fireRepository.clearUserData()
                     dismissDialog()
                     navigate(NavigateTo(LoginScreenDestination))
                 },
