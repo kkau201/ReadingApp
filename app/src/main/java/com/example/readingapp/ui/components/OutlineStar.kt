@@ -12,9 +12,10 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.readingapp.ui.theme.Ink
+import com.example.readingapp.ui.theme.AppTheme
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -56,4 +57,12 @@ private fun DrawScope.starPath(points: Int = 8): Path {
     }
     path.close()
     return path
+}
+
+@Preview(name = "Outline Star Preview")
+@Composable
+fun OutlineStarPreview() {
+    AppTheme {
+        OutlineStar(filled = true)
+    }
 }

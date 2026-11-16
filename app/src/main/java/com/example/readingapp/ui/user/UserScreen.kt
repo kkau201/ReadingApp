@@ -46,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -67,7 +66,7 @@ import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.model.DEFAULT_READING_GOAL
 import com.example.readingapp.model.MBook
-import com.example.readingapp.ui.components.BookStatus
+import com.example.readingapp.ui.model.BookStatus
 import com.example.readingapp.ui.components.LibraryPageTitle
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.CardBackground
@@ -77,8 +76,9 @@ import com.example.readingapp.ui.theme.PaperBase
 import com.example.readingapp.ui.theme.Green
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
-import com.example.readingapp.ui.user.update.Avatar
+import com.example.readingapp.ui.model.Avatar
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun UserScreen(
@@ -426,7 +426,7 @@ private fun EmailVerificationCard(
 
     if (card == VerifyCard.Verified) {
         LaunchedEffect(Unit) {
-            delay(VERIFIED_CARD_MILLIS)
+            delay(VERIFIED_CARD_MILLIS.milliseconds)
             onVerifiedShown()
         }
     }

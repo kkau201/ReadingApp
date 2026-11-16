@@ -42,7 +42,6 @@ import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.CardBackground
-import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
 
 @Composable

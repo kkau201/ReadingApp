@@ -20,7 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.readingapp.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,3 +92,22 @@ data class ActionButton(
     val isEnabled: Boolean = true,
     val onClick: () -> Unit
 )
+
+@Preview(name = "Reading App Bar Preview")
+@Composable
+fun ReadingAppBarPreview() {
+    AppTheme {
+        ReadingAppBar(title = "Library")
+    }
+}
+
+@Preview(name = "Reading App Bar Nav Preview")
+@Composable
+fun ReadingAppBarNavPreview() {
+    AppTheme {
+        ReadingAppBarNav(
+            title = "Book Details",
+            onNavIconClick = {}
+        )
+    }
+}

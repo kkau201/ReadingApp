@@ -35,15 +35,14 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.readingapp.R
 import com.example.readingapp.model.MBook
-import com.example.readingapp.ui.components.BookStatus
 import com.example.readingapp.ui.components.OutlineStar
 import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
 import com.example.readingapp.ui.details.update.finishedDateLabel
+import com.example.readingapp.ui.model.BookStatus
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.CardBackground
 import com.example.readingapp.ui.theme.Cover
-import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
 import com.example.readingapp.utils.fromHtmlToSpanned
 import com.example.readingapp.utils.toAnnotatedString

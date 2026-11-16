@@ -130,7 +130,7 @@ private fun ReadingStamp(cloth: Color?) {
         OutlineStar(color = InkBase.copy(alpha = 0.28f))
         if (cloth != null) {
             Image(
-                painter = painterResource(R.drawable.book_logo_three_no_bg),
+                painter = painterResource(R.drawable.book_logo),
                 contentDescription = null,
                 modifier = Modifier.size(52.dp)
             )

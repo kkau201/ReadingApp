@@ -1,6 +1,5 @@
 package com.example.readingapp.ui.user.update
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -51,6 +50,7 @@ import com.example.readingapp.model.MAX_READING_GOAL
 import com.example.readingapp.model.MIN_READING_GOAL
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.ui.components.characterCounter
+import com.example.readingapp.ui.model.Avatar
 import com.example.readingapp.ui.theme.CardBackground
 import com.example.readingapp.ui.theme.Cover
 import com.example.readingapp.ui.theme.Ink
@@ -279,7 +279,6 @@ private fun ProfileFormButton(
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UpdateAvatarPager(
     modifier: Modifier = Modifier,

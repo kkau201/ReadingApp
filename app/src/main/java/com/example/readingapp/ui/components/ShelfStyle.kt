@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.readingapp.model.MBook
-import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.allColors
 import java.util.ArrayDeque
 

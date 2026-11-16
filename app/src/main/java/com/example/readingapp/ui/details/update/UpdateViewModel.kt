@@ -11,7 +11,7 @@ import com.example.readingapp.common.LoadingState
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.model.limitTo
 import com.example.readingapp.repo.FireRepository
-import com.example.readingapp.ui.components.BookStatus
+import com.example.readingapp.ui.model.BookStatus
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,9 +34,8 @@ class UpdateViewModel @Inject constructor(
     override val isNavigationDestination: Boolean = true
     private val args = DetailsScreenDestination.argsFrom(savedStateHandle)
 
-    private val _uiState: MutableStateFlow<UpdateUiState> = MutableStateFlow(UpdateUiState())
     val uiState: StateFlow<UpdateUiState>
-        get() = _uiState
+        field: MutableStateFlow<UpdateUiState> = MutableStateFlow(UpdateUiState())
 
     fun loadBook() = viewModelScope.launch(Dispatchers.IO) {
         try {
@@ -45,7 +44,7 @@ class UpdateViewModel @Inject constructor(
             val savedBook = allSavedBooks.find { it.googleBookId == args.bookId }
             val parts = savedBook.finishedParts()
             withContext(Dispatchers.Main) {
-                _uiState.update { state ->
+                uiState.update { state ->
                     state.copy(
                         bookId = savedBook?.id,
                         book = savedBook,
@@ -71,13 +70,13 @@ class UpdateViewModel @Inject constructor(
     }
 
     fun onNoteInputChanged(input: String) {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(noteInput = input.limitTo(TextLimits.BOOK_NOTES))
         }
     }
 
     fun onStatusChanged(status: BookStatus) {
-        _uiState.update { state ->
+        uiState.update { state ->
             val year = if (status == BookStatus.FINISHED && state.finishedYear == 0) {
                 maxFinishedYear()
             } else {
@@ -89,11 +88,11 @@ class UpdateViewModel @Inject constructor(
 
     fun onFinishedYearChanged(year: Int) {
         if (year !in MIN_FINISHED_YEAR..maxFinishedYear()) return
-        _uiState.update { it.copy(finishedYear = year, finishedOnError = false) }
+        uiState.update { it.copy(finishedYear = year, finishedOnError = false) }
     }
 
     fun onFinishedMonthChanged(month: Int?) {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 finishedMonth = month,
                 finishedDay = if (month == null) "" else state.finishedDay,
@@ -103,7 +102,7 @@ class UpdateViewModel @Inject constructor(
     }
 
     fun onFinishedDayChanged(input: String) {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(
                 finishedDay = input.filter(Char::isDigit).take(2),
                 finishedOnError = false
@@ -112,7 +111,7 @@ class UpdateViewModel @Inject constructor(
     }
 
     fun onRatingChanged(rating: Int) {
-        _uiState.update { state ->
+        uiState.update { state ->
             state.copy(selectedRating = rating)
         }
     }
@@ -142,7 +141,7 @@ class UpdateViewModel @Inject constructor(
                 null
             }
             if (selectedStatus == BookStatus.FINISHED && finished == null) {
-                _uiState.update { it.copy(finishedOnError = true) }
+                uiState.update { it.copy(finishedOnError = true) }
                 return@let
             }
             val finishedTimeStamp = finished?.toTimestamp()

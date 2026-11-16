@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.example.readingapp.R
 import com.example.readingapp.model.MBook
 import com.example.readingapp.model.TextLimits
-import com.example.readingapp.ui.components.BookStatus
+import com.example.readingapp.ui.model.BookStatus
 import com.example.readingapp.ui.components.OutlineStar
 import com.example.readingapp.ui.components.characterCounter
 import com.example.readingapp.ui.theme.CardBackground

@@ -28,6 +28,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SplashViewModelTest {
@@ -59,7 +60,7 @@ class SplashViewModelTest {
         start()
 
         // Signed-out users no longer wait 5 seconds.
-        advanceTimeBy(1001)
+        advanceTimeBy(1001.milliseconds)
 
         assertEquals(
             listOf<NavigationEvent?>(NavigateTo(LoginScreenDestination, popCurrent = true)),

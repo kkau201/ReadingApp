@@ -1,5 +1,6 @@
 package com.example.dependencies
 
+@Suppress("ConstPropertyName")
 object Libs {
     object Hilt {
         private const val version = "2.60.1" // https://github.com/google/dagger/releases

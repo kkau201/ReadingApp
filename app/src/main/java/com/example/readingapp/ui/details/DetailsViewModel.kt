@@ -16,7 +16,7 @@ import com.example.readingapp.repo.BookRepository
 import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.repo.FireRepository.Companion.BOOKS_COLLECTION
-import com.example.readingapp.ui.components.BookStatus
+import com.example.readingapp.ui.model.BookStatus
 import com.example.readingapp.ui.components.DialogChoice
 import com.example.readingapp.ui.components.DialogFinishedDate
 import com.example.readingapp.ui.components.DialogState

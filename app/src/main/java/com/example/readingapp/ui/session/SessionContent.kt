@@ -210,7 +210,6 @@ private fun NoReadingBooksPreview() {
         .padding(24.dp))
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ReadingCarousel(
     books: List<MBook>,

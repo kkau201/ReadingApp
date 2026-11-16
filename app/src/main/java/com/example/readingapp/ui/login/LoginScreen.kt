@@ -73,7 +73,7 @@ fun LoginScreen(
             .padding(top = 36.dp, bottom = 24.dp)
     ) {
         Image(
-            painter = painterResource(id = R.drawable.book_logo_three_no_bg),
+            painter = painterResource(id = R.drawable.book_logo),
             contentDescription = stringResource(R.string.cont_desc_book_logo),
             contentScale = ContentScale.Fit,
             modifier = Modifier

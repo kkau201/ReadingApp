@@ -16,6 +16,7 @@ import com.example.readingapp.model.asReadingGoal
 import com.example.readingapp.model.limitTo
 import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.repo.FireRepository
+import com.example.readingapp.ui.model.Avatar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

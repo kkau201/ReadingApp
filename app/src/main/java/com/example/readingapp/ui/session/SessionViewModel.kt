@@ -13,7 +13,7 @@ import com.example.readingapp.model.TextLimits
 import com.example.readingapp.model.limitTo
 import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.repo.FireRepository
-import com.example.readingapp.ui.components.BookStatus
+import com.example.readingapp.ui.model.BookStatus
 import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.details.update.FinishedParts
 import com.example.readingapp.ui.details.update.MIN_FINISHED_YEAR

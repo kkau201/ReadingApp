@@ -23,9 +23,8 @@ class SearchViewModel @Inject constructor(
     dependencyContextWrapper: DependencyContextWrapper,
     private val bookRepository: BookRepository
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
-    private val _uiState: MutableStateFlow<SearchUiState> = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState>
-        get() = _uiState
+        field: MutableStateFlow<SearchUiState> = MutableStateFlow(SearchUiState())
 
     fun onLoad() {
         val state = uiState.value
@@ -35,7 +34,7 @@ class SearchViewModel @Inject constructor(
     }
 
     fun onInputChange(input: String) {
-        _uiState.update {
+        uiState.update {
             it.copy(
                 searchInput = input,
                 isValidInput = input.trim().isNotEmpty()
@@ -58,7 +57,7 @@ class SearchViewModel @Inject constructor(
                 bookRepository.getBooksByQuery(query).collect { result ->
                     if (request != searchRequest) return@collect
                     Log.d("ReadingAppTesting", "Result collected from book flow: $result")
-                    _uiState.update { state ->
+                    uiState.update { state ->
                         state.copy(
                             results = when (result) {
                                 is RemoteResult.Success -> SearchResults.Success(result.data)
@@ -71,7 +70,7 @@ class SearchViewModel @Inject constructor(
             } catch (e: Exception) {
                 if (request != searchRequest) return@launch
                 Log.e("ReadingAppTesting", "Failed to get books by query: $e")
-                _uiState.update { it.copy(results = SearchResults.Error(e)) }
+                uiState.update { it.copy(results = SearchResults.Error(e)) }
             }
         }
     }

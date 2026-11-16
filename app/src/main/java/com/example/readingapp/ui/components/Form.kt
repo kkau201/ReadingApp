@@ -20,8 +20,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.readingapp.R
 import com.example.readingapp.common.LoadingState
-import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
 import com.example.readingapp.utils.keyboardAsState
 

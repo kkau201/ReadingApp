@@ -1,7 +1,7 @@
 package com.example.readingapp.ui.details.update
 
 import com.example.readingapp.model.MBook
-import com.example.readingapp.ui.components.BookStatus
+import com.example.readingapp.ui.model.BookStatus
 
 data class UpdateUiState(
     val bookId: String? = null,

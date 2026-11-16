@@ -1,6 +1,6 @@
 package com.example.readingapp.model
 
-import com.example.readingapp.ui.components.BookStatus
+import com.example.readingapp.ui.model.BookStatus
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.PropertyName
 
