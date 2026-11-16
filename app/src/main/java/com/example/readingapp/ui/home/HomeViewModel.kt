@@ -6,12 +6,12 @@ import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
+import com.example.readingapp.coroutines.CoroutineDispatcherProvider
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -23,6 +23,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val fireRepository: FireRepository,
     private val authRepository: AuthRepository,
+    private val dispatchers: CoroutineDispatcherProvider,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
 
@@ -30,14 +31,14 @@ class HomeViewModel @Inject constructor(
         field: MutableStateFlow<HomeUiState?> = MutableStateFlow(null)
 
     fun onLoad() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatchers.getIo()) {
             try {
                 updateLoadingState(LoadingState.Loading())
                 val currentUserId = authRepository.currentUserId ?: throw ErrorType.UnknownUserException
                 val user = fireRepository.user.value ?: fireRepository.fetchUser(currentUserId).getOrThrow()
                 val books = fireRepository.fetchSavedBooksByUser().getOrThrow()
 
-                withContext(Dispatchers.Main) {
+                withContext(dispatchers.getMain()) {
                     uiState.update {
                         HomeUiState(
                             displayName = user?.displayName,

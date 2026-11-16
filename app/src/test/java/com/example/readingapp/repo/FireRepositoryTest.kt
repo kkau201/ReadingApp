@@ -2,6 +2,8 @@ package com.example.readingapp.repo
 
 import com.example.readingapp.model.DISPLAY_NAME
 import com.example.readingapp.model.USER_ID
+import com.example.readingapp.testing.TestData
+import com.example.readingapp.testing.TestData.UID
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
@@ -32,11 +34,11 @@ class FireRepositoryTest {
 
     @Test
     fun fetchUser_readsDocumentKeyedByUid() = runTest {
-        every { userRef.get() } returns Tasks.forResult(userSnapshot("Jane Austen"))
+        every { userRef.get() } returns Tasks.forResult(userSnapshot(TestData.DISPLAY_NAME))
 
         repository.fetchUser(UID)
 
-        assertEquals("Jane Austen", repository.user.value?.displayName)
+        assertEquals(TestData.DISPLAY_NAME, repository.user.value?.displayName)
         // Never scans the whole collection.
         verify(exactly = 0) { users.get() }
     }
@@ -52,7 +54,7 @@ class FireRepositoryTest {
 
     @Test
     fun clearUserData_removesCachedUserAndBooks() = runTest {
-        every { userRef.get() } returns Tasks.forResult(userSnapshot("Jane Austen"))
+        every { userRef.get() } returns Tasks.forResult(userSnapshot(TestData.DISPLAY_NAME))
         repository.fetchUser(UID)
 
         repository.clearUserData()
@@ -61,7 +63,7 @@ class FireRepositoryTest {
         assertTrue(repository.savedBooks.value.isEmpty())
     }
 
-    private fun userSnapshot(displayName: String) =
+    private fun userSnapshot(@Suppress("SameParameterValue") displayName: String) =
         mockk<DocumentSnapshot>(relaxed = true).also { doc ->
             every { doc.exists() } returns true
             every { doc.id } returns UID
@@ -72,8 +74,4 @@ class FireRepositoryTest {
 
     private fun missingSnapshot() =
         mockk<DocumentSnapshot>().also { doc -> every { doc.exists() } returns false }
-
-    private companion object {
-        const val UID = "uid-1"
-    }
 }

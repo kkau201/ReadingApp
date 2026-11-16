@@ -1,12 +1,10 @@
 package com.example.readingapp.ui.user
 
-import android.content.Context
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.example.readingapp.MainViewModel
 import com.example.readingapp.R
 import com.example.readingapp.auth.AuthException
 import com.example.readingapp.auth.AuthFailure
-import com.example.readingapp.auth.AuthUser
 import com.example.readingapp.auth.EmailVerificationStatus
 import com.example.readingapp.auth.FakeAuthRepository
 import com.example.readingapp.auth.FakeGoogleIdTokenProvider
@@ -17,16 +15,17 @@ import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.nav.NavigationEvent
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.testing.MainDispatcherRule
+import com.example.readingapp.testing.TestData
+import com.example.readingapp.testing.collectNavigation
+import com.example.readingapp.testing.fakeContext
+import com.example.readingapp.testing.str
 import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.LoginScreenDestination
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -44,12 +43,7 @@ class UserViewModelAccountTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val context = mockk<Context>().also { context ->
-        every { context.getString(any()) } answers { str(firstArg()) }
-    }
-    private val authRepository = FakeAuthRepository().apply {
-        current = AuthUser(uid = "uid-1", displayName = "Jane Austen", email = "jane@example.com")
-    }
+    private val authRepository = FakeAuthRepository().apply { current = TestData.authUser }
     private val tokenProvider = FakeGoogleIdTokenProvider()
     private val fireRepository = spyk(
         FireRepository(
@@ -71,16 +65,12 @@ class UserViewModelAccountTest {
             fireRepository,
             authRepository,
             tokenProvider,
-            DependencyContextWrapper(context)
+            DependencyContextWrapper(fakeContext())
         )
         viewModel.setMainViewModel(mainViewModel)
     }
 
-    private fun TestScope.collectNavigation() {
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
-            mainViewModel.navigationFlow.collect { navigationEvents += it }
-        }
-    }
+    private fun TestScope.collectNavigation() = collectNavigation(mainViewModel, into = navigationEvents)
 
     private fun dialog(): DialogState = mainViewModel.dialogFlow.value ?: error("No dialog shown")
 
@@ -116,7 +106,7 @@ class UserViewModelAccountTest {
 
         viewModel.loadUser()
 
-        assertEquals("jane@example.com", viewModel.uiState.value.unverifiedEmail)
+        assertEquals(TestData.EMAIL, viewModel.uiState.value.unverifiedEmail)
         assertFalse(viewModel.uiState.value.emailJustVerified)
     }
 
@@ -330,5 +320,4 @@ class UserViewModelAccountTest {
         assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
     }
 
-    private fun str(id: Int) = "res:$id"
 }

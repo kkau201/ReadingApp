@@ -1,8 +1,10 @@
 package com.example.readingapp.auth
 
+import com.example.readingapp.testing.TestData
+
 class FakeAuthRepository : AuthRepository {
-    var signedInUser =
-        AuthUser(uid = "uid-1", displayName = "Jane Austen", email = "jane@example.com")
+    /** The account the next sign-in / register call signs in as. */
+    var signedInUser = TestData.authUser
 
     /** The user returned by [currentUser]; null means signed out. Set by sign-in calls. */
     var current: AuthUser? = null

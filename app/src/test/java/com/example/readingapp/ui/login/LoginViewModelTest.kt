@@ -1,6 +1,5 @@
 package com.example.readingapp.ui.login
 
-import android.content.Context
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.viewModelScope
@@ -17,15 +16,16 @@ import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.nav.NavigationEvent
 import com.example.readingapp.testing.MainDispatcherRule
+import com.example.readingapp.testing.TestData
+import com.example.readingapp.testing.TestData.UID
+import com.example.readingapp.testing.collectNavigation
+import com.example.readingapp.testing.fakeContext
+import com.example.readingapp.testing.str
 import com.example.readingapp.ui.destinations.DashboardScreenDestination
-import io.mockk.every
-import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -41,11 +41,6 @@ class LoginViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    /** Every string resource resolves to "res:<id>", so tests can assert which one was shown. */
-    private val context = mockk<Context>().also { context ->
-        every { context.getString(any()) } answers { str(firstArg()) }
-        every { context.getString(any(), *anyVararg()) } answers { str(firstArg()) }
-    }
     private val tokenProvider = FakeGoogleIdTokenProvider()
     private val authRepository = FakeAuthRepository()
     private val mainViewModel = MainViewModel()
@@ -55,15 +50,11 @@ class LoginViewModelTest {
 
     @Before
     fun setUp() {
-        viewModel = LoginViewModel(DependencyContextWrapper(context), tokenProvider, authRepository)
+        viewModel = LoginViewModel(DependencyContextWrapper(fakeContext()), tokenProvider, authRepository)
         viewModel.setMainViewModel(mainViewModel)
     }
 
-    private fun TestScope.collectNavigation() {
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
-            mainViewModel.navigationFlow.collect { navigationEvents += it }
-        }
-    }
+    private fun TestScope.collectNavigation() = collectNavigation(mainViewModel, into = navigationEvents)
 
     private val dashboard = NavigateTo(to = DashboardScreenDestination, popCurrent = true)
 
@@ -76,7 +67,7 @@ class LoginViewModelTest {
         viewModel.onGoogleSignInClick()
 
         assertEquals(listOf("fake-id-token"), authRepository.receivedIdTokens)
-        assertEquals(listOf("uid-1" to "Jane Austen"), authRepository.createdUserDocuments)
+        assertEquals(listOf(UID to TestData.DISPLAY_NAME), authRepository.createdUserDocuments)
         assertEquals(listOf<NavigationEvent?>(dashboard), navigationEvents)
         assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
         assertNull(viewModel.uiState.value.errorMessage)
@@ -85,7 +76,7 @@ class LoginViewModelTest {
     @Test
     fun googleSignIn_existingUser_doesNotCreateDuplicateDocument() = runTest {
         collectNavigation()
-        authRepository.existingUserDocuments += "uid-1"
+        authRepository.existingUserDocuments += UID
 
         viewModel.onGoogleSignInClick()
 
@@ -213,7 +204,7 @@ class LoginViewModelTest {
     @Test
     fun emailLogin_success_signsInWithFormValuesAndNavigates() = runTest {
         collectNavigation()
-        authRepository.existingUserDocuments += "uid-1"
+        authRepository.existingUserDocuments += UID
         viewModel.onEmailChange("reader@example.com")
         viewModel.onPasswordChange("secret")
 
@@ -481,5 +472,4 @@ class LoginViewModelTest {
 
     // endregion
 
-    private fun str(id: Int) = "res:$id"
 }

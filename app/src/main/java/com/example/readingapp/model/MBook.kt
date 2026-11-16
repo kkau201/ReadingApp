@@ -1,6 +1,7 @@
 package com.example.readingapp.model
 
 import com.example.readingapp.ui.model.BookStatus
+import com.example.readingapp.utils.toHttps
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.PropertyName
 
@@ -62,7 +63,7 @@ fun Item.toModel(): MBook {
         subtitle = this.volumeInfo.subtitle,
         authors = this.volumeInfo.authors,
         description = this.volumeInfo.description,
-        imgUrl = this.volumeInfo.imageLinks?.thumbnail,
+        imgUrl = this.volumeInfo.imageLinks?.thumbnail?.toHttps(),
         rating = this.volumeInfo.averageRating,
         pubDate = this.volumeInfo.publishedDate,
         genres = this.volumeInfo.categories,
