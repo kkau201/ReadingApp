@@ -7,6 +7,7 @@ import com.example.readingapp.R
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
+import com.example.readingapp.coroutines.CoroutineDispatcherProvider
 import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MSession
 import com.example.readingapp.model.TextLimits
@@ -21,7 +22,6 @@ import com.example.readingapp.ui.details.update.maxFinishedYear
 import com.example.readingapp.ui.details.update.toFinishedOn
 import com.example.readingapp.ui.details.update.todaySessionParts
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -33,6 +33,7 @@ import javax.inject.Inject
 class SessionViewModel @Inject constructor(
     private val fireRepository: FireRepository,
     private val authRepository: AuthRepository,
+    private val dispatchers: CoroutineDispatcherProvider,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
 
@@ -40,7 +41,7 @@ class SessionViewModel @Inject constructor(
         field = MutableStateFlow(SessionUiState().withToday())
 
     fun onLoad() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatchers.getIo()) {
             try {
                 val userId = authRepository.currentUserId
                     ?: throw ErrorType.UnknownUserException
@@ -48,7 +49,7 @@ class SessionViewModel @Inject constructor(
                     .filter { it.bookStatus == BookStatus.READING }
                     .sortedBy { it.title.orEmpty() }
                 val sessions = fireRepository.fetchSessions(userId)
-                withContext(Dispatchers.Main) {
+                withContext(dispatchers.getMain()) {
                     uiState.update { state ->
                         val selected = state.selectedBookId?.takeIf { id ->
                             books.any { it.shelfId() == id }
@@ -63,7 +64,7 @@ class SessionViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 Log.e("Error", "onLoad: Error loading sessions", e)
-                withContext(Dispatchers.Main) {
+                withContext(dispatchers.getMain()) {
                     showToast(getString(R.string.session_error))
                 }
             }
@@ -171,11 +172,11 @@ class SessionViewModel @Inject constructor(
             readOn = readOn.display,
             readAt = readOn.toTimestamp()
         )
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatchers.getIo()) {
             try {
                 fireRepository.addSession(session)
                 val sessions = fireRepository.fetchSessions(userId)
-                withContext(Dispatchers.Main) {
+                withContext(dispatchers.getMain()) {
                     uiState.update {
                         it.withToday().copy(
                             sessions = sessions,
@@ -217,11 +218,11 @@ class SessionViewModel @Inject constructor(
 
     private fun deleteSession(sessionId: String) {
         val userId = authRepository.currentUserId ?: return
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatchers.getIo()) {
             try {
                 fireRepository.deleteSession(sessionId)
                 val sessions = fireRepository.fetchSessions(userId)
-                withContext(Dispatchers.Main) {
+                withContext(dispatchers.getMain()) {
                     uiState.update { it.copy(sessions = sessions) }
                     showToast(getString(R.string.session_removed))
                 }
