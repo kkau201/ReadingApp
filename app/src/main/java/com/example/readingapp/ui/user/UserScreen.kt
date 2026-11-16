@@ -1,5 +1,13 @@
 package com.example.readingapp.ui.user
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,6 +33,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,15 +43,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.togetherWith
-import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,12 +70,15 @@ import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.BookStatus
 import com.example.readingapp.ui.components.LibraryPageTitle
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.Paper
+import com.example.readingapp.ui.theme.CardBackground
 import com.example.readingapp.ui.theme.Cover
+import com.example.readingapp.ui.theme.OnInk
+import com.example.readingapp.ui.theme.PaperBase
 import com.example.readingapp.ui.theme.Green
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
 import com.example.readingapp.ui.user.update.Avatar
+import kotlinx.coroutines.delay
 
 @Composable
 fun UserScreen(
@@ -89,7 +92,7 @@ fun UserScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = Paper,
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     ) { padding ->
         UserContent(
@@ -179,8 +182,8 @@ fun UserContent(
         ) {
             Text(
                 text = stringResource(R.string.profile_logout),
-                color = Color.White,
-                style = AppTheme.typography.labelLarge,
+                color = OnInk,
+                style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -192,7 +195,7 @@ fun UserContent(
             Text(
                 text = stringResource(R.string.profile_delete_account),
                 color = Muted,
-                style = AppTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .clip(CircleShape)
@@ -202,7 +205,7 @@ fun UserContent(
             Text(
                 text = stringResource(R.string.profile_version, BuildConfig.VERSION_NAME),
                 color = Muted,
-                style = AppTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center
             )
         }
@@ -228,7 +231,7 @@ private fun ProfileHeader(
             Text(
                 text = stringResource(R.string.profile_title),
                 color = Muted,
-                style = AppTheme.typography.labelLarge
+                style = MaterialTheme.typography.labelLarge
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -242,7 +245,7 @@ private fun ProfileHeader(
                     Icon(
                         imageVector = Icons.Outlined.Edit,
                         contentDescription = stringResource(R.string.profile_update),
-                        tint = Ink
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
@@ -250,7 +253,7 @@ private fun ProfileHeader(
                 Text(
                     text = bio,
                     color = Muted,
-                    style = AppTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
@@ -275,7 +278,7 @@ private fun ReadingSummary(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
+            .background(CardBackground)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
@@ -302,7 +305,7 @@ private fun ReadingSummary(
                 Text(
                     text = pluralStringResource(R.plurals.profile_pages_finished, pages, pages),
                     color = Muted,
-                    style = AppTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
@@ -325,13 +328,13 @@ private fun ReadingStat(
     ) {
         Text(
             text = count.toString(),
-            color = Ink,
-            style = AppTheme.typography.headlineSmall
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.headlineSmall
         )
         Text(
             text = label,
             color = Muted,
-            style = AppTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 2.dp)
         )
@@ -346,8 +349,8 @@ private fun NowReading(books: List<MBook>) {
             Column {
                 Text(
                     text = book.title.orEmpty(),
-                    color = Ink,
-                    style = AppTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.titleMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -356,7 +359,7 @@ private fun NowReading(books: List<MBook>) {
                     Text(
                         text = author,
                         color = Muted,
-                        style = AppTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 2.dp)
@@ -413,6 +416,7 @@ private fun EmailVerificationCard(
                         onResend = onResend,
                         onDismiss = onDismiss
                     )
+
                     VerifyCard.Verified -> EmailVerifiedCard()
                     null -> Unit
                 }
@@ -435,7 +439,7 @@ private fun EmailVerifiedCard(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
+            .background(CardBackground)
             .padding(20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -451,7 +455,7 @@ private fun EmailVerifiedCard(modifier: Modifier = Modifier) {
             Text(
                 text = stringResource(R.string.verify_email_done_body),
                 color = Muted,
-                style = AppTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }
@@ -476,7 +480,7 @@ private fun VerifyEmailCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
+            .background(CardBackground)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -484,7 +488,7 @@ private fun VerifyEmailCard(
         Text(
             text = stringResource(R.string.verify_email_card_body, email),
             color = Muted,
-            style = AppTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
         )
         Row(
             modifier = Modifier.padding(top = 8.dp),
@@ -495,14 +499,14 @@ private fun VerifyEmailCard(
                 Text(
                     text = stringResource(R.string.verify_email_resent),
                     color = Muted,
-                    style = AppTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.weight(1f)
                 )
             } else {
                 Text(
                     text = stringResource(R.string.verify_email_resend),
-                    color = Color.White,
-                    style = AppTheme.typography.labelLarge,
+                    color = OnInk,
+                    style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(Ink)
@@ -513,7 +517,7 @@ private fun VerifyEmailCard(
             Text(
                 text = stringResource(R.string.verify_email_dismiss),
                 color = Muted,
-                style = AppTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier
                     .clip(CircleShape)
                     .clickable(onClick = onDismiss)
@@ -542,8 +546,8 @@ private fun ProfileSectionTitle(
 ) {
     Text(
         text = text,
-        color = Ink,
-        style = AppTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onBackground,
+        style = MaterialTheme.typography.titleLarge,
         modifier = modifier
     )
 }
@@ -562,6 +566,8 @@ private fun ProfileAvatar(
             modifier = modifier
                 .size(72.dp)
                 .clip(CircleShape)
+                // Avatars are black line drawings on transparent: keep them on paper in dark theme.
+                .background(PaperBase)
         )
     } else {
         val initial = name.trim().firstOrNull()?.uppercase().orEmpty()
@@ -575,8 +581,8 @@ private fun ProfileAvatar(
         ) {
             Text(
                 text = initial,
-                color = Ink,
-                style = AppTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.headlineSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Clip
             )

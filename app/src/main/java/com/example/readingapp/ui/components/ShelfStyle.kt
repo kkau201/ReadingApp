@@ -1,13 +1,13 @@
 package com.example.readingapp.ui.components
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.readingapp.model.MBook
-import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.allColors
 import java.util.ArrayDeque
@@ -45,8 +45,8 @@ fun LibraryPageTitle(
 ) {
     Text(
         text = text,
-        color = Ink,
-        style = AppTheme.typography.displaySmall,
+        color = MaterialTheme.colorScheme.onBackground,
+        style = MaterialTheme.typography.displaySmall,
         modifier = modifier
     )
 }

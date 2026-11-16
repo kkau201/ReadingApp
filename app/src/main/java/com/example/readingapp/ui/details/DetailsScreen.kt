@@ -2,6 +2,7 @@ package com.example.readingapp.ui.details
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -21,7 +22,6 @@ import com.example.readingapp.ui.components.ActionButton
 import com.example.readingapp.ui.components.ReadingAppBarNav
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
-import com.example.readingapp.ui.theme.Paper
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -41,11 +41,11 @@ fun DetailsScreen(
     ObserveDetailsLifecycleEvents(lifecycleOwner, viewModel)
 
     Scaffold(
-        containerColor = Paper,
+        containerColor = MaterialTheme.colorScheme.background,
         modifier = Modifier.fillMaxSize(),
         topBar = {
             ReadingAppBarNav(
-                backgroundColor = Paper,
+                backgroundColor = MaterialTheme.colorScheme.background,
                 navIconTint = Ink,
                 onNavIconClick = viewModel::navigateBack,
                 actionButtons = if (uiState.isSaved) {
@@ -57,7 +57,7 @@ fun DetailsScreen(
                         ),
                         ActionButton(
                             label = stringResource(R.string.details_edit),
-                            tint = Ink,
+                            tint = MaterialTheme.colorScheme.onBackground,
                             onClick = viewModel::navToUpdateScreen
                         )
                     )
@@ -65,7 +65,7 @@ fun DetailsScreen(
                     listOf(
                         ActionButton(
                             label = stringResource(R.string.details_save),
-                            tint = Ink,
+                            tint = MaterialTheme.colorScheme.onBackground,
                             onClick = viewModel::toggleSavedBook
                         )
                     )

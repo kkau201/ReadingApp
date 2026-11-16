@@ -26,6 +26,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -46,13 +47,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.example.readingapp.R
 import com.example.readingapp.model.MAX_READING_GOAL
+import com.example.readingapp.model.MIN_READING_GOAL
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.ui.components.characterCounter
-import com.example.readingapp.model.MIN_READING_GOAL
-import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.CardBackground
 import com.example.readingapp.ui.theme.Cover
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
+import com.example.readingapp.ui.theme.OnInk
+import com.example.readingapp.ui.theme.PaperBase
 import kotlinx.coroutines.flow.drop
 import kotlin.math.absoluteValue
 
@@ -121,8 +124,8 @@ fun UpdateUserContent(
         ) {
             ProfileFormButton(
                 text = stringResource(R.string.update_cancel),
-                container = Color.White,
-                content = Ink,
+                container = CardBackground,
+                content = MaterialTheme.colorScheme.onBackground,
                 border = Cover,
                 onClick = onCancelClick,
                 modifier = Modifier.weight(1f)
@@ -130,7 +133,7 @@ fun UpdateUserContent(
             ProfileFormButton(
                 text = stringResource(R.string.update_save),
                 container = Ink,
-                content = Color.White,
+                content = OnInk,
                 onClick = onSaveClick,
                 modifier = Modifier.weight(1f)
             )
@@ -146,7 +149,7 @@ private fun ProfileFieldLabel(
     Text(
         text = text,
         color = Muted,
-        style = AppTheme.typography.labelLarge,
+        style = MaterialTheme.typography.labelLarge,
         modifier = modifier
     )
 }
@@ -167,14 +170,14 @@ private fun ProfileTextField(
         TextField(
             value = value,
             onValueChange = onValueChange,
-            textStyle = AppTheme.typography.bodyLarge.copy(color = Ink),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
             shape = FieldShape,
             colors = TextFieldDefaults.colors(
-                focusedTextColor = Ink,
-                unfocusedTextColor = Ink,
-                cursorColor = Ink,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                cursorColor = MaterialTheme.colorScheme.onBackground,
+                focusedContainerColor = CardBackground,
+                unfocusedContainerColor = CardBackground,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent
@@ -190,8 +193,8 @@ private fun ProfileTextField(
         if (error != null) {
             Text(
                 text = error,
-                color = Ink,
-                style = AppTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
@@ -211,7 +214,7 @@ private fun ReadingGoalField(
                 .fillMaxWidth()
                 .padding(top = 8.dp)
                 .clip(FieldShape)
-                .background(Color.White),
+                .background(CardBackground),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
@@ -227,8 +230,8 @@ private fun ReadingGoalField(
             }
             Text(
                 text = goal.toString(),
-                color = Ink,
-                style = AppTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
             IconButton(
@@ -245,7 +248,7 @@ private fun ReadingGoalField(
         Text(
             text = stringResource(R.string.profile_stamp_goal, goal),
             color = Muted,
-            style = AppTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 8.dp)
         )
     }
@@ -263,7 +266,7 @@ private fun ProfileFormButton(
     Text(
         text = text,
         color = content,
-        style = AppTheme.typography.labelLarge,
+        style = MaterialTheme.typography.labelLarge,
         textAlign = TextAlign.Center,
         modifier = modifier
             .fillMaxWidth()
@@ -318,9 +321,11 @@ fun UpdateAvatarPager(
             modifier = Modifier
                 .clip(CircleShape)
                 .size(96.dp)
+                // Avatars are black line drawings on transparent: keep them on paper in dark theme.
+                .background(PaperBase)
                 .border(
                     width = if (selected) 2.dp else 0.dp,
-                    color = Ink,
+                    color = MaterialTheme.colorScheme.onBackground,
                     shape = CircleShape
                 )
                 .graphicsLayer {

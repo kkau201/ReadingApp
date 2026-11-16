@@ -1,11 +1,11 @@
 package com.example.readingapp.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
 
@@ -24,7 +24,7 @@ fun characterCounter(
         Text(
             text = "$length / $max",
             color = if (length >= max) Ink else Muted,
-            style = AppTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.End,
             modifier = Modifier.fillMaxWidth()
         )

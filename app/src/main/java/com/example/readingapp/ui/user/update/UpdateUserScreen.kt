@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -12,20 +13,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.R
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.components.ReadingAppBarNav
-import com.example.readingapp.ui.theme.Paper
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.utils.keyboardAsState
 import com.ramcosta.composedestinations.annotation.Destination
@@ -52,7 +52,7 @@ fun UpdateUserScreen(
     if (!isKeyboardOpen) focusManager.clearFocus()
 
     Scaffold(
-        containerColor = Paper,
+        containerColor = MaterialTheme.colorScheme.background,
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
@@ -62,9 +62,9 @@ fun UpdateUserScreen(
             },
         topBar = {
             ReadingAppBarNav(
-                backgroundColor = Paper,
+                backgroundColor = MaterialTheme.colorScheme.background,
                 title = stringResource(R.string.update_user_title),
-                navIconTint = Ink,
+                navIconTint = MaterialTheme.colorScheme.onBackground,
                 onNavIconClick = viewModel::navigateBack
             )
         }
@@ -91,6 +91,7 @@ fun UpdateUserScreen(
                     }
                 )
             }
+
             else -> {}
         }
     }

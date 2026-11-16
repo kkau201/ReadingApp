@@ -11,6 +11,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -20,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.example.readingapp.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,7 +28,7 @@ fun ReadingAppBar(
     title: String? = null
 ) {
     TopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = AppTheme.colors.background),
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
         title = {
             Row(
                 horizontalArrangement = Arrangement.Center,
@@ -36,7 +36,7 @@ fun ReadingAppBar(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 title?.let {
-                    Text(text = title, style = AppTheme.typography.headlineSmall)
+                    Text(text = title, style = MaterialTheme.typography.headlineSmall)
                 }
             }
         }
@@ -59,7 +59,7 @@ fun ReadingAppBarNav(
             title?.let {
                 Text(
                     text = title,
-                    style = AppTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = navIconTint
                 )
             }
@@ -74,7 +74,7 @@ fun ReadingAppBarNav(
                 Text(
                     text = button.label,
                     color = button.tint,
-                    style = AppTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier
                         .clickable(enabled = button.isEnabled, onClick = button.onClick)
                         .padding(horizontal = 12.dp, vertical = 8.dp)

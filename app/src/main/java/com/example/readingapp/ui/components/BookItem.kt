@@ -15,16 +15,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.StarHalf
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material.icons.rounded.StarRate
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +44,7 @@ import com.example.readingapp.R
 import com.example.readingapp.mainActivity
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.Beige
+import com.example.readingapp.ui.theme.CardBackground
 import com.example.readingapp.ui.theme.Purple
 import com.example.readingapp.ui.theme.allColors
 import kotlin.math.ceil
@@ -100,7 +102,7 @@ fun RowBookItem(
             title?.let {
                 Text(
                     text = it,
-                    style = AppTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleSmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = AppTheme.spacing.smSpacing)
@@ -109,7 +111,7 @@ fun RowBookItem(
             authors?.let {
                 Text(
                     text = it,
-                    style = AppTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = AppTheme.spacing.xxsmSpacing)
@@ -124,7 +126,7 @@ fun RowBookItem(
 fun ColumnBookItem(
     modifier: Modifier = Modifier,
     context: Context = mainActivity(),
-    backgroundColor: Color = Color.White,
+    backgroundColor: Color = CardBackground,
     title: String? = null,
     authors: List<String>? = null,
     imgUrl: String? = null,
@@ -142,14 +144,17 @@ fun ColumnBookItem(
             .clickable { onClick() }
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Box(modifier = Modifier
-                .width(80.dp)
-                .height(100.dp)
-                .clip(RoundedCornerShape(AppTheme.spacing.xxsmSpacing))
+            Box(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(100.dp)
+                    .clip(RoundedCornerShape(AppTheme.spacing.xxsmSpacing))
             ) {
-                Box(modifier = Modifier
-                    .fillMaxSize()
-                    .background(allColors.random()))
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(allColors.random())
+                )
                 AsyncImage(
                     model = ImageRequest.Builder(context).data(imgUrl).build(),
                     contentScale = ContentScale.Crop,
@@ -161,7 +166,7 @@ fun ColumnBookItem(
                 title?.let {
                     Text(
                         text = it,
-                        style = AppTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(bottom = AppTheme.spacing.xxsmSpacing)
@@ -175,7 +180,7 @@ fun ColumnBookItem(
                                 else append(", $a")
                             }
                         },
-                        style = AppTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(bottom = AppTheme.spacing.xxsmSpacing)
@@ -184,7 +189,7 @@ fun ColumnBookItem(
                 date?.let {
                     Text(
                         text = it,
-                        style = AppTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(bottom = AppTheme.spacing.xxsmSpacing)
@@ -198,7 +203,7 @@ fun ColumnBookItem(
                                 else append(", $g")
                             }
                         },
-                        style = AppTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -250,14 +255,17 @@ fun BookRating(
 fun BookProgressLabel(progress: BookStatus, modifier: Modifier = Modifier) {
     Text(
         text = progress.statusText,
-        style = AppTheme.typography.labelSmall,
+        style = MaterialTheme.typography.labelSmall,
         modifier = modifier
             .padding(top = AppTheme.spacing.xsmSpacing)
             .background(
-                color = AppTheme.colors.tertiary,
+                color = MaterialTheme.colorScheme.tertiary,
                 shape = RoundedCornerShape(topStart = AppTheme.spacing.lgSpacing)
             )
-            .padding(vertical = AppTheme.spacing.xxsmSpacing, horizontal = AppTheme.spacing.smSpacing)
+            .padding(
+                vertical = AppTheme.spacing.xxsmSpacing,
+                horizontal = AppTheme.spacing.smSpacing
+            )
     )
 }
 

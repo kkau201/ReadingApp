@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,9 +29,9 @@ import com.example.readingapp.model.asReadingGoal
 import com.example.readingapp.ui.components.OutlineStar
 import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
-import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.Ink
-import com.example.readingapp.ui.theme.Muted
+// This card is always yellow, so its text uses the fixed (not theme-aware) colours.
+import com.example.readingapp.ui.theme.InkBase
+import com.example.readingapp.ui.theme.MutedBase
 import com.example.readingapp.ui.theme.Yellow
 import com.google.firebase.Timestamp
 import java.util.Calendar
@@ -64,13 +65,13 @@ fun ReadingStampCard(
     ) {
         Text(
             text = year.toString(),
-            color = Ink,
-            style = AppTheme.typography.labelSmall
+            color = InkBase,
+            style = MaterialTheme.typography.labelSmall
         )
         Text(
             text = stringResource(R.string.profile_stamp_title),
-            color = Ink,
-            style = AppTheme.typography.headlineSmall,
+            color = InkBase,
+            style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(top = 4.dp)
         )
         Text(
@@ -79,8 +80,8 @@ fun ReadingStampCard(
             } else {
                 stringResource(R.string.profile_stamp_goal, stampGoal)
             },
-            color = Ink,
-            style = AppTheme.typography.bodyMedium,
+            color = InkBase,
+            style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 4.dp, bottom = 18.dp)
         )
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -102,8 +103,8 @@ fun ReadingStampCard(
         }
         Text(
             text = description,
-            color = Ink,
-            style = AppTheme.typography.labelLarge,
+            color = InkBase,
+            style = MaterialTheme.typography.labelLarge,
             modifier = Modifier
                 .padding(top = 18.dp)
                 .align(Alignment.End)
@@ -111,8 +112,8 @@ fun ReadingStampCard(
         if (extra > 0) {
             Text(
                 text = pluralStringResource(R.plurals.profile_stamp_more, extra, extra),
-                color = Muted,
-                style = AppTheme.typography.bodyMedium,
+                color = MutedBase,
+                style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 2.dp)
             )
         }
@@ -125,7 +126,8 @@ private fun ReadingStamp(cloth: Color?) {
         modifier = Modifier.size(56.dp),
         contentAlignment = Alignment.Center
     ) {
-        OutlineStar()
+        // On the yellow card, so use the fixed ink colour in both themes.
+        OutlineStar(color = InkBase.copy(alpha = 0.28f))
         if (cloth != null) {
             Image(
                 painter = painterResource(R.drawable.book_logo_three_no_bg),

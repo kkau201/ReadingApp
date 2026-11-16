@@ -6,8 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -40,6 +41,7 @@ import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
 import com.example.readingapp.ui.details.update.finishedDateLabel
 import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.CardBackground
 import com.example.readingapp.ui.theme.Cover
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
@@ -79,13 +81,13 @@ fun DetailsScreenContent(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = stringResource(R.string.details_about),
-                    color = Ink,
-                    style = AppTheme.typography.titleLarge
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.titleLarge
                 )
                 Text(
                     text = description.fromHtmlToSpanned().toAnnotatedString(),
-                    color = Ink,
-                    style = AppTheme.typography.bodyLarge
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
         }
@@ -108,15 +110,15 @@ private fun BookHeading(
         ) {
             Text(
                 text = book.title.orEmpty(),
-                color = Ink,
-                style = AppTheme.typography.headlineSmall
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.headlineSmall
             )
             val author = book.authors?.filter { it.isNotBlank() }?.joinToString(", ")
             if (!author.isNullOrBlank()) {
                 Text(
                     text = author,
                     color = Muted,
-                    style = AppTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium
                 )
             }
             val meta = bookMeta(book)
@@ -124,7 +126,7 @@ private fun BookHeading(
                 Text(
                     text = meta,
                     color = Muted,
-                    style = AppTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }
@@ -140,19 +142,20 @@ private fun YourShelfCard(
     val finishedDate = book.finishedDateLabel()
     val rating = book.shelfRating()
     val notes = book.notes?.takeIf { it.isNotBlank() }
+    val starColor = MaterialTheme.colorScheme.onBackground
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(ShelfCardShape)
             .border(1.dp, Cover, ShelfCardShape)
-            .background(Color.White)
+            .background(CardBackground)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = stringResource(R.string.details_on_your_shelf),
-            color = Ink,
-            style = AppTheme.typography.titleLarge
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.titleLarge
         )
         Column(
             modifier = Modifier.clickable(onClick = onStatusClick),
@@ -161,14 +164,14 @@ private fun YourShelfCard(
             ShelfLabel(text = stringResource(R.string.update_book_status))
             Text(
                 text = status.shelfLabel(),
-                color = Ink,
-                style = AppTheme.typography.bodyLarge
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodyLarge
             )
             if (status == BookStatus.FINISHED && !finishedDate.isNullOrBlank()) {
                 Text(
                     text = finishedDate,
                     color = Muted,
-                    style = AppTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }
@@ -179,7 +182,7 @@ private fun YourShelfCard(
                     for (star in 1..5) {
                         val description = stringResource(R.string.cont_desc_star_number, star)
                         OutlineStar(
-                            color = if (star <= rating) Ink else Ink.copy(alpha = 0.28f),
+                            color = if (star <= rating) starColor else starColor.copy(alpha = 0.28f),
                             filled = star <= rating,
                             size = 22.dp,
                             modifier = Modifier.semantics { contentDescription = description }
@@ -193,8 +196,8 @@ private fun YourShelfCard(
                 ShelfLabel(text = stringResource(R.string.update_book_notes))
                 Text(
                     text = notes,
-                    color = Ink,
-                    style = AppTheme.typography.bodyLarge
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
         }
@@ -206,7 +209,7 @@ private fun ShelfLabel(text: String) {
     Text(
         text = text,
         color = Muted,
-        style = AppTheme.typography.labelLarge
+        style = MaterialTheme.typography.labelLarge
     )
 }
 
@@ -255,11 +258,11 @@ private fun GenreTags(genres: List<String>) {
         genres.forEach { genre ->
             Text(
                 text = genre,
-                color = Ink,
-                style = AppTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(CardBackground)
                     .padding(horizontal = 14.dp, vertical = 8.dp)
             )
         }

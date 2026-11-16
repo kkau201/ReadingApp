@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -25,7 +26,6 @@ import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.components.ReadingAppBarNav
 import com.example.readingapp.ui.theme.Ink
-import com.example.readingapp.ui.theme.Paper
 import com.example.readingapp.utils.keyboardAsState
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
@@ -52,7 +52,7 @@ fun UpdateScreen(
     if (!isKeyboardOpen) focusManager.clearFocus()
 
     Scaffold(
-        containerColor = Paper,
+        containerColor = MaterialTheme.colorScheme.background,
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
@@ -62,9 +62,9 @@ fun UpdateScreen(
             },
         topBar = {
             ReadingAppBarNav(
-                backgroundColor = Paper,
+                backgroundColor = MaterialTheme.colorScheme.background,
                 title = stringResource(R.string.update_book_title),
-                navIconTint = Ink,
+                navIconTint = MaterialTheme.colorScheme.onBackground,
                 onNavIconClick = viewModel::navigateBack
             )
         }

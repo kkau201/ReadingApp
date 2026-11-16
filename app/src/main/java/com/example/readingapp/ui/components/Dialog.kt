@@ -14,8 +14,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -36,10 +37,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.readingapp.ui.details.update.FinishedDateField
-import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.CardBackground
 import com.example.readingapp.ui.theme.Cover
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
+import com.example.readingapp.ui.theme.OnInk
 
 data class DialogState(
     val dismissed: Boolean = false,
@@ -99,7 +101,7 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
             val maxHeight = LocalConfiguration.current.screenHeightDp.dp * 0.85f
             Surface(
                 shape = RoundedCornerShape(20.dp),
-                color = Color.White,
+                color = CardBackground,
                 modifier = modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
@@ -123,7 +125,7 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
                     title?.let {
                         Text(
                             text = title,
-                            style = AppTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleLarge,
                             textAlign = TextAlign.Center,
                             color = Ink,
                             modifier = Modifier.fillMaxWidth()
@@ -132,7 +134,7 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
                     message?.let {
                         Text(
                             text = message,
-                            style = AppTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                             color = Muted,
                             modifier = Modifier
@@ -154,8 +156,8 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
                             choices.forEach { choice ->
                                 DialogButton(
                                     text = choice.text,
-                                    container = if (choice.selected) Ink else Color.White,
-                                    content = if (choice.selected) Color.White else Ink,
+                                    container = if (choice.selected) Ink else CardBackground,
+                                    content = if (choice.selected) OnInk else Ink,
                                     border = if (choice.selected) null else Cover,
                                     onClick = choice.onClick
                                 )
@@ -175,14 +177,14 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
                                 DialogButton(
                                     text = primaryButtonText,
                                     container = Ink,
-                                    content = Color.White,
+                                    content = OnInk,
                                     onClick = { onPrimaryClick?.invoke() }
                                 )
                             }
                             secondaryButtonText?.let {
                                 DialogButton(
                                     text = secondaryButtonText,
-                                    container = Color.White,
+                                    container = CardBackground,
                                     content = Ink,
                                     border = Cover,
                                     onClick = { onSecondaryClick?.invoke() }
@@ -205,7 +207,7 @@ private fun DialogPasswordField(
         Text(
             text = input.label,
             color = Muted,
-            style = AppTheme.typography.labelLarge
+            style = MaterialTheme.typography.labelLarge
         )
         TextField(
             value = input.value,
@@ -217,15 +219,15 @@ private fun DialogPasswordField(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
             ),
-            textStyle = AppTheme.typography.bodyLarge.copy(color = Ink),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = Ink),
             shape = RoundedCornerShape(16.dp),
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Ink,
                 unfocusedTextColor = Ink,
                 cursorColor = Ink,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                errorContainerColor = Color.White,
+                focusedContainerColor = CardBackground,
+                unfocusedContainerColor = CardBackground,
+                errorContainerColor = CardBackground,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 errorIndicatorColor = Color.Transparent
@@ -239,7 +241,7 @@ private fun DialogPasswordField(
             Text(
                 text = it,
                 color = Ink,
-                style = AppTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
@@ -257,7 +259,7 @@ private fun DialogButton(
     Text(
         text = text,
         color = content,
-        style = AppTheme.typography.labelLarge,
+        style = MaterialTheme.typography.labelLarge,
         textAlign = TextAlign.Center,
         modifier = Modifier
             .fillMaxWidth()
@@ -279,7 +281,8 @@ private fun DialogButton(
 @Preview
 @Composable
 fun DialogPreviewOneButton() {
-    ReadingAppDialog(state = DialogState(
+    ReadingAppDialog(
+        state = DialogState(
         title = "Test Dialog",
         message = "Are you sure you want to test?",
         primaryButtonText = "Yes",
@@ -290,10 +293,11 @@ fun DialogPreviewOneButton() {
 @Preview
 @Composable
 fun DialogPreviewPasswordInput() {
-    ReadingAppDialog(state = DialogState(
-        title = "Delete account?",
+    ReadingAppDialog(
+        state = DialogState(
+            title = "Delete account?",
         message = "This permanently deletes your profile, saved books and reading sessions. " +
-            "This can't be undone.\n\nEnter your password to confirm.",
+                "This can't be undone.\n\nEnter your password to confirm.",
         passwordInput = DialogPasswordInput(
             label = "Password",
             value = "secret",
@@ -310,7 +314,8 @@ fun DialogPreviewPasswordInput() {
 @Preview
 @Composable
 fun DialogPreviewTwoButtons() {
-    ReadingAppDialog(state = DialogState(
+    ReadingAppDialog(
+        state = DialogState(
         title = "Test Dialog",
         message = "Are you sure you want to test?",
         primaryButtonText = "Yes",

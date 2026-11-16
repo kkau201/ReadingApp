@@ -3,7 +3,6 @@ package com.example.readingapp.ui.login
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -18,12 +17,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -38,10 +40,9 @@ import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.ui.components.InputForm
 import com.example.readingapp.ui.components.LibraryPageTitle
 import com.example.readingapp.ui.components.ReadingAppButton
-import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
-import com.example.readingapp.ui.theme.Paper
+import com.example.readingapp.ui.theme.PaperBase
+import com.example.readingapp.ui.theme.isAppInDarkTheme
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -60,7 +61,7 @@ fun LoginScreen(
 
     Column(
         modifier = Modifier
-            .background(Paper)
+            .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
             .systemBarsPadding()
             .imePadding()
@@ -75,7 +76,20 @@ fun LoginScreen(
             painter = painterResource(id = R.drawable.book_logo_three_no_bg),
             contentDescription = stringResource(R.string.cont_desc_book_logo),
             contentScale = ContentScale.Fit,
-            modifier = Modifier.size(72.dp).align(Alignment.CenterHorizontally)
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .then(
+                    // The mascot is solid black: give it a paper circle so it shows in dark theme.
+                    if (isAppInDarkTheme()) {
+                        Modifier
+                            .size(96.dp)
+                            .clip(CircleShape)
+                            .background(PaperBase)
+                            .padding(12.dp)
+                    } else {
+                        Modifier.size(72.dp)
+                    }
+                )
         )
         Spacer(modifier = Modifier.height(24.dp))
         LibraryPageTitle(
@@ -101,8 +115,8 @@ fun LoginScreen(
         if (isLogin) {
             Text(
                 text = stringResource(R.string.forgot_password),
-                color = Ink,
-                style = AppTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 16.dp)
@@ -116,15 +130,15 @@ fun LoginScreen(
         ReadingAppButton(
             text = stringResource(R.string.continue_with_google),
             enabled = loadingState.value !is LoadingState.Loading,
-            backgroundColor = Paper,
-            contentColor = Ink,
+            backgroundColor = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.onBackground,
             onClick = {
                 keyboardController?.hide()
                 viewModel.onGoogleSignInClick()
             },
             modifier = Modifier
                 .padding(top = 24.dp)
-                .border(1.dp, Ink, CircleShape)
+                .border(1.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
         )
         SwitchScreenSection(
             screenState = uiState.value.loginScreenState,
@@ -145,7 +159,7 @@ private fun OrDivider(modifier: Modifier = Modifier) {
         Text(
             text = stringResource(R.string.or_divider),
             color = Muted,
-            style = AppTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall
         )
         HorizontalDivider(modifier = Modifier.weight(1f), color = Muted.copy(alpha = 0.4f))
     }
@@ -165,12 +179,12 @@ fun SwitchScreenSection(
         Text(
             text = stringResource(if (screenState == LoginScreenState.LOGIN) R.string.new_user else R.string.already_user),
             color = Muted,
-            style = AppTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
         )
         Text(
             text = stringResource(if (screenState == LoginScreenState.LOGIN) R.string.sign_up else R.string.login),
-            color = Ink,
-            style = AppTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.clickable { onSwitchClick(LoginScreenState.switch(screenState)) }
         )
     }

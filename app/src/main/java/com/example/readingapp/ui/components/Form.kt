@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -76,15 +77,15 @@ fun InputForm(
             Text(
                 text = stringResource(R.string.password_hint),
                 color = Muted,
-                style = AppTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 8.dp, start = 8.dp)
             )
         }
         if (!errorMessage.isNullOrBlank()) {
             Text(
                 text = errorMessage,
-                color = Ink,
-                style = AppTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 12.dp)
             )
         }

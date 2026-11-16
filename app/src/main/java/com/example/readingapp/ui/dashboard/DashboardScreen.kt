@@ -23,6 +23,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.ripple
@@ -32,16 +33,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
@@ -49,9 +50,10 @@ import com.example.readingapp.ui.home.HomeScreen
 import com.example.readingapp.ui.search.SearchScreen
 import com.example.readingapp.ui.session.SessionScreen
 import com.example.readingapp.ui.theme.AppTheme.spacing
-import com.example.readingapp.ui.theme.Beige
-import com.example.readingapp.ui.theme.Ink
+import com.example.readingapp.ui.theme.InkBase
 import com.example.readingapp.ui.theme.LightPink
+import com.example.readingapp.ui.theme.NavBar
+import com.example.readingapp.ui.theme.PaperBase
 import com.example.readingapp.ui.user.UserScreen
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
@@ -69,7 +71,7 @@ fun DashboardScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
-        containerColor = Beige,
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = { DashboardBottomNav(uiState.currentTab, viewModel::onTabClick) }
     ) { padding ->
@@ -91,6 +93,7 @@ fun DashboardScreen(
 private val NavBarHeight = 80.dp
 private val NavBarHorizontalPadding = 12.dp
 private val IndicatorHeight = 48.dp
+
 /** Gap between the pill and the edges of its tab slot. */
 private val IndicatorInset = 10.dp
 private val NavIconSize = 26.dp
@@ -111,7 +114,7 @@ fun DashboardBottomNav(
     val selectedIndex = tabs.indexOf(currentTab)
 
     Surface(
-        color = Ink,
+        color = NavBar,
         shape = RoundedCornerShape(topStart = spacing.mdSpacing, topEnd = spacing.mdSpacing)
     ) {
         BoxWithConstraints(
@@ -172,7 +175,8 @@ private fun DashboardNavItem(
     modifier: Modifier = Modifier
 ) {
     val iconColor by animateColorAsState(
-        targetValue = if (selected) Ink else LightPink.copy(alpha = 0.55f),
+        // The bar is dark in both themes, so these colours are fixed.
+        targetValue = if (selected) InkBase else PaperBase.copy(alpha = 0.55f),
         label = "navIconColor"
     )
     Box(

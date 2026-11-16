@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -23,7 +24,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.readingapp.R
 import com.example.readingapp.common.LoadingState
-import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.CardBackground
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
 
@@ -107,21 +108,21 @@ private fun AuthField(
         Text(
             text = label,
             color = Muted,
-            style = AppTheme.typography.labelLarge
+            style = MaterialTheme.typography.labelLarge
         )
         TextField(
             value = value,
             onValueChange = onValueChange,
-            textStyle = AppTheme.typography.bodyLarge.copy(color = Ink),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = Ink),
             shape = FieldShape,
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Ink,
                 unfocusedTextColor = Ink,
                 disabledTextColor = Ink.copy(alpha = 0.6f),
                 cursorColor = Ink,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                disabledContainerColor = Color.White,
+                focusedContainerColor = CardBackground,
+                unfocusedContainerColor = CardBackground,
+                disabledContainerColor = CardBackground,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent

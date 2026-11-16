@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -28,7 +29,6 @@ import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.components.LibraryPageTitle
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.Paper
 import com.example.readingapp.utils.keyboardAsState
 
 @Composable
@@ -60,7 +60,7 @@ fun SearchScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Paper)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .pointerInput(Unit) {
                 detectTapGestures(onTap = { keyboardController?.hide() })

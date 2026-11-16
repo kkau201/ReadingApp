@@ -20,6 +20,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -40,6 +41,7 @@ import com.example.readingapp.ui.components.ShelfSpineShape
 import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
 import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.CardBackground
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
 
@@ -54,30 +56,30 @@ fun SearchInput(
     TextField(
         value = currentInput,
         onValueChange = onInputChange,
-        textStyle = AppTheme.typography.bodyLarge.copy(color = Ink),
+        textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
         leadingIcon = {
             Icon(
                 imageVector = Icons.Rounded.Search,
                 contentDescription = stringResource(id = R.string.cont_desc_search_icon),
-                tint = Ink
+                tint = MaterialTheme.colorScheme.onBackground
             )
         },
         placeholder = {
             Text(
                 text = stringResource(R.string.start_searching_here),
                 color = Muted,
-                style = AppTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge
             )
         },
         shape = CircleShape,
         colors = TextFieldDefaults.colors(
-            focusedTextColor = Ink,
-            unfocusedTextColor = Ink,
-            disabledTextColor = Ink,
-            cursorColor = Ink,
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White,
-            disabledContainerColor = Color.White,
+            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+            disabledTextColor = MaterialTheme.colorScheme.onBackground,
+            cursorColor = MaterialTheme.colorScheme.onBackground,
+            focusedContainerColor = CardBackground,
+            unfocusedContainerColor = CardBackground,
+            disabledContainerColor = CardBackground,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
@@ -105,8 +107,8 @@ fun SearchResults(
     if (books.isEmpty()) {
         Text(
             text = stringResource(R.string.no_results),
-            color = Ink,
-            style = AppTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
             modifier = modifier
                 .fillMaxSize()
@@ -156,8 +158,8 @@ private fun SearchResultRow(
         ) {
             Text(
                 text = book.title.orEmpty(),
-                color = Ink,
-                style = AppTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.titleMedium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -166,7 +168,7 @@ private fun SearchResultRow(
                 Text(
                     text = author,
                     color = Muted,
-                    style = AppTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -179,7 +181,7 @@ private fun SearchResultRow(
                 Text(
                     text = meta,
                     color = Muted,
-                    style = AppTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

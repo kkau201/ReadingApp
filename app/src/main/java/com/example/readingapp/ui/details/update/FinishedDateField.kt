@@ -17,6 +17,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -25,17 +26,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.readingapp.R
-import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.CardBackground
 import com.example.readingapp.ui.theme.Cover
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
+import com.example.readingapp.ui.theme.OnInk
 import java.text.DateFormatSymbols
-import java.util.Locale
-import androidx.compose.ui.platform.LocalLocale
 
 private val FieldShape = RoundedCornerShape(20.dp)
 
@@ -70,7 +71,7 @@ private fun YearField(
                 .fillMaxWidth()
                 .border(1.dp, Cover, FieldShape)
                 .clip(FieldShape)
-                .background(Color.White),
+                .background(CardBackground),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
@@ -87,7 +88,7 @@ private fun YearField(
             Text(
                 text = year.toString(),
                 color = Ink,
-                style = AppTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
             IconButton(
@@ -109,7 +110,8 @@ private fun MonthField(
     month: Int?,
     onMonthChanged: (Int?) -> Unit
 ) {
-    val months = DateFormatSymbols.getInstance(LocalLocale.current.platformLocale).shortMonths.take(12)
+    val months =
+        DateFormatSymbols.getInstance(LocalLocale.current.platformLocale).shortMonths.take(12)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         FieldLabel(text = stringResource(R.string.update_book_finished_month))
         FlowRow(
@@ -148,10 +150,10 @@ private fun DayField(
                 Text(
                     text = stringResource(R.string.update_book_finished_optional),
                     color = Muted,
-                    style = AppTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge
                 )
             },
-            textStyle = AppTheme.typography.bodyLarge.copy(color = Ink),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = Ink),
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             shape = FieldShape,
@@ -159,8 +161,8 @@ private fun DayField(
                 focusedTextColor = Ink,
                 unfocusedTextColor = Ink,
                 cursorColor = Ink,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
+                focusedContainerColor = CardBackground,
+                unfocusedContainerColor = CardBackground,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent
@@ -173,7 +175,7 @@ private fun DayField(
             Text(
                 text = stringResource(R.string.update_book_finished_error),
                 color = Ink,
-                style = AppTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall
             )
         }
     }
@@ -187,11 +189,11 @@ private fun ChoiceChip(
 ) {
     Text(
         text = text,
-        color = if (selected) Color.White else Ink,
-        style = AppTheme.typography.labelLarge,
+        color = if (selected) OnInk else Ink,
+        style = MaterialTheme.typography.labelLarge,
         modifier = Modifier
             .clip(CircleShape)
-            .background(if (selected) Ink else Color.White)
+            .background(if (selected) Ink else CardBackground)
             .border(
                 width = if (selected) 0.dp else 1.dp,
                 color = Cover,
@@ -207,6 +209,6 @@ private fun FieldLabel(text: String) {
     Text(
         text = text,
         color = Muted,
-        style = AppTheme.typography.labelLarge
+        style = MaterialTheme.typography.labelLarge
     )
 }

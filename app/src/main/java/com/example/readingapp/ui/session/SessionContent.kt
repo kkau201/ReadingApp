@@ -1,6 +1,10 @@
 package com.example.readingapp.ui.session
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,31 +31,28 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.fadeIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.foundation.Image
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -60,11 +61,11 @@ import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MSession
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.ui.components.LibraryPageTitle
-import com.example.readingapp.ui.components.characterCounter
 import com.example.readingapp.ui.components.PulledBook
 import com.example.readingapp.ui.components.PulledHeight
 import com.example.readingapp.ui.components.PulledWidth
 import com.example.readingapp.ui.components.ReadingAppButton
+import com.example.readingapp.ui.components.characterCounter
 import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
 import com.example.readingapp.ui.details.update.FinishedDateField
@@ -74,7 +75,9 @@ import com.example.readingapp.ui.details.update.readableLabel
 import com.example.readingapp.ui.details.update.toFinishedOn
 import com.example.readingapp.ui.details.update.todaySessionParts
 import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.CardBackground
 import com.example.readingapp.ui.theme.Cover
+import com.example.readingapp.ui.theme.OnInk
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
 import kotlinx.coroutines.launch
@@ -183,15 +186,15 @@ private fun NoReadingBooksContent(modifier: Modifier = Modifier) {
         )
         Text(
             text = stringResource(R.string.session_no_books_title),
-            color = Ink,
-            style = AppTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 28.dp)
         )
         Text(
             text = stringResource(R.string.session_no_books),
             color = Muted,
-            style = AppTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .widthIn(max = 320.dp)
@@ -203,7 +206,9 @@ private fun NoReadingBooksContent(modifier: Modifier = Modifier) {
 @Preview(showBackground = true, backgroundColor = 0xFFF7F4EF)
 @Composable
 private fun NoReadingBooksPreview() {
-    NoReadingBooksContent(modifier = Modifier.fillMaxWidth().padding(24.dp))
+    NoReadingBooksContent(modifier = Modifier
+        .fillMaxWidth()
+        .padding(24.dp))
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -274,15 +279,15 @@ private fun SelectedBook(
         ) {
             Text(
                 text = book.title.orEmpty(),
-                color = Ink,
-                style = AppTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center
             )
             book.authors?.filter { it.isNotBlank() }?.takeIf { it.isNotEmpty() }?.let { authors ->
                 Text(
                     text = stringResource(R.string.session_author, authors.joinToString()),
                     color = Muted,
-                    style = AppTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center
                 )
             }
@@ -292,13 +297,13 @@ private fun SelectedBook(
             total != null -> Text(
                 text = stringResource(R.string.home_pages, total),
                 color = Muted,
-                style = AppTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge
             )
 
             logged > 0 -> Text(
                 text = pluralStringResource(R.plurals.session_pages_logged, logged, logged),
                 color = Muted,
-                style = AppTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge
             )
         }
         ReadingAppButton(
@@ -313,13 +318,13 @@ private fun SelectedBook(
             ) {
                 Text(
                     text = stringResource(R.string.session_empty_title),
-                    color = Ink,
-                    style = AppTheme.typography.titleLarge
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.titleLarge
                 )
                 Text(
                     text = stringResource(R.string.session_empty_body),
                     color = Muted,
-                    style = AppTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
         } else {
@@ -329,8 +334,8 @@ private fun SelectedBook(
             ) {
                 Text(
                     text = stringResource(R.string.session_journal),
-                    color = Ink,
-                    style = AppTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.fillMaxWidth()
                 )
                 sessions.forEach { session ->
@@ -352,8 +357,8 @@ private fun BookProgress(logged: Int, total: Int) {
     ) {
         Text(
             text = stringResource(R.string.session_progress, percent),
-            color = Ink,
-            style = AppTheme.typography.titleLarge
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.titleLarge
         )
         Box(
             modifier = Modifier
@@ -372,7 +377,7 @@ private fun BookProgress(logged: Int, total: Int) {
         Text(
             text = stringResource(R.string.session_progress_of, logged, total),
             color = Muted,
-            style = AppTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge
         )
     }
 }
@@ -439,14 +444,14 @@ private fun LogSessionCard(
             .fillMaxWidth()
             .clip(CardShape)
             .border(1.dp, Cover, CardShape)
-            .background(Color.White)
+            .background(CardBackground)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = stringResource(R.string.session_log),
-            color = Ink,
-            style = AppTheme.typography.headlineSmall
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.headlineSmall
         )
         BookChoice(
             books = state.books,
@@ -480,7 +485,7 @@ private fun LogSessionCard(
         Text(
             text = stringResource(R.string.update_cancel),
             color = Muted,
-            style = AppTheme.typography.labelLarge,
+            style = MaterialTheme.typography.labelLarge,
             modifier = Modifier
                 .clickable(onClick = onCancel)
                 .align(Alignment.CenterHorizontally)
@@ -501,8 +506,8 @@ private fun BookChoice(
         if (books.size <= 1 && chosen != null) {
             Text(
                 text = chosen.title.orEmpty(),
-                color = Ink,
-                style = AppTheme.typography.bodyLarge
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodyLarge
             )
         } else {
             FlowRow(
@@ -545,13 +550,13 @@ private fun SessionDay(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
                     text = dateLabel,
-                    color = Ink,
-                    style = AppTheme.typography.bodyLarge
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
                     text = stringResource(R.string.session_change_day),
                     color = Muted,
-                    style = AppTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.clickable(onClick = onChangeDay)
                 )
             }
@@ -559,13 +564,13 @@ private fun SessionDay(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
                     text = dateLabel,
-                    color = Ink,
-                    style = AppTheme.typography.bodyLarge
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
                     text = stringResource(R.string.session_use_today),
                     color = Muted,
-                    style = AppTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.clickable(onClick = onUseToday)
                 )
             }
@@ -596,7 +601,7 @@ private fun SessionCard(
             .fillMaxWidth()
             .clip(CardShape)
             .border(1.dp, Cover, CardShape)
-            .background(Color.White)
+            .background(CardBackground)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -604,33 +609,33 @@ private fun SessionCard(
             Text(
                 text = date,
                 color = Muted,
-                style = AppTheme.typography.labelLarge
+                style = MaterialTheme.typography.labelLarge
             )
         }
         Text(
             text = session.title.orEmpty(),
-            color = Ink,
-            style = AppTheme.typography.titleLarge
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.titleLarge
         )
         session.pages?.let { pages ->
             Text(
                 text = pluralStringResource(R.plurals.session_pages_read, pages, pages),
-                color = Ink,
-                style = AppTheme.typography.bodyLarge
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodyLarge
             )
         }
         session.note?.takeIf { it.isNotBlank() }?.let { note ->
             Text(
                 text = note,
                 color = Muted,
-                style = AppTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
         Text(
             text = stringResource(R.string.session_remove),
             color = Muted,
-            style = AppTheme.typography.labelLarge,
+            style = MaterialTheme.typography.labelLarge,
             modifier = Modifier
                 .padding(top = 8.dp)
                 .clickable(onClick = onRemove)
@@ -655,10 +660,10 @@ private fun NumberField(
                 Text(
                     text = placeholder,
                     color = Muted,
-                    style = AppTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge
                 )
             },
-            textStyle = AppTheme.typography.bodyLarge.copy(color = Ink),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             shape = FieldShape,
@@ -685,10 +690,10 @@ private fun NoteField(
                 Text(
                     text = stringResource(R.string.session_note_hint),
                     color = Muted,
-                    style = AppTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge
                 )
             },
-            textStyle = AppTheme.typography.bodyLarge.copy(color = Ink),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
             minLines = 2,
             supportingText = characterCounter(value.length, TextLimits.SESSION_NOTE),
             shape = FieldShape,
@@ -708,14 +713,14 @@ private fun ChoiceChip(
 ) {
     Text(
         text = text,
-        color = if (selected) Color.White else Ink,
-        style = AppTheme.typography.labelLarge,
+        color = if (selected) OnInk else Ink,
+        style = MaterialTheme.typography.labelLarge,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier
             .widthIn(max = 180.dp)
             .clip(CircleShape)
-            .background(if (selected) Ink else Color.White)
+            .background(if (selected) Ink else CardBackground)
             .border(
                 width = if (selected) 0.dp else 1.dp,
                 color = Cover,
@@ -731,7 +736,7 @@ private fun FieldLabel(text: String) {
     Text(
         text = text,
         color = Muted,
-        style = AppTheme.typography.labelLarge
+        style = MaterialTheme.typography.labelLarge
     )
 }
 
@@ -739,18 +744,18 @@ private fun FieldLabel(text: String) {
 private fun FieldError(text: String) {
     Text(
         text = text,
-        color = Ink,
-        style = AppTheme.typography.bodySmall
+        color = MaterialTheme.colorScheme.onBackground,
+        style = MaterialTheme.typography.bodySmall
     )
 }
 
 @Composable
 private fun sessionFieldColors() = TextFieldDefaults.colors(
-    focusedTextColor = Ink,
-    unfocusedTextColor = Ink,
-    cursorColor = Ink,
-    focusedContainerColor = Color.White,
-    unfocusedContainerColor = Color.White,
+    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+    cursorColor = MaterialTheme.colorScheme.onBackground,
+    focusedContainerColor = CardBackground,
+    unfocusedContainerColor = CardBackground,
     focusedIndicatorColor = Color.Transparent,
     unfocusedIndicatorColor = Color.Transparent,
     disabledIndicatorColor = Color.Transparent

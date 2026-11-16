@@ -3,6 +3,7 @@ package com.example.readingapp.ui.home
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -17,11 +18,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -54,7 +55,10 @@ import com.example.readingapp.ui.components.onCloth
 import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
 import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.CardBackground
 import com.example.readingapp.ui.theme.Cover
+import com.example.readingapp.ui.theme.OnInk
+import com.example.readingapp.ui.theme.PaperBase
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
 import com.example.readingapp.ui.user.update.Avatar
@@ -107,7 +111,11 @@ fun HomeContent(
         )
         HomeSectionTitle(
             title = shelfTitle(filter),
-            modifier = Modifier.padding(start = AppTheme.spacing.mdSpacing, top = 28.dp, bottom = 16.dp)
+            modifier = Modifier.padding(
+                start = AppTheme.spacing.mdSpacing,
+                top = 28.dp,
+                bottom = 16.dp
+            )
         )
         if (shelf.isEmpty()) {
             EmptyShelf(
@@ -140,12 +148,13 @@ private fun HomeHeader(
     ) {
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
             if (!displayName.isNullOrBlank()) {
                 Text(
                     text = stringResource(R.string.home_greeting, displayName),
                     color = Muted,
-                    style = AppTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -157,7 +166,7 @@ private fun HomeHeader(
             Text(
                 text = pluralStringResource(R.plurals.home_book_count, bookCount, bookCount),
                 color = Muted,
-                style = AppTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
         HomeAvatar(avatar = avatar, name = displayName)
@@ -175,6 +184,8 @@ private fun HomeAvatar(avatar: Avatar?, name: String?) {
                 .padding(start = 16.dp)
                 .size(48.dp)
                 .clip(CircleShape)
+                // Avatars are black line drawings on transparent: keep them on paper in dark theme.
+                .background(PaperBase)
         )
     } else {
         val initial = name?.trim()?.firstOrNull()?.uppercase() ?: ""
@@ -189,8 +200,8 @@ private fun HomeAvatar(avatar: Avatar?, name: String?) {
         ) {
             Text(
                 text = initial,
-                color = Ink,
-                style = AppTheme.typography.titleLarge
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.titleLarge
             )
         }
     }
@@ -212,11 +223,11 @@ private fun HomeFilters(
             val isSelected = filter == selected
             Text(
                 text = filter.label(),
-                color = if (isSelected) Color.White else Ink,
-                style = AppTheme.typography.labelLarge,
+                color = if (isSelected) OnInk else Ink,
+                style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(if (isSelected) Ink else Color.White)
+                    .background(if (isSelected) Ink else CardBackground)
                     .clickable { onSelect(filter) }
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             )
@@ -244,8 +255,8 @@ private fun shelfTitle(filter: ShelfFilter): String = when (filter) {
 private fun HomeSectionTitle(title: String, modifier: Modifier = Modifier) {
     Text(
         text = title,
-        color = Ink,
-        style = AppTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onBackground,
+        style = MaterialTheme.typography.titleLarge,
         modifier = modifier
     )
 }
@@ -345,7 +356,12 @@ private fun BookSpine(
         modifier = Modifier
             .width(style.width)
             .height(style.height)
-            .shadow(elevation = 3.dp, shape = ShelfSpineShape, ambientColor = Color(0x221C1917), spotColor = Color(0x331C1917))
+            .shadow(
+                elevation = 3.dp,
+                shape = ShelfSpineShape,
+                ambientColor = Color(0x221C1917),
+                spotColor = Color(0x331C1917)
+            )
             .clip(ShelfSpineShape)
             .background(style.cloth)
             .clickable(onClick = onClick),
@@ -361,7 +377,7 @@ private fun BookSpine(
         Text(
             text = book.title.orEmpty(),
             color = style.ink,
-            style = AppTheme.typography.labelLarge,
+            style = MaterialTheme.typography.labelLarge,
             maxLines = 1,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
@@ -421,14 +437,14 @@ private fun EmptyShelf(
                 title?.let {
                     Text(
                         text = it,
-                        color = Ink,
-                        style = AppTheme.typography.titleLarge
+                        color = MaterialTheme.colorScheme.onBackground,
+                        style = MaterialTheme.typography.titleLarge
                     )
                 }
                 Text(
                     text = body,
                     color = Muted,
-                    style = AppTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(top = if (title == null) 0.dp else 4.dp)
                 )
             }

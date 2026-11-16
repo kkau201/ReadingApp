@@ -2,6 +2,7 @@ package com.example.readingapp.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -20,7 +21,7 @@ import kotlin.math.sin
 @Composable
 fun OutlineStar(
     modifier: Modifier = Modifier,
-    color: Color = Ink.copy(alpha = 0.28f),
+    color: Color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.28f),
     filled: Boolean = false,
     size: Dp = 42.dp
 ) {

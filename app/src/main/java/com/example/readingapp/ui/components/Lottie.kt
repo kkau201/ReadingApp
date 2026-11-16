@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -19,7 +20,6 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.readingapp.R
-import com.example.readingapp.ui.theme.AppTheme
 
 @Composable
 fun LoadingLottie() {
@@ -40,7 +40,7 @@ fun LoadingLottie() {
 fun FullScreenLoadingLottie() {
     Box(
         modifier = Modifier
-            .background(color = AppTheme.colors.background)
+            .background(color = MaterialTheme.colorScheme.background)
             .fillMaxSize()
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },

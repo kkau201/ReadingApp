@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -32,10 +33,11 @@ import com.example.readingapp.model.TextLimits
 import com.example.readingapp.ui.components.BookStatus
 import com.example.readingapp.ui.components.OutlineStar
 import com.example.readingapp.ui.components.characterCounter
-import com.example.readingapp.ui.theme.AppTheme
+import com.example.readingapp.ui.theme.CardBackground
 import com.example.readingapp.ui.theme.Cover
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
+import com.example.readingapp.ui.theme.OnInk
 
 private val FieldShape = RoundedCornerShape(20.dp)
 
@@ -70,8 +72,8 @@ fun UpdateScreenContent(
         ) {
             Text(
                 text = book.title.orEmpty(),
-                color = Ink,
-                style = AppTheme.typography.headlineSmall
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.headlineSmall
             )
             StatusField(
                 selected = selectedStatus,
@@ -102,8 +104,8 @@ fun UpdateScreenContent(
         ) {
             FormButton(
                 text = stringResource(R.string.update_cancel),
-                container = Color.White,
-                content = Ink,
+                container = CardBackground,
+                content = MaterialTheme.colorScheme.onBackground,
                 border = Cover,
                 onClick = onCancelClick,
                 modifier = Modifier.weight(1f)
@@ -111,7 +113,7 @@ fun UpdateScreenContent(
             FormButton(
                 text = stringResource(R.string.update_save),
                 container = Ink,
-                content = Color.White,
+                content = OnInk,
                 onClick = onSaveClick,
                 modifier = Modifier.weight(1f)
             )
@@ -141,11 +143,11 @@ private fun StatusField(
                 val isSelected = status == selected
                 Text(
                     text = status.shelfLabel(),
-                    color = if (isSelected) Color.White else Ink,
-                    style = AppTheme.typography.labelLarge,
+                    color = if (isSelected) OnInk else Ink,
+                    style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(if (isSelected) Ink else Color.White)
+                        .background(if (isSelected) Ink else CardBackground)
                         .border(
                             width = if (isSelected) 0.dp else 1.dp,
                             color = Cover,
@@ -205,14 +207,14 @@ private fun NotesField(
         TextField(
             value = noteInput,
             onValueChange = onNoteInputChanged,
-            textStyle = AppTheme.typography.bodyLarge.copy(color = Ink),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
             shape = FieldShape,
             colors = TextFieldDefaults.colors(
-                focusedTextColor = Ink,
-                unfocusedTextColor = Ink,
-                cursorColor = Ink,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                cursorColor = MaterialTheme.colorScheme.onBackground,
+                focusedContainerColor = CardBackground,
+                unfocusedContainerColor = CardBackground,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent
@@ -231,7 +233,7 @@ private fun FieldLabel(text: String) {
     Text(
         text = text,
         color = Muted,
-        style = AppTheme.typography.labelLarge
+        style = MaterialTheme.typography.labelLarge
     )
 }
 
@@ -247,7 +249,7 @@ private fun FormButton(
     Text(
         text = text,
         color = content,
-        style = AppTheme.typography.labelLarge,
+        style = MaterialTheme.typography.labelLarge,
         textAlign = TextAlign.Center,
         modifier = modifier
             .fillMaxWidth()

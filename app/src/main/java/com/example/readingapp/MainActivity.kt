@@ -26,11 +26,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MaterialTheme(
-                colorScheme = AppTheme.colors,
-                typography = AppTheme.typography
-            ) {
-                Surface(modifier = Modifier.fillMaxSize(), color = AppTheme.colors.background) {
+            AppTheme {
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     MainContent()
                 }
             }
