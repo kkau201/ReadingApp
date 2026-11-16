@@ -46,10 +46,12 @@ import androidx.compose.ui.unit.dp
 import com.example.readingapp.R
 import com.example.readingapp.model.MBook
 import com.example.readingapp.ui.components.BookStatus
+import com.example.readingapp.ui.components.GhostSpine
 import com.example.readingapp.ui.components.LibraryPageTitle
 import com.example.readingapp.ui.components.PulledBook
 import com.example.readingapp.ui.components.PulledHeight
 import com.example.readingapp.ui.components.PulledWidth
+import com.example.readingapp.ui.components.ShelfVolume
 import com.example.readingapp.ui.components.ShelfSpineShape
 import com.example.readingapp.ui.components.onCloth
 import com.example.readingapp.ui.components.shelfKey
@@ -289,7 +291,10 @@ private fun ShelfRow(
                             val book = books[index]
                             ShelfVolume(
                                 book = book,
-                                style = styles[index],
+                                cloth = styles[index].cloth,
+                                ink = styles[index].ink,
+                                width = styles[index].width,
+                                height = styles[index].height,
                                 pulled = pulledKey != null && book.shelfKey() == pulledKey,
                                 onClick = { book.googleBookId?.let(onBookClick) }
                             )
@@ -330,64 +335,7 @@ private fun packShelves(
     return shelves
 }
 
-@Composable
-private fun ShelfVolume(
-    book: MBook,
-    style: SpineStyle,
-    pulled: Boolean,
-    onClick: () -> Unit
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        if (pulled) {
-            PulledBook(book = book, cloth = style.cloth, onClick = onClick)
-        } else {
-            BookSpine(book = book, style = style, onClick = onClick)
-        }
-    }
-}
 
-@Composable
-private fun BookSpine(
-    book: MBook,
-    style: SpineStyle,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .width(style.width)
-            .height(style.height)
-            .shadow(
-                elevation = 3.dp,
-                shape = ShelfSpineShape,
-                ambientColor = Color(0x221C1917),
-                spotColor = Color(0x331C1917)
-            )
-            .clip(ShelfSpineShape)
-            .background(style.cloth)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .fillMaxHeight()
-                .width(3.dp)
-                .background(style.ink.copy(alpha = 0.16f))
-        )
-        Text(
-            text = book.title.orEmpty(),
-            color = style.ink,
-            style = MaterialTheme.typography.labelLarge,
-            maxLines = 1,
-            softWrap = false,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .requiredWidth(style.height - 20.dp)
-                .rotate(-90f)
-        )
-    }
-}
 
 
 private fun shelfStyles(books: List<MBook>): List<SpineStyle> {
@@ -451,17 +399,6 @@ private fun EmptyShelf(
         }
         ShelfLedge()
     }
-}
-
-@Composable
-private fun GhostSpine(height: Dp) {
-    Box(
-        modifier = Modifier
-            .width(34.dp)
-            .height(height)
-            .clip(ShelfSpineShape)
-            .background(Ink.copy(alpha = 0.06f))
-    )
 }
 
 @Composable

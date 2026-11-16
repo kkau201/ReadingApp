@@ -38,7 +38,7 @@ class CredentialManagerGoogleIdTokenProvider @Inject constructor(
         val request = GetCredentialRequest.Builder()
             .addCredentialOption(GetSignInWithGoogleOption.Builder(webClientId).build())
             .build()
-        val credential = CredentialManager.create(activity)
+        val credential = CredentialManager.create(context)
             .getCredential(activity, request)
             .credential
 

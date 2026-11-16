@@ -53,7 +53,7 @@
     <string name="home_filter_finished">Finished</string>
     <string name="home_empty_title">Dust settled in</string>
     <string name="home_empty_body">Books you save will gather here.</string>
-    <string name="home_filter_empty">Getting a wee bit dusty in here...</string>
+    <string name="home_filter_empty">Getting a wee bit dusty in here…</string>
     <string name="home_pages">%1$d pages</string>
     <plurals name="home_book_count">
         <item quantity="one">%d book</item>
@@ -92,7 +92,10 @@
     <string name="profile_section_reading">Your reading</string>
     <string name="profile_section_now">Now reading</string>
     <string name="profile_stamp_title">Books I’ve read</string>
-    <string name="profile_stamp_goal">%1$d before the year ends</string>
+    <plurals name="profile_stamp_goal">
+        <item quantity="one">%1$d book before the year ends</item>
+        <item quantity="other">%1$d books before the year ends</item>
+    </plurals>
     <string name="profile_stamp_complete">This year’s card is full</string>
     <string name="profile_stamp_progress">%1$d of %2$d</string>
     <plurals name="profile_stamp_more">
@@ -139,7 +142,6 @@
 
     <string name="update_book_title">Update book</string>
     <string name="update_book_status">Status</string>
-    <string name="update_book_finished_on">Finished</string>
     <string name="update_book_finished_year">Year</string>
     <string name="update_book_finished_month">Month</string>
     <string name="update_book_finished_day">Day</string>

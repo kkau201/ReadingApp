@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -246,7 +247,7 @@ private fun ReadingGoalField(
             }
         }
         Text(
-            text = stringResource(R.string.profile_stamp_goal, goal),
+            text = pluralStringResource(R.plurals.profile_stamp_goal, goal, goal),
             color = Muted,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 8.dp)

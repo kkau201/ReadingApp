@@ -25,7 +25,6 @@ import com.example.readingapp.R
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.ui.components.ReadingAppBarNav
-import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.utils.keyboardAsState
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph

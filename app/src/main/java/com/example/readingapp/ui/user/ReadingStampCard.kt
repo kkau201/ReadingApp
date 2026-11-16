@@ -78,7 +78,7 @@ fun ReadingStampCard(
             text = if (complete) {
                 stringResource(R.string.profile_stamp_complete)
             } else {
-                stringResource(R.string.profile_stamp_goal, stampGoal)
+                pluralStringResource(R.plurals.profile_stamp_goal, stampGoal, stampGoal)
             },
             color = InkBase,
             style = MaterialTheme.typography.bodyMedium,

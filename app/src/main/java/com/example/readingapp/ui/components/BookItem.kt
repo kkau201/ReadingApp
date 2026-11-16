@@ -1,289 +1,212 @@
 package com.example.readingapp.ui.components
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.StarHalf
-import androidx.compose.material.icons.rounded.Bookmark
-import androidx.compose.material.icons.rounded.BookmarkBorder
-import androidx.compose.material.icons.rounded.StarBorder
-import androidx.compose.material.icons.rounded.StarRate
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.example.readingapp.R
+import com.example.readingapp.model.MBook
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.readingapp.ui.theme.AppTheme
-import com.example.readingapp.ui.theme.Beige
-import com.example.readingapp.ui.theme.CardBackground
-import com.example.readingapp.ui.theme.Purple
-import com.example.readingapp.ui.theme.allColors
-import kotlin.math.ceil
-import kotlin.math.floor
+import com.example.readingapp.ui.theme.Ink
+import com.example.readingapp.ui.theme.InkBase
+
+val PulledWidth = 132.dp
+val PulledHeight = 206.dp
 
 @Composable
-fun RowBookItem(
-    modifier: Modifier = Modifier,
-    context: Context = LocalContext.current,
-    title: String? = null,
-    authors: String? = null,
-    imgUrl: String? = null,
-    rating: Double = 0.0,
-    progress: BookStatus = BookStatus.LIBRARY,
-    isSaved: Boolean = false,
-    onClick: () -> Unit = {}
+fun PulledBook(
+    book: MBook,
+    cloth: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    val ink = cloth.onCloth()
+    Column(
         modifier = modifier
-            .padding(vertical = AppTheme.spacing.smSpacing)
-            .wrapContentHeight()
-            .width(150.dp)
-            .clickable { onClick() }
+            .width(PulledWidth)
+            .height(PulledHeight)
+            .shadow(
+                elevation = 10.dp,
+                shape = RoundedCornerShape(6.dp),
+                ambientColor = Color(0x221C1917),
+                spotColor = Color(0x401C1917)
+            )
+            .clip(RoundedCornerShape(6.dp))
+            .background(cloth)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(
-                modifier = Modifier
-                    .height(200.dp)
-                    .fillMaxWidth()
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(context).data(imgUrl).build(),
-                    contentScale = ContentScale.Crop,
-                    contentDescription = stringResource(R.string.cont_desc_book_image),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .align(Alignment.Center)
-                )
-                Icon(
-                    imageVector = if (isSaved) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
-                    contentDescription = stringResource(R.string.cont_desc_favourite_icon),
-                    tint = Beige,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(color = Purple.copy(alpha = 0.9f))
-                        .align(Alignment.TopEnd)
-                        .padding(AppTheme.spacing.xxsmSpacing)
-                )
-                BookProgressLabel(progress, Modifier.align(Alignment.BottomEnd))
-            }
-            title?.let {
+        Text(
+            text = stringResource(R.string.home_filter_reading).uppercase(),
+            color = ink.copy(alpha = 0.72f),
+            style = MaterialTheme.typography.labelSmall
+        )
+        Column {
+            Text(
+                text = book.title.orEmpty(),
+                color = ink,
+                style = MaterialTheme.typography.headlineSmall,
+                maxLines = 5,
+                overflow = TextOverflow.Ellipsis
+            )
+            book.authors?.firstOrNull()?.let { author ->
                 Text(
-                    text = it,
-                    style = MaterialTheme.typography.titleSmall,
+                    text = author,
+                    color = ink.copy(alpha = 0.75f),
+                    style = MaterialTheme.typography.bodySmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = AppTheme.spacing.smSpacing)
+                    modifier = Modifier.padding(top = 8.dp)
                 )
             }
-            authors?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = AppTheme.spacing.xxsmSpacing)
-                )
-            }
-            BookRating(rating)
         }
     }
 }
 
 @Composable
-fun ColumnBookItem(
-    modifier: Modifier = Modifier,
-    context: Context = LocalContext.current,
-    backgroundColor: Color = CardBackground,
-    title: String? = null,
-    authors: List<String>? = null,
-    imgUrl: String? = null,
-    date: String? = null,
-    genres: List<String>? = null,
-    onClick: () -> Unit = {}
+fun ShelfVolume(
+    book: MBook,
+    cloth: Color,
+    ink: Color,
+    width: Dp,
+    height: Dp,
+    pulled: Boolean,
+    onClick: () -> Unit
 ) {
-    Card(
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        modifier = modifier
-            .padding(vertical = AppTheme.spacing.smSpacing)
-            .wrapContentHeight()
-            .fillMaxWidth()
-            .clickable { onClick() }
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Box(
-                modifier = Modifier
-                    .width(80.dp)
-                    .height(100.dp)
-                    .clip(RoundedCornerShape(AppTheme.spacing.xxsmSpacing))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(allColors.random())
-                )
-                AsyncImage(
-                    model = ImageRequest.Builder(context).data(imgUrl).build(),
-                    contentScale = ContentScale.Crop,
-                    contentDescription = stringResource(R.string.cont_desc_book_image),
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Column(modifier = Modifier.padding(start = AppTheme.spacing.mdSpacing)) {
-                title?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(bottom = AppTheme.spacing.xxsmSpacing)
-                    )
-                }
-                authors?.let {
-                    Text(
-                        text = buildAnnotatedString {
-                            authors.forEachIndexed { i, a ->
-                                if (i == 0) append(a)
-                                else append(", $a")
-                            }
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(bottom = AppTheme.spacing.xxsmSpacing)
-                    )
-                }
-                date?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(bottom = AppTheme.spacing.xxsmSpacing)
-                    )
-                }
-                genres?.let {
-                    Text(
-                        text = buildAnnotatedString {
-                            genres.forEachIndexed { i, g ->
-                                if (i == 0) append(g)
-                                else append(", $g")
-                            }
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        if (pulled) {
+            PulledBook(book = book, cloth = cloth, onClick = onClick)
+        } else {
+            BookSpine(
+                book = book,
+                cloth = cloth,
+                ink = ink,
+                width = width,
+                height = height,
+                onClick = onClick
+            )
         }
     }
 }
 
 @Composable
-fun BookRating(
-    rating: Double = 0.0,
-    stars: Int = 5
+fun BookSpine(
+    book: MBook,
+    cloth: Color,
+    ink: Color,
+    width: Dp,
+    height: Dp,
+    onClick: () -> Unit
 ) {
-    val filledStars = floor(rating).toInt()
-    val unfilledStars = (stars - ceil(rating)).toInt()
-    val halfStar = !(rating.rem(1).equals(0.0))
-
-    Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(top = AppTheme.spacing.xsmSpacing)
+    Box(
+        modifier = Modifier
+            .width(width)
+            .height(height)
+            .shadow(
+                elevation = 3.dp,
+                shape = ShelfSpineShape,
+                ambientColor = Color(0x221C1917),
+                spotColor = Color(0x331C1917)
+            )
+            .clip(ShelfSpineShape)
+            .background(cloth)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
     ) {
-        repeat(filledStars) {
-            Icon(
-                imageVector = Icons.Rounded.StarRate,
-                contentDescription = stringResource(R.string.cont_desc_filled_star_icon),
-                modifier = Modifier.size(20.dp)
-            )
-        }
-        if (halfStar) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.StarHalf,
-                contentDescription = stringResource(R.string.cont_desc_half_filled_star_icon),
-                modifier = Modifier.size(20.dp)
-            )
-        }
-        repeat(unfilledStars) {
-            Icon(
-                imageVector = Icons.Rounded.StarBorder,
-                contentDescription = stringResource(R.string.cont_desc_unfilled_star_icon),
-                modifier = Modifier.size(20.dp)
-            )
-        }
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .fillMaxHeight()
+                .width(3.dp)
+                .background(ink.copy(alpha = 0.16f))
+        )
+        Text(
+            text = book.title.orEmpty(),
+            color = ink,
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .requiredWidth(height - 20.dp)
+                .rotate(-90f)
+        )
     }
 }
 
 @Composable
-fun BookProgressLabel(progress: BookStatus, modifier: Modifier = Modifier) {
-    Text(
-        text = progress.statusText,
-        style = MaterialTheme.typography.labelSmall,
-        modifier = modifier
-            .padding(top = AppTheme.spacing.xsmSpacing)
-            .background(
-                color = MaterialTheme.colorScheme.tertiary,
-                shape = RoundedCornerShape(topStart = AppTheme.spacing.lgSpacing)
-            )
-            .padding(
-                vertical = AppTheme.spacing.xxsmSpacing,
-                horizontal = AppTheme.spacing.smSpacing
-            )
+fun GhostSpine(height: Dp) {
+    Box(
+        modifier = Modifier
+            .width(34.dp)
+            .height(height)
+            .clip(ShelfSpineShape)
+            .background(Ink.copy(alpha = 0.06f))
     )
 }
 
-@Preview
-@Composable
-fun RowBookItemPreview() {
-    val context = LocalContext.current
-    RowBookItem(context = context, title = "Book title", authors = "Author Name", rating = 3.5)
+/** Text colour for a coloured book cloth. Fixed (not theme-aware): it sits on the cloth, not the page. */
+internal fun Color.onCloth(): Color {
+    val luminance = 0.299f * red + 0.587f * green + 0.114f * blue
+    return if (luminance > 0.55f) InkBase else Color.White
 }
 
-@Preview
+@Preview(name = "Pulled Book Preview")
 @Composable
-fun ColumnBookItemPreview() {
-    val context = LocalContext.current
-    ColumnBookItem(
-        context = context,
-        title = "Book title",
-        authors = listOf("Author Name"),
-        date = "24-02-2024",
-        genres = listOf("Computers")
-    )
+fun PulledBookPreview() {
+    AppTheme {
+        PulledBook(
+            book = MBook(title = "The Great Gatsby", authors = listOf("F. Scott Fitzgerald")),
+            cloth = Color(0xFF5C6BC0),
+            onClick = {}
+        )
+    }
+}
+
+@Preview(name = "Book Spine Preview")
+@Composable
+fun BookSpinePreview() {
+    AppTheme {
+        val cloth = Color(0xFFAB47BC)
+        BookSpine(
+            book = MBook(title = "To Kill a Mockingbird", authors = listOf("Harper Lee")),
+            cloth = cloth,
+            ink = cloth.onCloth(),
+            width = 34.dp,
+            height = 160.dp,
+            onClick = {}
+        )
+    }
+}
+
+@Preview(name = "Ghost Spine Preview")
+@Composable
+fun GhostSpinePreview() {
+    AppTheme {
+        GhostSpine(height = 140.dp)
+    }
 }
