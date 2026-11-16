@@ -26,7 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -98,97 +98,99 @@ fun ReadingAppDialog(modifier: Modifier = Modifier, state: DialogState?) {
             },
             properties = DialogProperties(usePlatformDefaultWidth = false),
         ) {
-            val maxHeight = LocalConfiguration.current.screenHeightDp.dp * 0.85f
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = CardBackground,
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .heightIn(max = maxHeight)
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 24.dp, vertical = 32.dp)
+            BoxWithConstraints {
+                val maxHeight = maxHeight * 0.85f
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = CardBackground,
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
                 ) {
-                    icon?.let {
-                        Image(
-                            painter = painterResource(id = icon),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .padding(bottom = 16.dp)
-                                .size(72.dp)
-                        )
-                    }
-                    title?.let {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleLarge,
-                            textAlign = TextAlign.Center,
-                            color = Ink,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                    message?.let {
-                        Text(
-                            text = message,
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center,
-                            color = Muted,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp)
-                        )
-                    }
-                    passwordInput?.let { input ->
-                        DialogPasswordField(
-                            input = input,
-                            modifier = Modifier.padding(top = 20.dp)
-                        )
-                    }
-                    if (choices.isNotEmpty() || primaryButtonText != null || secondaryButtonText != null) {
-                        Column(
-                            modifier = Modifier.padding(top = 24.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            choices.forEach { choice ->
-                                DialogButton(
-                                    text = choice.text,
-                                    container = if (choice.selected) Ink else CardBackground,
-                                    content = if (choice.selected) OnInk else Ink,
-                                    border = if (choice.selected) null else Cover,
-                                    onClick = choice.onClick
-                                )
-                            }
-                            finishedDate?.let { date ->
-                                FinishedDateField(
-                                    year = date.year,
-                                    month = date.month,
-                                    day = date.day,
-                                    dayError = date.dayError,
-                                    onYearChanged = date.onYearChanged,
-                                    onMonthChanged = date.onMonthChanged,
-                                    onDayChanged = date.onDayChanged
-                                )
-                            }
-                            primaryButtonText?.let {
-                                DialogButton(
-                                    text = primaryButtonText,
-                                    container = Ink,
-                                    content = OnInk,
-                                    onClick = { onPrimaryClick?.invoke() }
-                                )
-                            }
-                            secondaryButtonText?.let {
-                                DialogButton(
-                                    text = secondaryButtonText,
-                                    container = CardBackground,
-                                    content = Ink,
-                                    border = Cover,
-                                    onClick = { onSecondaryClick?.invoke() }
-                                )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .heightIn(max = maxHeight)
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 24.dp, vertical = 32.dp)
+                    ) {
+                        icon?.let {
+                            Image(
+                                painter = painterResource(id = icon),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .padding(bottom = 16.dp)
+                                    .size(72.dp)
+                            )
+                        }
+                        title?.let {
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.titleLarge,
+                                textAlign = TextAlign.Center,
+                                color = Ink,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                        message?.let {
+                            Text(
+                                text = message,
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                                color = Muted,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                            )
+                        }
+                        passwordInput?.let { input ->
+                            DialogPasswordField(
+                                input = input,
+                                modifier = Modifier.padding(top = 20.dp)
+                            )
+                        }
+                        if (choices.isNotEmpty() || primaryButtonText != null || secondaryButtonText != null) {
+                            Column(
+                                modifier = Modifier.padding(top = 24.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                choices.forEach { choice ->
+                                    DialogButton(
+                                        text = choice.text,
+                                        container = if (choice.selected) Ink else CardBackground,
+                                        content = if (choice.selected) OnInk else Ink,
+                                        border = if (choice.selected) null else Cover,
+                                        onClick = choice.onClick
+                                    )
+                                }
+                                finishedDate?.let { date ->
+                                    FinishedDateField(
+                                        year = date.year,
+                                        month = date.month,
+                                        day = date.day,
+                                        dayError = date.dayError,
+                                        onYearChanged = date.onYearChanged,
+                                        onMonthChanged = date.onMonthChanged,
+                                        onDayChanged = date.onDayChanged
+                                    )
+                                }
+                                primaryButtonText?.let {
+                                    DialogButton(
+                                        text = primaryButtonText,
+                                        container = Ink,
+                                        content = OnInk,
+                                        onClick = { onPrimaryClick?.invoke() }
+                                    )
+                                }
+                                secondaryButtonText?.let {
+                                    DialogButton(
+                                        text = secondaryButtonText,
+                                        container = CardBackground,
+                                        content = Ink,
+                                        border = Cover,
+                                        onClick = { onSecondaryClick?.invoke() }
+                                    )
+                                }
                             }
                         }
                     }

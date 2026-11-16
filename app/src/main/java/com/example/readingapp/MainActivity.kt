@@ -11,6 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.common.LoadingState
@@ -36,7 +37,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainContent(mainViewModel: MainViewModel = hiltViewModel(mainActivity())) {
+fun MainContent(mainViewModel: MainViewModel = hiltViewModel()) {
     ReadingAppNavHost()
 
     val loadingState by mainViewModel.loadingFlow.collectAsStateWithLifecycle()
@@ -49,11 +50,10 @@ fun MainContent(mainViewModel: MainViewModel = hiltViewModel(mainActivity())) {
     val dialogState by mainViewModel.dialogFlow.collectAsStateWithLifecycle()
     dialogState?.let { ReadingAppDialog(state = it) }
 
-    val context = mainActivity()
+    val context = LocalContext.current
     val toastFlow by mainViewModel.toastFlow.collectAsStateWithLifecycle()
     toastFlow?.let {
         Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         mainViewModel.resetToast()
     }
-
 }

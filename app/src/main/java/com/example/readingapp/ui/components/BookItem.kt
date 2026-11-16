@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.readingapp.R
-import com.example.readingapp.mainActivity
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.Beige
 import com.example.readingapp.ui.theme.CardBackground
@@ -53,7 +52,7 @@ import kotlin.math.floor
 @Composable
 fun RowBookItem(
     modifier: Modifier = Modifier,
-    context: Context = mainActivity(),
+    context: Context = LocalContext.current,
     title: String? = null,
     authors: String? = null,
     imgUrl: String? = null,
@@ -125,7 +124,7 @@ fun RowBookItem(
 @Composable
 fun ColumnBookItem(
     modifier: Modifier = Modifier,
-    context: Context = mainActivity(),
+    context: Context = LocalContext.current,
     backgroundColor: Color = CardBackground,
     title: String? = null,
     authors: List<String>? = null,

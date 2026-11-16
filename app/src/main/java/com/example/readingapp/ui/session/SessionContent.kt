@@ -45,7 +45,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -396,31 +395,33 @@ private fun SessionLogDialog(
     onCancel: () -> Unit,
     onSave: () -> Unit
 ) {
-    val maxHeight = LocalConfiguration.current.screenHeightDp.dp * 0.86f
     Dialog(
         onDismissRequest = onCancel,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 24.dp)
-                .fillMaxWidth()
-                .heightIn(max = maxHeight)
-                .verticalScroll(rememberScrollState())
-        ) {
-            LogSessionCard(
-                state = state,
-                onBookSelected = onBookSelected,
-                onPagesChanged = onPagesChanged,
-                onNoteChanged = onNoteChanged,
-                onYearChanged = onYearChanged,
-                onMonthChanged = onMonthChanged,
-                onDayChanged = onDayChanged,
-                onChangeDay = onChangeDay,
-                onUseToday = onUseToday,
-                onCancel = onCancel,
-                onSave = onSave
-            )
+        BoxWithConstraints {
+            val maxHeight = maxHeight * 0.86f
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 24.dp)
+                    .fillMaxWidth()
+                    .heightIn(max = maxHeight)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                LogSessionCard(
+                    state = state,
+                    onBookSelected = onBookSelected,
+                    onPagesChanged = onPagesChanged,
+                    onNoteChanged = onNoteChanged,
+                    onYearChanged = onYearChanged,
+                    onMonthChanged = onMonthChanged,
+                    onDayChanged = onDayChanged,
+                    onChangeDay = onChangeDay,
+                    onUseToday = onUseToday,
+                    onCancel = onCancel,
+                    onSave = onSave
+                )
+            }
         }
     }
 }

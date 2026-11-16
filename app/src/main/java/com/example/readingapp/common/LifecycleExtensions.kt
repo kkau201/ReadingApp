@@ -1,5 +1,6 @@
 package com.example.readingapp.common
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -11,6 +12,7 @@ import androidx.lifecycle.flowWithLifecycle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 
+@SuppressLint("ComposableNaming")
 @Composable
 fun <LO : LifecycleObserver> LO.observeLifecycle(owner: LifecycleOwner) {
     DisposableEffect(owner.lifecycle) {
@@ -21,6 +23,7 @@ fun <LO : LifecycleObserver> LO.observeLifecycle(owner: LifecycleOwner) {
     }
 }
 
+@SuppressLint("ComposableNaming")
 @Composable
 fun <T> Flow<T>.collectWithLifecycle(
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,

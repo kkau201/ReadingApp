@@ -39,8 +39,8 @@ fun InputForm(
     submitEnabled: Boolean,
     keyboardController: SoftwareKeyboardController?,
     errorMessage: String?,
-    showPasswordHint: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showPasswordHint: Boolean = false
 ) {
     val isKeyboardOpen by keyboardAsState()
     val focusManager = LocalFocusManager.current

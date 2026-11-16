@@ -3,7 +3,6 @@ package com.example.readingapp.common
 import androidx.compose.runtime.Composable
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.readingapp.MainViewModel
-import com.example.readingapp.mainActivity
 import com.example.readingapp.nav.NavigateBack
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.nav.PopTo
@@ -14,7 +13,7 @@ import com.ramcosta.composedestinations.spec.Direction
 @Composable
 fun ViewModelBinding(
     viewModel: BaseViewModel,
-    mainViewModel: MainViewModel = hiltViewModel(mainActivity()),
+    mainViewModel: MainViewModel = hiltViewModel(),
     navigator: DestinationsNavigator? = null,
 ) {
     viewModel.setMainViewModel(mainViewModel)
