@@ -3,7 +3,6 @@ package com.example.readingapp.model
 internal object StoredBook {
     const val TITLE = "title"
     const val AUTHORS = "authors"
-    const val PHOTO = "book_photo_url"
     const val PAGE_COUNT = "page_count"
     const val NOTES = "notes"
     const val RATING = "rating"
@@ -19,7 +18,6 @@ internal object StoredBook {
     val fields = listOf(
         TITLE,
         AUTHORS,
-        PHOTO,
         PAGE_COUNT,
         NOTES,
         RATING,
@@ -33,7 +31,6 @@ internal object StoredBook {
 
 internal fun MBook.toStoredDocument(): Map<String, Any> = buildMap {
         putText(StoredBook.TITLE, title)
-        putText(StoredBook.PHOTO, imgUrl)
         authors
         ?.map { it.trim() }
         ?.filter { it.isNotEmpty() }

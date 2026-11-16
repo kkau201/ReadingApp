@@ -23,7 +23,6 @@ rules_version = '2';
 //   - google_book_id: string (required, 1-100 chars)
 //   - title: string (optional, 1-500 chars)
 //   - authors: list<string> (optional, 1-10 entries, each 1-200 chars)
-//   - book_photo_url: string (optional, http(s) URL, max 2000 chars)
 //   - page_count: int (optional, 1-100000)
 //   - notes: string (optional, 1-1000 chars)
 //   - rating: number (optional, 1-5)
@@ -85,11 +84,6 @@ service cloud.firestore {
         (data[field] is int && data[field] >= min && data[field] <= max);
     }
 
-    function isValidUrl(url) {
-      return url is string && url.size() <= 2000 &&
-        (url.matches('^https://.*') || url.matches('^http://.*'));
-    }
-
     // Rules can't loop, so each index of the (max 10) authors list is checked.
     function isAuthorAt(authors, i) {
       return authors.size() <= i ||
@@ -124,7 +118,7 @@ service cloud.firestore {
     function isValidBook(data) {
       return data.keys().hasAll(['user_id', 'google_book_id']) &&
         data.keys().hasOnly([
-          'user_id', 'google_book_id', 'title', 'authors', 'book_photo_url', 'page_count',
+          'user_id', 'google_book_id', 'title', 'authors', 'page_count',
           'notes', 'rating', 'started_reading', 'finished_reading', 'finished_on'
         ]) &&
         data.user_id == request.auth.uid &&
@@ -132,7 +126,6 @@ service cloud.firestore {
           data.google_book_id.size() >= 1 && data.google_book_id.size() <= 100 &&
         optionalString(data, 'title', 1, 500) &&
         (!('authors' in data) || isValidAuthors(data.authors)) &&
-        (!('book_photo_url' in data) || isValidUrl(data.book_photo_url)) &&
         optionalIntInRange(data, 'page_count', 1, 100000) &&
         optionalString(data, 'notes', 1, 1000) &&
         (!('rating' in data) || (data.rating is number && data.rating >= 1 && data.rating <= 5)) &&

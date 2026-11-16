@@ -16,9 +16,6 @@ data class MBook(
     val genres: List<String>? = null,
     val rating: Double? = null,
     val infoLink: String? = null,
-
-    @get: PropertyName("book_photo_url")
-    @set: PropertyName("book_photo_url")
     var imgUrl: String? = null,
 
     @get: PropertyName("published_date")

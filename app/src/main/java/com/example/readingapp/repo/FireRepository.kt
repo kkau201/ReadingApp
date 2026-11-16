@@ -109,7 +109,6 @@ class FireRepository @Inject constructor(
             id = id,
             title = getString(StoredBook.TITLE),
             authors = authorList,
-            imgUrl = getString(StoredBook.PHOTO),
             pageCount = getLong(StoredBook.PAGE_COUNT)?.toInt(),
             notes = getString(StoredBook.NOTES),
             rating = getDouble(StoredBook.RATING),
