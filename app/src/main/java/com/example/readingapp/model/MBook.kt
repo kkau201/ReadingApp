@@ -3,46 +3,34 @@ package com.example.readingapp.model
 import com.example.readingapp.ui.model.BookStatus
 import com.example.readingapp.utils.toHttps
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.PropertyName
 
+/**
+ * A book in the app: a Google Books volume ([Item.toModel]), and/or a copy saved on the user's
+ * shelf in Firestore (mapped by hand in FireRepository; written via [toStoredDocument]).
+ */
 data class MBook(
-    var id: String? = null,
+    /** Firestore document id; null for a book that isn't saved. */
+    val id: String? = null,
+    val googleBookId: String? = null,
+    val userId: String? = null,
 
+    // From Google Books
     val title: String? = null,
-    val subtitle: String? = null,
     val authors: List<String>? = null,
     val description: String? = null,
-    val notes: String? = null,
     val genres: List<String>? = null,
-    val rating: Double? = null,
-    val infoLink: String? = null,
-    var imgUrl: String? = null,
-
-    @get: PropertyName("published_date")
+    val imgUrl: String? = null,
     val pubDate: String? = null,
-
-    @get: PropertyName("page_count")
     val pageCount: Int? = null,
 
-    @get: PropertyName("started_reading")
-    @set: PropertyName("started_reading")
-    var startedReading: Timestamp? = null,
-
-    @get: PropertyName("finished_reading")
-    @set: PropertyName("finished_reading")
-    var finishedReading: Timestamp? = null,
-
-    @get: PropertyName("finished_on")
-    @set: PropertyName("finished_on")
-    var finishedOn: String? = null,
-
-    @get: PropertyName("user_id")
-    @set: PropertyName("user_id")
-    var userId: String? = null,
-
-    @get: PropertyName("google_book_id")
-    @set: PropertyName("google_book_id")
-    var googleBookId: String? = null
+    // The user's own shelf data
+    val notes: String? = null,
+    /** The user's rating, 1-5 (finished books only). */
+    val rating: Double? = null,
+    val startedReading: Timestamp? = null,
+    val finishedReading: Timestamp? = null,
+    /** The finished date as picked: "yyyy", "MM/yyyy" or "dd/MM/yyyy". */
+    val finishedOn: String? = null
 ) {
     val bookStatus: BookStatus
         get() = if (startedReading == null) BookStatus.LIBRARY
@@ -56,16 +44,14 @@ fun List<Item>.toModels(): List<MBook> {
 
 fun Item.toModel(): MBook {
     return MBook(
-        title = this.volumeInfo.title,
-        subtitle = this.volumeInfo.subtitle,
-        authors = this.volumeInfo.authors,
-        description = this.volumeInfo.description,
-        imgUrl = this.volumeInfo.imageLinks?.thumbnail?.toHttps(),
-        rating = this.volumeInfo.averageRating,
-        pubDate = this.volumeInfo.publishedDate,
-        genres = this.volumeInfo.categories,
-        infoLink = this.volumeInfo.infoLink,
-        pageCount = this.volumeInfo.pageCount,
-        googleBookId = this.id
+        googleBookId = id,
+        title = volumeInfo?.title,
+        authors = volumeInfo?.authors,
+        description = volumeInfo?.description,
+        imgUrl = volumeInfo?.imageLinks?.thumbnail?.toHttps(),
+        pubDate = volumeInfo?.publishedDate,
+        genres = volumeInfo?.categories,
+        // Google sends 0 for some books with an unknown length.
+        pageCount = volumeInfo?.pageCount?.takeIf { it > 0 }
     )
 }

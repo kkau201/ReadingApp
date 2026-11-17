@@ -50,7 +50,7 @@ class FireRepository @Inject constructor(
         savedBooks.value = emptyList()
     }
 
-    suspend fun fetchUser(userId: String?): DataOrException<MUser?, Boolean, Exception> {
+    suspend fun fetchUser(userId: String?): DataOrException<MUser?, Exception> {
         val result = getUserDetailsFromDatabase(userId)
 
         // A failed read says nothing about the profile, so keep the last one rather than
@@ -60,7 +60,7 @@ class FireRepository @Inject constructor(
         return result
     }
 
-    suspend fun fetchSavedBooksByUser(): DataOrException<List<MBook>, Boolean, Exception> {
+    suspend fun fetchSavedBooksByUser(): DataOrException<List<MBook>, Exception> {
         val userId = currentUserId() ?: user.value?.userId
         if (userId.isNullOrBlank()) {
             savedBooks.update { emptyList() }
@@ -69,7 +69,7 @@ class FireRepository @Inject constructor(
         return fetchSavedBooksByUser(userId)
     }
 
-    suspend fun fetchSavedBooksByUser(userId: String): DataOrException<List<MBook>, Boolean, Exception> {
+    suspend fun fetchSavedBooksByUser(userId: String): DataOrException<List<MBook>, Exception> {
         val result = getAllBooksFromDatabase(userId)
         val savedBooks = result.data?.filter { it.userId == userId } ?: emptyList()
         this.savedBooks.update { savedBooks }
@@ -77,11 +77,10 @@ class FireRepository @Inject constructor(
         return result
     }
 
-    suspend fun getAllBooksFromDatabase(userId: String): DataOrException<List<MBook>, Boolean, Exception> {
-        val dataOrException = DataOrException<List<MBook>, Boolean, Exception>()
+    suspend fun getAllBooksFromDatabase(userId: String): DataOrException<List<MBook>, Exception> {
+        val dataOrException = DataOrException<List<MBook>, Exception>()
 
         try {
-            dataOrException.loading = true
             dataOrException.data = queryBook
                 .whereEqualTo(StoredBook.USER_ID, userId)
                 .get()
@@ -91,7 +90,6 @@ class FireRepository @Inject constructor(
                     documentSnapshot.removeUnusedFields()
                     documentSnapshot.toStoredBook()
                 }
-            if (!dataOrException.data.isNullOrEmpty()) dataOrException.loading = false
         } catch (e: FirebaseFirestoreException) {
             dataOrException.e = e
         }
@@ -122,10 +120,9 @@ class FireRepository @Inject constructor(
         )
     }
 
-    private suspend fun getUserDetailsFromDatabase(currentUserId: String?): DataOrException<MUser?, Boolean, Exception> {
-        val dataOrException = DataOrException<MUser?, Boolean, Exception>()
+    private suspend fun getUserDetailsFromDatabase(currentUserId: String?): DataOrException<MUser?, Exception> {
+        val dataOrException = DataOrException<MUser?, Exception>()
         try {
-            dataOrException.loading = true
             // User documents are keyed by the Firebase Auth uid: users/{uid}.
             val userDocument = currentUserId
                 ?.let { queryUser.document(it).get().await() }
@@ -137,8 +134,6 @@ class FireRepository @Inject constructor(
                 }
             }
             dataOrException.data = userDocument?.toModel()
-
-            if (dataOrException.data != null) dataOrException.loading = false
         } catch (e: FirebaseFirestoreException) {
             dataOrException.e = e
         }

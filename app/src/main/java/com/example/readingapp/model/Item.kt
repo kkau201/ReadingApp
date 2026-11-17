@@ -1,12 +1,7 @@
 package com.example.readingapp.model
 
+/** One Google Books volume (a search result, or `volumes/{id}`). See [Book]. */
 data class Item(
-    val accessInfo: AccessInfo,
-    val etag: String,
-    val id: String,
-    val kind: String,
-    val saleInfo: SaleInfo,
-    val searchInfo: SearchInfo,
-    val selfLink: String,
-    val volumeInfo: VolumeInfo
+    val id: String?,
+    val volumeInfo: VolumeInfo?
 )

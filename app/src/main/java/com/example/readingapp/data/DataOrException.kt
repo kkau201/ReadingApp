@@ -1,8 +1,8 @@
 package com.example.readingapp.data
 
-data class DataOrException<T, Boolean, E: Exception> (
+/** A read's result: [data], or the error [e] it failed with. */
+data class DataOrException<T, E : Exception>(
     var data: T? = null,
-    var loading: Boolean? = null,
     var e: E? = null
 ) {
     fun getOrThrow(): T {
