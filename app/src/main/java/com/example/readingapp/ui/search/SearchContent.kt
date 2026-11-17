@@ -1,5 +1,7 @@
 package com.example.readingapp.ui.search
 
+import android.content.res.Configuration
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,13 +14,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,19 +35,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.readingapp.R
+import com.example.readingapp.common.ErrorType
 import com.example.readingapp.model.MBook
+import com.example.readingapp.ui.components.ReadingAppButton
 import com.example.readingapp.ui.components.ShelfSpineShape
 import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.CardBackground
+import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
 
 @Composable
@@ -98,21 +110,113 @@ fun SearchInput(
 }
 
 @Composable
+fun SearchResultsContent(
+    results: SearchResults,
+    onBookClick: (String) -> Unit,
+    onRetryClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    when (results) {
+        SearchResults.Idle -> SearchIdleContent(modifier)
+        SearchResults.Loading -> Box(
+            contentAlignment = Alignment.TopCenter,
+            modifier = modifier
+                .fillMaxSize()
+                .padding(top = 48.dp)
+        ) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.onBackground)
+        }
+        is SearchResults.Success -> SearchResults(results.books, onBookClick, modifier)
+        is SearchResults.Error -> {
+            val error = results.exception as? ErrorType
+                ?: ErrorType.UnknownNetworkException(results.exception)
+            SearchMessage(stringResource(error.body), modifier) {
+                ReadingAppButton(
+                    text = stringResource(R.string.error_try_again),
+                    onClick = onRetryClick,
+                    modifier = Modifier.padding(top = 20.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchIdleContent(modifier: Modifier = Modifier) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .fillMaxSize()
+            // The keyboard leaves little room; scroll rather than clip.
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = AppTheme.spacing.mdSpacing, vertical = 48.dp)
+    ) {
+        Image(
+            painter = painterResource(R.drawable.illustration_browse_shelves),
+            // Decorative: the text below says what to do.
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(Ink),
+            // Wider than Session's diver: this art is square and has finer lines.
+            modifier = Modifier.width(200.dp)
+        )
+        Text(
+            text = stringResource(R.string.search_idle),
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 28.dp)
+        )
+        Text(
+            text = stringResource(R.string.search_idle_body),
+            color = Muted,
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .widthIn(max = 320.dp)
+                .padding(top = 8.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF7F4EF)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SearchIdlePreview() {
+    AppTheme {
+        SearchIdleContent(Modifier.background(MaterialTheme.colorScheme.background))
+    }
+}
+
+@Composable
+private fun SearchMessage(
+    text: String,
+    modifier: Modifier = Modifier,
+    action: @Composable () -> Unit = {}
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = AppTheme.spacing.mdSpacing, vertical = 48.dp)
+    ) {
+        Text(
+            text = text,
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center
+        )
+        action()
+    }
+}
+
+@Composable
 fun SearchResults(
     books: List<MBook>,
     onBookClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (books.isEmpty()) {
-        Text(
-            text = stringResource(R.string.no_results),
-            color = MaterialTheme.colorScheme.onBackground,
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center,
-            modifier = modifier
-                .fillMaxSize()
-                .padding(horizontal = AppTheme.spacing.mdSpacing, vertical = 48.dp)
-        )
+        SearchMessage(stringResource(R.string.no_results), modifier)
         return
     }
 
