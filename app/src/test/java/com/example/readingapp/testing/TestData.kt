@@ -7,7 +7,8 @@ import com.example.readingapp.model.MUser
 import com.example.readingapp.ui.model.Avatar
 import com.google.firebase.Timestamp
 import io.mockk.mockk
-import java.util.Date
+import java.util.Calendar
+import java.util.GregorianCalendar
 
 /** Shared sample data so tests describe the same signed-in reader and library. */
 object TestData {
@@ -60,15 +61,21 @@ object TestData {
     /** One book in each status. */
     val books = listOf(libraryBook, readingBook, finishedBook)
 
+    /** Noon local time on a date, as the app stores picked dates. */
+    private fun localNoon(year: Int, month: Int, day: Int) =
+        Timestamp(GregorianCalendar(year, month, day, 12, 0).time)
+
     /** Finished with a date picked in the app, and real timestamps (for date maths). */
     val datedFinishedBook = MBook(
         id = "finished-dated",
         googleBookId = "gb-lady-susan",
         title = "Lady Susan",
         userId = UID,
-        startedReading = Timestamp(Date()),
-        finishedReading = Timestamp(Date()),
-        finishedOn = "05/03/2025"
+        startedReading = localNoon(2025, Calendar.FEBRUARY, 1),
+        finishedReading = localNoon(2025, Calendar.MARCH, 5),
+        finishedOn = "05/03/2025",
+        notes = "Wicked and wonderful.",
+        rating = 4.0
     )
 
     /** A Google Books result that isn't on Jane's shelf (no Firestore id or owner). */

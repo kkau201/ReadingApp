@@ -185,11 +185,21 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
             finishedOn = this[StoredBook.FINISHED_ON] as String?
         )
 
-        private fun MBook.withUpdates(updates: Map<String, Any?>) = copy(
-            startedReading = updates[StoredBook.STARTED_READING] as Timestamp?,
-            finishedReading = updates[StoredBook.FINISHED_READING] as Timestamp?,
-            finishedOn = updates[StoredBook.FINISHED_ON] as String?
-        )
+        /** Applies only the fields sent; like FireRepository.updateBook, null or blank clears. */
+        private fun MBook.withUpdates(updates: Map<String, Any?>): MBook {
+            fun <T> field(key: String, current: T?): T? {
+                if (key !in updates) return current
+                @Suppress("UNCHECKED_CAST")
+                return (updates[key] as T?)?.takeUnless { it is String && it.isBlank() }
+            }
+            return copy(
+                notes = field(StoredBook.NOTES, notes),
+                rating = field(StoredBook.RATING, rating),
+                startedReading = field(StoredBook.STARTED_READING, startedReading),
+                finishedReading = field(StoredBook.FINISHED_READING, finishedReading),
+                finishedOn = field(StoredBook.FINISHED_ON, finishedOn)
+            )
+        }
 
         private fun MUser.withUpdates(updates: Map<String, Any?>) = copy(
             displayName = updates[DISPLAY_NAME] as? String ?: displayName,
