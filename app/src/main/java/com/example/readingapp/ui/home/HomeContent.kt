@@ -1,5 +1,10 @@
 package com.example.readingapp.ui.home
 
+import android.provider.Settings
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,15 +27,21 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -56,12 +67,37 @@ import com.example.readingapp.ui.theme.PaperBase
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
 import com.example.readingapp.ui.model.Avatar
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 private val SpineGap = 6.dp
 private val ShelfHeight = PulledHeight
 private val ShelfEdge = Color(0xFFD3C3AB)
 private val SpineWidths = listOf(36.dp, 42.dp, 48.dp, 54.dp)
 private val SpineHeights = listOf(156.dp, 172.dp, 188.dp, 204.dp)
+
+// Books dropping onto the shelf. Tune the feel here.
+/** How far above the shelf a book starts its drop. */
+private val DropDistance = 56.dp
+/** Gap between books landing, the first time the shelf fills in. */
+private const val DropStaggerMillis = 100L
+private val DropSpring = spring<Float>(
+    dampingRatio = Spring.DampingRatioLowBouncy,
+    stiffness = Spring.StiffnessMediumLow
+)
+
+/**
+ * Books already shown on the shelf this app launch, so each drops in once: the shelf fills in
+ * on first open, and later only newly saved books drop in (not every return to Home).
+ */
+private object ShelfArrivals {
+    private val seen = mutableSetOf<String>()
+    val noneYet: Boolean get() = seen.isEmpty()
+    fun isNew(key: String) = key !in seen
+    fun markSeen(key: String) {
+        seen += key
+    }
+}
 
 private enum class ShelfFilter {
     All, WantToRead, Reading, Finished
@@ -261,6 +297,9 @@ private fun ShelfRow(
     pulledKey: String?,
     onBookClick: (String) -> Unit
 ) {
+    val animate = rememberShelfMotionEnabled()
+    // The very first time the shelf fills in, books land one after another.
+    val firstFill = remember { ShelfArrivals.noneYet }
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
@@ -281,21 +320,73 @@ private fun ShelfRow(
                     ) {
                         indexes.forEach { index ->
                             val book = books[index]
-                            ShelfVolume(
-                                book = book,
-                                cloth = styles[index].cloth,
-                                ink = styles[index].ink,
-                                width = styles[index].width,
-                                height = styles[index].height,
-                                pulled = pulledKey != null && book.shelfKey() == pulledKey,
-                                onClick = { book.googleBookId?.let(onBookClick) }
-                            )
+                            val bookKey = book.shelfKey()
+                            // Keyed so a book keeps its drop state as others come and go.
+                            key(bookKey) {
+                                val drop = rememberShelfDrop(
+                                    key = bookKey,
+                                    // Shelves are packed in order, so index = landing order.
+                                    delayMillis = if (firstFill) index * DropStaggerMillis else 0L,
+                                    animate = animate
+                                )
+                                ShelfVolume(
+                                    book = book,
+                                    cloth = styles[index].cloth,
+                                    ink = styles[index].ink,
+                                    width = styles[index].width,
+                                    height = styles[index].height,
+                                    pulled = pulledKey != null && bookKey == pulledKey,
+                                    modifier = Modifier.graphicsLayer {
+                                        // Read here (not in composition), so the drop only
+                                        // redraws, never recomposes.
+                                        val progress = drop.value
+                                        translationY = -progress * DropDistance.toPx()
+                                        alpha = (1f - progress * 1.5f).coerceIn(0f, 1f)
+                                    },
+                                    onClick = { book.googleBookId?.let(onBookClick) }
+                                )
+                            }
                         }
                     }
                     ShelfLedge()
                 }
             }
         }
+    }
+}
+
+/**
+ * 1 while a book is still above the shelf, settling to 0 once it has landed. Books already
+ * shown this launch start at 0, so they don't drop again.
+ */
+@Composable
+private fun rememberShelfDrop(
+    key: String,
+    delayMillis: Long,
+    animate: Boolean
+): Animatable<Float, AnimationVector1D> {
+    val drop = remember(key) { Animatable(if (animate && ShelfArrivals.isNew(key)) 1f else 0f) }
+    LaunchedEffect(key) {
+        ShelfArrivals.markSeen(key)
+        if (drop.value > 0f) {
+            delay(delayMillis.milliseconds)
+            drop.animateTo(0f, DropSpring)
+        }
+    }
+    return drop
+}
+
+/** Off when the user has turned animations off (Accessibility), and in previews. */
+@Composable
+private fun rememberShelfMotionEnabled(): Boolean {
+    val context = LocalContext.current
+    val inPreview = LocalInspectionMode.current
+    return remember(context, inPreview) {
+        !inPreview && Settings.Global.getFloat(
+            context.contentResolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f
+        ) != 0f
     }
 }
 

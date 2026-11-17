@@ -94,9 +94,10 @@ fun ShelfVolume(
     width: Dp,
     height: Dp,
     pulled: Boolean,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         if (pulled) {
             PulledBook(book = book, cloth = cloth, onClick = onClick)
         } else {
