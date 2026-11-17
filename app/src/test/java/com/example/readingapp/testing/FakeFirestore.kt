@@ -68,8 +68,11 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
     /** When set, [FireRepository.updateBook] fails with it. */
     var bookUpdateError: Exception? = null
 
-    /** When set, deleting a book fails with it. */
-    var bookDeleteError: Exception? = null
+    /** Book ids whose delete fails, with the error to fail with. */
+    val bookDeleteErrors = mutableMapOf<String, Exception>()
+
+    /** When set, adding a book fails with it. */
+    var bookAddError: Exception? = null
 
     val users = mockk<CollectionReference>()
     private val bookQuery = mockk<Query>()
@@ -143,6 +146,7 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
             @Suppress("UNCHECKED_CAST")
             val doc = firstArg<Any>() as Map<String, Any>
             addedBooks += doc
+            bookAddError?.let { return@answers immediateTask<DocumentReference>(error = it) }
             books = books + doc.toBook(id = "added-${addedBooks.size}")
             immediateTask(result = mockk<DocumentReference>())
         }
@@ -160,7 +164,7 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
 
     private fun deleteBook(docId: String): Task<Void> {
         deletedBookIds += docId
-        bookDeleteError?.let { return immediateTask(error = it) }
+        bookDeleteErrors[docId]?.let { return immediateTask(error = it) }
         books = books.filterNot { it.id == docId }
         return immediateTask()
     }

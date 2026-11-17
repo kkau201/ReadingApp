@@ -138,6 +138,8 @@
 
     <string name="book_saved_toast">Book saved successfully</string>
     <string name="book_removed_toast">Book removed successfully</string>
+    <string name="book_save_error">Couldn’t save this book. Please try again.</string>
+    <string name="book_remove_error">Couldn’t remove this book. Please try again.</string>
     <string name="remove_book_title">Remove book?</string>
     <string name="remove_book_message">Are you sure you want to remove this book? This will delete all data associated with it.</string>
     <string name="remove_book_primary_button">Yes</string>

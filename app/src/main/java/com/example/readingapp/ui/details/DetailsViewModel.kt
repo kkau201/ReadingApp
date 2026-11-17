@@ -273,6 +273,7 @@ class DetailsViewModel @Inject constructor(
             }
             .addOnFailureListener {
                 Log.e("Error", "saveBook: Error saving book", it)
+                showToast(getString(R.string.book_save_error))
             }
     }
 
@@ -320,21 +321,30 @@ class DetailsViewModel @Inject constructor(
     }
 
     private fun removeBooks(bookIds: List<String>) {
-        if (bookIds.isEmpty()) return
+        val ids = bookIds.distinct()
+        if (ids.isEmpty()) return
         val db = FirebaseFirestore.getInstance().collection(BOOKS_COLLECTION)
-        var remaining = bookIds.size
-        bookIds.distinct().forEach { bookId ->
+        var remaining = ids.size
+        var anyFailed = false
+        ids.forEach { bookId ->
             db.document(bookId)
                 .delete()
-                .addOnCompleteListener {
+                // Firebase calls this for failures too, so check the result before confirming.
+                .addOnCompleteListener { task ->
+                    if (!task.isSuccessful) {
+                        anyFailed = true
+                        Log.e("Error", "removeBook: Error deleting doc", task.exception)
+                    }
                     remaining -= 1
                     if (remaining == 0) {
-                        showToast(getString(R.string.book_removed_toast))
+                        showToast(
+                            getString(
+                                if (anyFailed) R.string.book_remove_error else R.string.book_removed_toast
+                            )
+                        )
+                        // Refresh either way: some copies may have been removed.
                         fetchSavedBooks()
                     }
-                }
-                .addOnFailureListener {
-                    Log.e("Error", "removeBook: Error deleting doc", it)
                 }
         }
     }

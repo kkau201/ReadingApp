@@ -270,6 +270,18 @@ class DetailsViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun addToShelf_saveFails_saysSoAndStaysUnsaved() = runTest {
+        firestore.bookAddError = FakeFirestore.unavailable()
+        open(unsavedBook.googleBookId!!)
+        viewModel.toggleSavedBook()
+
+        choose(R.string.home_filter_reading)
+
+        assertEquals(str(R.string.book_save_error), mainViewModel.toastFlow.value)
+        assertFalse(state.isSaved)
+    }
+
+    @Test
     fun addToShelf_cancelled_savesNothing() = runTest {
         open(unsavedBook.googleBookId!!)
         viewModel.toggleSavedBook()
@@ -328,6 +340,35 @@ class DetailsViewModelTest : BaseViewModelTest() {
 
         assertEquals(setOf(TestData.readingBook.id, "reading-duplicate"), firestore.deletedBookIds.toSet())
         assertFalse(state.isSaved)
+    }
+
+    @Test
+    fun remove_fails_saysSoAndKeepsBook() = runTest {
+        firestore.bookDeleteErrors[TestData.readingBook.id!!] = FakeFirestore.unavailable()
+        open(TestData.readingBook.googleBookId!!)
+
+        viewModel.toggleSavedBook()
+        dialog().onPrimaryClick!!()
+
+        assertEquals(str(R.string.book_remove_error), mainViewModel.toastFlow.value)
+        assertTrue(state.isSaved)
+        assertEquals(TestData.readingBook, state.savedBook)
+    }
+
+    @Test
+    fun remove_oneDuplicateCopyFails_saysSoAndShowsTheCopyLeft() = runTest {
+        val duplicate = TestData.readingBook.copy(id = "reading-duplicate")
+        firestore.books += duplicate
+        firestore.bookDeleteErrors[duplicate.id!!] = FakeFirestore.unavailable()
+        open(TestData.readingBook.googleBookId!!)
+
+        viewModel.toggleSavedBook()
+        dialog().onPrimaryClick!!()
+
+        assertEquals(str(R.string.book_remove_error), mainViewModel.toastFlow.value)
+        // The other copy did go, so the screen refreshes to what's left.
+        assertTrue(state.isSaved)
+        assertEquals(duplicate.id, state.bookId)
     }
 
     @Test
