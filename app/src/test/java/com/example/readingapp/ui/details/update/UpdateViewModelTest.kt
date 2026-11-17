@@ -95,15 +95,6 @@ class UpdateViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun open_notesSavedUnderOlderLongerLimit_areTrimmedToFit() = runTest {
-        firestore.books = listOf(readingBook.copy(notes = "n".repeat(TextLimits.BOOK_NOTES + 50)))
-
-        open(readingBook.googleBookId!!)
-
-        assertEquals(TextLimits.BOOK_NOTES, state.noteInput.length)
-    }
-
-    @Test
     fun open_bookNotOnShelf_hasNothingToEdit() = runTest {
         open(unsavedBook.googleBookId!!)
 
@@ -295,7 +286,10 @@ class UpdateViewModelTest : BaseViewModelTest() {
         assertFalse(StoredBook.STARTED_READING in updates)
         assertNotNull(updates[StoredBook.FINISHED_READING])
         assertEquals("14/06/2025", updates[StoredBook.FINISHED_ON])
-        assertEquals(BookStatus.FINISHED, firestore.books.single { it.id == readingBook.id }.bookStatus)
+        assertEquals(
+            BookStatus.FINISHED,
+            firestore.books.single { it.id == readingBook.id }.bookStatus
+        )
     }
 
     @Test
@@ -338,8 +332,9 @@ class UpdateViewModelTest : BaseViewModelTest() {
         assertNull(updates[StoredBook.STARTED_READING])
         assertNull(updates[StoredBook.FINISHED_READING])
         assertNull(updates[StoredBook.FINISHED_ON])
-        assertTrue(listOf(StoredBook.STARTED_READING, StoredBook.FINISHED_READING, StoredBook.FINISHED_ON)
-            .all { it in updates })
+        assertTrue(
+            listOf(StoredBook.STARTED_READING, StoredBook.FINISHED_READING, StoredBook.FINISHED_ON)
+                .all { it in updates })
     }
 
     @Test

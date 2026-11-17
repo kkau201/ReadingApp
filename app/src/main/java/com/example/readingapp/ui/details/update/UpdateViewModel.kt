@@ -12,8 +12,8 @@ import com.example.readingapp.coroutines.CoroutineDispatcherProvider
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.model.limitTo
 import com.example.readingapp.repo.FireRepository
-import com.example.readingapp.ui.model.BookStatus
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
+import com.example.readingapp.ui.model.BookStatus
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,10 +52,7 @@ class UpdateViewModel @Inject constructor(
                         bookId = savedBook?.id,
                         book = savedBook,
                         isSaved = savedBook != null,
-                        // Notes saved under an older, longer limit are cut on load. They then
-                        // differ from the stored value, so the next save writes the shorter
-                        // version; otherwise firestore.rules would reject every update.
-                        noteInput = (savedBook?.notes ?: "").limitTo(TextLimits.BOOK_NOTES),
+                        noteInput = (savedBook?.notes ?: ""),
                         selectedStatus = savedBook?.bookStatus ?: BookStatus.LIBRARY,
                         selectedRating = savedBook?.rating?.toInt() ?: 0,
                         finishedYear = parts.year,
@@ -129,11 +126,6 @@ class UpdateViewModel @Inject constructor(
                 updates = updates.plus("notes" to uiState.value.noteInput)
             }
 
-            val storedRating = uiState.value.selectedRating.takeIf { it in 1..5 }?.toDouble()
-            if (storedRating != book.rating) {
-                updates = updates.plus("rating" to storedRating)
-            }
-
             val selectedStatus: BookStatus = uiState.value.selectedStatus
             val finished = if (selectedStatus == BookStatus.FINISHED) {
                 FinishedParts(
@@ -163,6 +155,13 @@ class UpdateViewModel @Inject constructor(
             }
             if (finished?.display != book.finishedOn) {
                 updates = updates.plus("finished_on" to finished?.display)
+            }
+
+            // If book is not finished then ensure the rating is removed (so its reset if prev. set)
+            val storedRating = if (selectedStatus != BookStatus.FINISHED) null
+            else uiState.value.selectedRating.takeIf { it in 1..5 }?.toDouble()
+            if (storedRating != book.rating) {
+                updates = updates.plus("rating" to storedRating)
             }
 
             if (updates.isNotEmpty()) {

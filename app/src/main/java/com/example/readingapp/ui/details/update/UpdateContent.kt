@@ -86,10 +86,12 @@ fun UpdateScreenContent(
                 onFinishedMonthChanged = onFinishedMonthChanged,
                 onFinishedDayChanged = onFinishedDayChanged
             )
-            RatingField(
-                selectedRating = selectedRating,
-                onRatingChanged = onRatingChanged
-            )
+            if (selectedStatus == BookStatus.FINISHED) {
+                RatingField(
+                    selectedRating = selectedRating,
+                    onRatingChanged = onRatingChanged
+                )
+            }
             NotesField(
                 noteInput = noteInput,
                 onNoteInputChanged = onNoteInputChanged
