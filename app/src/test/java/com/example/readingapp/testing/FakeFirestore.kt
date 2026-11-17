@@ -9,6 +9,7 @@ import com.example.readingapp.model.READING_GOAL
 import com.example.readingapp.model.StoredBook
 import com.example.readingapp.model.USER_ID
 import com.example.readingapp.repo.FireRepository
+import com.google.android.gms.tasks.TaskCompletionSource
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
@@ -37,6 +38,15 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
     /** When set, reading books fails with it. */
     var booksError: FirebaseFirestoreException? = null
 
+    /** Every users/{uid} update written, in order. Successful ones are applied to [profile]. */
+    val userUpdates = mutableListOf<Map<String, Any?>>()
+
+    /** When set, updating users fails with it. */
+    var userWriteError: FirebaseFirestoreException? = null
+
+    /** When set, user updates stay in progress until it's completed, to test "while saving". */
+    var pendingUserWrite: TaskCompletionSource<Void>? = null
+
     val users = mockk<CollectionReference>()
     private val bookQuery = mockk<Query>()
 
@@ -54,6 +64,13 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
                 every { ref.get() } answers {
                     userError?.let { Tasks.forException(it) }
                         ?: Tasks.forResult(userSnapshot(uid, profile?.takeIf { it.userId == uid }))
+                }
+                every { ref.update(any<Map<String, Any>>()) } answers {
+                    val updates = firstArg<Map<String, Any?>>()
+                    userUpdates += updates
+                    userWriteError?.let { return@answers Tasks.forException<Void>(it) }
+                    profile = profile?.withUpdates(updates)
+                    pendingUserWrite?.task ?: Tasks.forResult<Void>(null)
                 }
             }
         }
@@ -73,6 +90,13 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
     }
 
     companion object {
+        private fun MUser.withUpdates(updates: Map<String, Any?>) = copy(
+            displayName = updates[DISPLAY_NAME] as? String ?: displayName,
+            quote = updates[QUOTE] as? String ?: quote,
+            avatarUrl = updates[AVATAR_URL] as? String ?: avatarUrl,
+            readingGoal = (updates[READING_GOAL] as? Number)?.toInt() ?: readingGoal
+        )
+
         fun unavailable(message: String = "Firestore unavailable") =
             FirebaseFirestoreException(message, FirebaseFirestoreException.Code.UNAVAILABLE)
 

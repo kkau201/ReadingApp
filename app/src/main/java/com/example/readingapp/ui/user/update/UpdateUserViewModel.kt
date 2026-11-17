@@ -1,31 +1,32 @@
 package com.example.readingapp.ui.user.update
 
+import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.viewModelScope
 import com.example.readingapp.R
+import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.model.AVATAR_URL
 import com.example.readingapp.model.DISPLAY_NAME
+import com.example.readingapp.model.MUser
 import com.example.readingapp.model.QUOTE
 import com.example.readingapp.model.READING_GOAL
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.model.asReadingGoal
 import com.example.readingapp.model.limitTo
-import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.model.Avatar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class UpdateUserViewModel @Inject constructor(
@@ -38,40 +39,46 @@ class UpdateUserViewModel @Inject constructor(
     val uiState: StateFlow<UpdateUserUiState>
         field: MutableStateFlow<UpdateUserUiState> = MutableStateFlow(UpdateUserUiState())
 
-    private var userJob: Job? = null
+    /** True once the form holds the saved profile; from then on it holds the user's edits. */
+    private var formLoaded = false
+    private var loadJob: Job? = null
+    private var saveJob: Job? = null
 
+    /**
+     * Fills the form from the saved profile. Called on every start, but only loads once, so
+     * leaving the app mid-edit and coming back keeps what was typed.
+     */
     fun onLoad() {
-        userJob = viewModelScope.launch {
+        if (formLoaded || loadJob?.isActive == true) return
+        loadJob = viewModelScope.launch {
             updateLoadingState(LoadingState.Loading())
-            loadUser().join()
-            fireRepository.user.collect { user ->
-                uiState.update { state ->
-                    state.copy(
-                        userId = user?.id,
-                        // Name and bio are always saved together, so trim values stored under
-                        // older, longer limits or the save would be rejected by the rules.
-                        displayNameInput = (user?.displayName ?: "").limitTo(TextLimits.DISPLAY_NAME),
-                        bioInput = (user?.quote ?: "").limitTo(TextLimits.QUOTE),
-                        readingGoal = user?.readingGoal.asReadingGoal(),
-                        selectedAvatar = Avatar.entries.find { avatar -> avatar.id == user?.avatarUrl }
-                            ?: Avatar.AVATAR_1
-                    )
-                }
-                user?.let {
-                    updateLoadingState(LoadingState.Success)
-                }
+            try {
+                val userId = authRepository.currentUserId ?: throw ErrorType.UnknownUserException
+                val user = fireRepository.fetchUser(userId).getOrThrow()
+                    ?: throw ErrorType.UnknownUserException
+                fillForm(userId, user)
+                formLoaded = true
+                updateLoadingState(LoadingState.Success)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                updateLoadingState(LoadingState.Failed(e.message))
+                showErrorDialog(e)
             }
         }
     }
 
-    private fun loadUser() = viewModelScope.launch {
-        try {
-            val currentUserId =
-                authRepository.currentUserId ?: throw ErrorType.UnknownUserException
-            fireRepository.fetchUser(currentUserId).getOrThrow()
-        } catch (e: Exception) {
-            updateLoadingState(LoadingState.Failed(e.message))
-            showErrorDialog(e)
+    private fun fillForm(userId: String, user: MUser) {
+        uiState.update { state ->
+            state.copy(
+                userId = user.id ?: userId,
+                // Name and bio are always saved together, so trim values stored under
+                // older, longer limits or the save would be rejected by the rules.
+                displayNameInput = user.displayName.limitTo(TextLimits.DISPLAY_NAME),
+                bioInput = user.quote.limitTo(TextLimits.QUOTE),
+                readingGoal = user.readingGoal.asReadingGoal(),
+                selectedAvatar = Avatar.entries.find { it.id == user.avatarUrl } ?: Avatar.AVATAR_1
+            )
         }
     }
 
@@ -99,37 +106,53 @@ class UpdateUserViewModel @Inject constructor(
     }
 
     fun onUpdateClick() {
-        val displayName = displayNameForSave(uiState.value.displayNameInput)
+        // A second tap while saving would send the same write twice.
+        if (saveJob?.isActive == true) return
+        val state = uiState.value
+        val displayName = displayNameForSave(state.displayNameInput)
         if (displayName == null) {
             uiState.update { it.copy(displayNameError = true) }
             return
         }
-        uiState.value.userId?.let { id ->
+        val userId = state.userId ?: return
+        saveJob = viewModelScope.launch {
             updateLoadingState(LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN))
-            fireRepository.updateUser(
-                userId = id,
-                userUpdates = mapOf(
-                    DISPLAY_NAME to displayName,
-                    QUOTE to uiState.value.bioInput,
-                    AVATAR_URL to uiState.value.selectedAvatar?.id,
-                    READING_GOAL to uiState.value.readingGoal.asReadingGoal()
-                ),
-                onCompleteListener = {
-                    viewModelScope.launch {
-                        userJob?.cancel()
-                        userJob = null
-                        delay(3000.milliseconds)
-                        loadUser()
-                        showToast(getString(R.string.update_user_saved))
-                        navigateBack()
-                    }
-                },
-                onErrorListener = {
-                    updateLoadingState(LoadingState.Idle)
-                    showToast(getString(R.string.update_user_error))
-                }
-            )
+            try {
+                fireRepository.updateUser(
+                    userId = userId,
+                    userUpdates = mapOf(
+                        DISPLAY_NAME to displayName,
+                        QUOTE to state.bioInput,
+                        AVATAR_URL to state.selectedAvatar?.id,
+                        READING_GOAL to state.readingGoal.asReadingGoal()
+                    )
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Stay on the screen with the edits intact so the user can try again.
+                Log.d(TAG, "Saving profile failed: $e")
+                updateLoadingState(LoadingState.Idle)
+                showToast(getString(R.string.update_user_error))
+                return@launch
+            }
+            // The save is done. Refresh the shared profile so the Profile screen shows the
+            // new details; if that read fails, it reloads them itself.
+            try {
+                fireRepository.fetchUser(userId)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.d(TAG, "Refreshing profile after save failed: $e")
+            }
+            updateLoadingState(LoadingState.Idle)
+            showToast(getString(R.string.update_user_saved))
+            navigateBack()
         }
+    }
+
+    private companion object {
+        const val TAG = "UpdateUserViewModel"
     }
 }
 

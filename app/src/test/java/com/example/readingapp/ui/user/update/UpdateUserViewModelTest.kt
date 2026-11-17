@@ -17,16 +17,12 @@ import com.example.readingapp.testing.BaseViewModelTest
 import com.example.readingapp.testing.FakeFirestore
 import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.TestData.UID
-import com.example.readingapp.testing.collectNavigation
 import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
 import com.example.readingapp.ui.model.Avatar
-import io.mockk.every
-import io.mockk.slot
-import io.mockk.spyk
-import io.mockk.verify
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.advanceTimeBy
+import com.google.android.gms.tasks.TaskCompletionSource
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -34,28 +30,18 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class UpdateUserViewModelTest : BaseViewModelTest() {
 
     private val authRepository = FakeAuthRepository().apply { current = TestData.authUser }
     private val firestore = FakeFirestore(currentUserId = { authRepository.currentUserId })
-    private val fireRepository = spyk(firestore.repository)
+    private val fireRepository = firestore.repository
     private lateinit var viewModel: UpdateUserViewModel
 
     private val state get() = viewModel.uiState.value
 
-    /** What Save sent to Firestore, if anything. */
-    private val savedUpdates = slot<Map<String, Any?>>()
-
     @Before
     fun setUp() {
-        // Writing goes through FirebaseFirestore.getInstance(), so stand in for a successful save.
-        every { fireRepository.updateUser(UID, capture(savedUpdates), any(), any()) } answers {
-            thirdArg<(Boolean) -> Unit>().invoke(true)
-        }
-
         viewModel = UpdateUserViewModel(
             fireRepository,
             authRepository,
@@ -64,8 +50,7 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
         viewModel.setMainViewModel(mainViewModel)
     }
 
-    private fun assertNothingSaved() =
-        verify(exactly = 0) { fireRepository.updateUser(any(), any(), any(), any()) }
+    private fun assertNothingSaved() = assertTrue(firestore.userUpdates.isEmpty())
 
     // region Loading
 
@@ -125,6 +110,33 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
         assertNull(state.userId)
         assertEquals(LoadingState.Failed("Firestore unavailable"), mainViewModel.loadingFlow.value)
         assertEquals(str(R.string.error_unknown), mainViewModel.dialogFlow.value?.message)
+    }
+
+    @Test
+    fun onLoad_afterFailedLoad_triesAgain() = runTest {
+        firestore.userError = FakeFirestore.unavailable()
+        viewModel.onLoad()
+
+        firestore.userError = null
+        viewModel.onLoad()
+
+        assertEquals(UID, state.userId)
+        assertEquals(TestData.DISPLAY_NAME, state.displayNameInput)
+    }
+
+    @Test
+    fun leavingAndReturningMidEdit_keepsTheEdits() = runTest {
+        viewModel.onLoad()
+        viewModel.onDisplayNameInputChange("Jane A.")
+        viewModel.onBioInputChange("Half-written bio")
+        viewModel.onAvatarChange(Avatar.AVATAR_6)
+
+        // Check another app, come back: the screen starts again.
+        viewModel.onLoad()
+
+        assertEquals("Jane A.", state.displayNameInput)
+        assertEquals("Half-written bio", state.bioInput)
+        assertEquals(Avatar.AVATAR_6, state.selectedAvatar)
     }
 
     // endregion
@@ -191,32 +203,96 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
                 AVATAR_URL to Avatar.AVATAR_5.id,
                 READING_GOAL to 15
             ),
-            savedUpdates.captured
+            firestore.userUpdates.single()
         )
     }
 
     @Test
-    fun save_succeeds_confirmsRefreshesProfileAndGoesBack() = runTest {
-        collectNavigation(mainViewModel, into = navigationEvents)
+    fun save_succeeds_confirmsRefreshesProfileAndGoesBackStraightAway() = runTest {
+        collectNavigation()
         viewModel.onLoad()
-        firestore.profile = TestData.profile.copy(displayName = "Jane A.") // what Firestore now holds
         viewModel.onDisplayNameInputChange("Jane A.")
 
         viewModel.onUpdateClick()
 
-        // A full-screen loader shows while the save settles.
+        // No fixed wait: done as soon as Firestore confirms the write.
+        assertEquals(str(R.string.update_user_saved), mainViewModel.toastFlow.value)
+        assertEquals(listOf<NavigationEvent?>(NavigateBack), navigationEvents)
+        assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+        // The Profile screen underneath sees the new name straight away.
+        assertEquals("Jane A.", fireRepository.user.value?.displayName)
+    }
+
+    @Test
+    fun save_inProgress_showsFullScreenLoaderAndIgnoresSecondTap() = runTest {
+        collectNavigation()
+        val write = TaskCompletionSource<Void>()
+        firestore.pendingUserWrite = write
+        viewModel.onLoad()
+
+        viewModel.onUpdateClick()
+        viewModel.onUpdateClick()
+
+        assertEquals(1, firestore.userUpdates.size)
         assertEquals(
             LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN),
             mainViewModel.loadingFlow.value
         )
-        assertNull(mainViewModel.toastFlow.value)
+        assertTrue(navigationEvents.isEmpty())
 
-        advanceTimeBy(3_001.milliseconds)
+        write.setResult(null)
+        runCurrent()
 
         assertEquals(str(R.string.update_user_saved), mainViewModel.toastFlow.value)
         assertEquals(listOf<NavigationEvent?>(NavigateBack), navigationEvents)
-        // The Profile screen underneath sees the new name straight away.
-        assertEquals("Jane A.", fireRepository.user.value?.displayName)
+    }
+
+    @Test
+    fun save_fails_showsErrorKeepsEditsAndStays() = runTest {
+        collectNavigation()
+        firestore.userWriteError = FakeFirestore.unavailable()
+        viewModel.onLoad()
+        viewModel.onDisplayNameInputChange("Jane A.")
+
+        viewModel.onUpdateClick()
+        advanceUntilIdle()
+
+        // Only the error: never followed by "saved" or leaving the screen.
+        assertEquals(str(R.string.update_user_error), mainViewModel.toastFlow.value)
+        assertTrue(navigationEvents.isEmpty())
+        assertEquals("Jane A.", state.displayNameInput)
+        assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+        assertEquals(TestData.DISPLAY_NAME, fireRepository.user.value?.displayName)
+    }
+
+    @Test
+    fun save_failsThenRetried_saves() = runTest {
+        collectNavigation()
+        firestore.userWriteError = FakeFirestore.unavailable()
+        viewModel.onLoad()
+        viewModel.onDisplayNameInputChange("Jane A.")
+        viewModel.onUpdateClick()
+
+        firestore.userWriteError = null
+        viewModel.onUpdateClick()
+
+        assertEquals(2, firestore.userUpdates.size)
+        assertEquals(str(R.string.update_user_saved), mainViewModel.toastFlow.value)
+        assertEquals(listOf<NavigationEvent?>(NavigateBack), navigationEvents)
+    }
+
+    @Test
+    fun save_refreshAfterSaveFails_stillConfirmsAndGoesBack() = runTest {
+        collectNavigation()
+        viewModel.onLoad()
+        firestore.userError = FakeFirestore.unavailable() // the read after the write fails
+
+        viewModel.onUpdateClick()
+
+        assertEquals(str(R.string.update_user_saved), mainViewModel.toastFlow.value)
+        assertEquals(listOf<NavigationEvent?>(NavigateBack), navigationEvents)
+        // Profile keeps showing the last known details (not blank) until it reloads.
+        assertEquals(TestData.DISPLAY_NAME, fireRepository.user.value?.displayName)
     }
 
     @Test

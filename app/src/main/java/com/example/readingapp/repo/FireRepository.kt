@@ -53,7 +53,9 @@ class FireRepository @Inject constructor(
     suspend fun fetchUser(userId: String?): DataOrException<MUser?, Boolean, Exception> {
         val result = getUserDetailsFromDatabase(userId)
 
-        user.update { result.data }
+        // A failed read says nothing about the profile, so keep the last one rather than
+        // blanking every screen showing it. A missing document (no error) does clear it.
+        if (result.e == null) user.update { result.data }
 
         return result
     }
@@ -185,19 +187,8 @@ class FireRepository @Inject constructor(
             .addOnFailureListener { onErrorListener(it) }
     }
 
-    fun updateUser(
-        userId: String,
-        userUpdates: Map<String, Any?>,
-        onCompleteListener: (Boolean) -> Unit,
-        onErrorListener: (Exception) -> Unit
-    ) {
-        FirebaseFirestore.getInstance()
-            .collection(USERS_COLLECTION)
-            .document(userId)
-            .update(userUpdates)
-            .addOnCompleteListener {
-                onCompleteListener(it.isSuccessful)
-            }
-            .addOnFailureListener { onErrorListener(it) }
+    /** Updates fields of users/{userId}. Throws if the write fails. */
+    suspend fun updateUser(userId: String, userUpdates: Map<String, Any?>) {
+        queryUser.document(userId).update(userUpdates).await()
     }
 }

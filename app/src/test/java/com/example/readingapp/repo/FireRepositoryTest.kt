@@ -6,6 +6,7 @@ import com.example.readingapp.testing.TestData.UID
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -32,6 +33,27 @@ class FireRepositoryTest {
         repository.fetchUser(UID)
 
         assertNull(repository.user.value)
+    }
+
+    @Test
+    fun fetchUser_documentDeletedSinceLastRead_clearsCachedProfile() = runTest {
+        repository.fetchUser(UID)
+        firestore.profile = null
+
+        repository.fetchUser(UID)
+
+        assertNull(repository.user.value)
+    }
+
+    @Test
+    fun fetchUser_readFails_keepsLastProfileAndReportsError() = runTest {
+        repository.fetchUser(UID)
+        firestore.userError = FakeFirestore.unavailable()
+
+        val result = repository.fetchUser(UID)
+
+        assertNotNull(result.e)
+        assertEquals(TestData.DISPLAY_NAME, repository.user.value?.displayName)
     }
 
     @Test
