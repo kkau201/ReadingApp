@@ -107,9 +107,8 @@ class DetailsViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun open_infoFails_showsError() = runTest {
-        coEvery { bookRepository.getBookInfo(any()) } returns
-            flowOf(RemoteResult.Loading, RemoteResult.Error(ErrorType.NetworkException(null)))
+    fun open_infoFails_bookNotOnShelf_showsError() = runTest {
+        givenGoogleBooksUnreachable()
         createViewModel(unsavedBook.googleBookId!!)
 
         viewModel.loadBook()
@@ -117,6 +116,43 @@ class DetailsViewModelTest : BaseViewModelTest() {
 
         assertErrorDialog(R.string.error_network)
         assertTrue(mainViewModel.loadingFlow.value is LoadingState.Failed)
+        assertFalse(state.showingShelfCopy)
+    }
+
+    @Test
+    fun open_infoFails_bookOnShelf_showsShelfCopyInstead() = runTest {
+        givenGoogleBooksUnreachable()
+        createViewModel(TestData.readingBook.googleBookId!!)
+
+        viewModel.loadBook()
+        viewModel.uiState.first { it.book != null }
+
+        assertEquals(TestData.readingBook, state.book)
+        assertTrue(state.showingShelfCopy)
+        assertTrue(state.isSaved)
+        assertEquals(LoadingState.Success, mainViewModel.loadingFlow.first { it == LoadingState.Success })
+        assertNull(mainViewModel.dialogFlow.value)
+    }
+
+    @Test
+    fun reopen_infoFailsAfterItLoaded_keepsTheFullDetails() = runTest {
+        open(TestData.readingBook.googleBookId!!)
+        val loaded = state.book
+        givenGoogleBooksUnreachable()
+        mainViewModel.updateLoadingState(LoadingState.Idle)
+
+        // e.g. back from Update book after going offline.
+        viewModel.loadBook()
+        mainViewModel.loadingFlow.first { it == LoadingState.Success }
+
+        assertEquals(loaded, state.book)
+        assertFalse(state.showingShelfCopy)
+        assertNull(mainViewModel.dialogFlow.value)
+    }
+
+    private fun givenGoogleBooksUnreachable() {
+        coEvery { bookRepository.getBookInfo(any()) } returns
+            flowOf(RemoteResult.Loading, RemoteResult.Error(ErrorType.NetworkException(null)))
     }
 
     @Test

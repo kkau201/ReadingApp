@@ -77,6 +77,11 @@
     <string name="tags_state_expanded">Expanded</string>
 
     <string name="details_about">About</string>
+
+    <!-- Callout on Details when Google Books couldn't be reached and the shelf copy is shown. -->
+    <string name="details_shelf_copy_title">Showing your saved copy</string>
+    <string name="details_shelf_copy_body">The cover image, description and tags will load when you’re back online.</string>
+
     <string name="details_on_your_shelf">On your shelf</string>
     <string name="details_save">Save</string>
     <string name="details_edit">Edit</string>

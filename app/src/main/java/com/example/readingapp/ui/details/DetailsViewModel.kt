@@ -89,20 +89,45 @@ class DetailsViewModel @Inject constructor(
                         is RemoteResult.Success -> {
                             updateLoadingState(LoadingState.Success)
                             uiState.update { state ->
-                                state.copy(book = result.data)
+                                state.copy(book = result.data, showingShelfCopy = false)
                             }
                         }
-                        is RemoteResult.Error -> {
-                            updateLoadingState(LoadingState.Failed(result.exception?.message))
-                            showErrorDialog(result.exception)
-                        }
+                        is RemoteResult.Error -> showWhatWeHaveOrError(result.exception)
                     }
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                showErrorDialog(e)
+                showWhatWeHaveOrError(e)
             }
+        }
+    }
+
+    /**
+     * Google Books couldn't be reached (usually offline). Rather than a dead end, keep showing
+     * the book if it already loaded, or fall back to the copy on the user's shelf. Only a book
+     * that's neither shows the error.
+     */
+    private suspend fun showWhatWeHaveOrError(error: Throwable?) {
+        if (uiState.value.book != null) {
+            updateLoadingState(LoadingState.Success)
+            return
+        }
+        // Read from the device cache when offline, so this is quick.
+        val shelfCopy = try {
+            fireRepository.fetchSavedBooksByUser().data?.find { it.googleBookId == args.bookId }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.d("DetailsViewModel", "No shelf copy to fall back to: $e")
+            null
+        }
+        if (shelfCopy != null) {
+            uiState.update { it.copy(book = shelfCopy, showingShelfCopy = true) }
+            updateLoadingState(LoadingState.Success)
+        } else {
+            updateLoadingState(LoadingState.Failed(error?.message))
+            showErrorDialog(error)
         }
     }
 

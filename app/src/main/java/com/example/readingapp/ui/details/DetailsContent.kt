@@ -11,10 +11,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudOff
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +32,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.google.firebase.Timestamp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.readingapp.R
@@ -49,13 +56,39 @@ import com.example.readingapp.utils.toAnnotatedString
 
 private val CoverShape = RoundedCornerShape(6.dp)
 private val ShelfCardShape = RoundedCornerShape(20.dp)
+private val CalloutShape = RoundedCornerShape(14.dp)
+
+/** Offline: the shelf copy has no description, tags or cover, and says so. */
+@PreviewLightDark
+@Composable
+private fun DetailsShelfCopyPreview() {
+    val shelfCopy = MBook(
+        id = "preview",
+        googleBookId = "gb-preview",
+        title = "A Room of One's Own",
+        authors = listOf("Virginia Woolf"),
+        pageCount = 160,
+        notes = "Re-reading for book club.",
+        startedReading = Timestamp.now()
+    )
+    AppTheme {
+        DetailsScreenContent(
+            book = shelfCopy,
+            savedBook = shelfCopy,
+            onStatusClick = {},
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
+            showingShelfCopy = true
+        )
+    }
+}
 
 @Composable
 fun DetailsScreenContent(
     book: MBook,
     savedBook: MBook?,
     onStatusClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showingShelfCopy: Boolean = false
 ) {
     val cloth = shelfSwatches(listOf(book.shelfKey())).first().cloth
     Column(
@@ -69,6 +102,7 @@ fun DetailsScreenContent(
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             BookHeading(book = book, cloth = cloth)
             BookTags(tags = book.tags())
+            if (showingShelfCopy) ShelfCopyCallout()
         }
         savedBook?.let { shelf ->
             YourShelfCard(book = shelf, onStatusClick = onStatusClick)
@@ -86,6 +120,51 @@ fun DetailsScreenContent(
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
+        }
+    }
+}
+
+/**
+ * Says the screen is showing the user's saved copy (Google Books couldn't be reached). Styled
+ * as a callout, so it isn't mistaken for the book's own text.
+ */
+@Composable
+private fun ShelfCopyCallout(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(CalloutShape)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(16.dp)
+            // Read as one message.
+            .semantics(mergeDescendants = true) {},
+        verticalAlignment = Alignment.Top
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.CloudOff,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier
+                .padding(top = 2.dp)
+                .size(20.dp)
+        )
+        Column(
+            modifier = Modifier.padding(start = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.details_shelf_copy_title),
+                color = MaterialTheme.colorScheme.onSurface,
+                // App UI's sans label style, not the book's italic serif, so it reads as a
+                // message from the app rather than part of the book.
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+            )
+            Text(
+                text = stringResource(R.string.details_shelf_copy_body),
+                // Not Muted: too faint on this background.
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }
