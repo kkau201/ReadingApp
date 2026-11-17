@@ -68,6 +68,13 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
     /** When set, [FireRepository.updateBook] fails with it. */
     var bookUpdateError: Exception? = null
 
+    /**
+     * When true, book updates stay in progress until [finishHeldBookUpdates], to test
+     * "while saving" states.
+     */
+    var holdBookUpdates = false
+    private val heldBookUpdates = mutableListOf<() -> Unit>()
+
     /** Book ids whose delete fails, with the error to fail with. */
     val bookDeleteErrors = mutableMapOf<String, Exception>()
 
@@ -110,16 +117,21 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
         every { repository.updateBook(any(), any(), any(), any()) } answers {
             val id = firstArg<String>()
             val updates = secondArg<Map<String, Any?>>()
+            val onComplete = thirdArg<(Boolean) -> Unit>()
+            val onError = arg<(Exception) -> Unit>(3)
             bookUpdates += id to updates
-            val error = bookUpdateError
-            if (error == null) {
-                books = books.map { if (it.id == id) it.withUpdates(updates) else it }
-                thirdArg<(Boolean) -> Unit>().invoke(true)
-            } else {
-                // Like Firebase: complete (unsuccessfully), then fail.
-                thirdArg<(Boolean) -> Unit>().invoke(false)
-                arg<(Exception) -> Unit>(3).invoke(error)
+            val finish = {
+                val error = bookUpdateError
+                if (error == null) {
+                    books = books.map { if (it.id == id) it.withUpdates(updates) else it }
+                    onComplete(true)
+                } else {
+                    // Like Firebase: complete (unsuccessfully), then fail.
+                    onComplete(false)
+                    onError(error)
+                }
             }
+            if (holdBookUpdates) heldBookUpdates += finish else finish()
         }
         every { bookQuery.whereEqualTo(StoredBook.USER_ID, any()) } answers {
             val uid = secondArg<String>()
@@ -160,6 +172,13 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
         every { db.collection(BOOKS_COLLECTION) } returns collection
         mockkStatic(FirebaseFirestore::class)
         every { FirebaseFirestore.getInstance() } returns db
+    }
+
+    /** Lets book updates held by [holdBookUpdates] finish. */
+    fun finishHeldBookUpdates() {
+        val held = heldBookUpdates.toList()
+        heldBookUpdates.clear()
+        held.forEach { it() }
     }
 
     private fun deleteBook(docId: String): Task<Void> {

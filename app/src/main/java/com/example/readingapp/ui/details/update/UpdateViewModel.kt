@@ -8,6 +8,7 @@ import com.example.readingapp.R
 import com.example.readingapp.common.BaseViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
+import com.example.readingapp.coroutines.CoroutineDispatcherProvider
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.model.limitTo
 import com.example.readingapp.repo.FireRepository
@@ -15,20 +16,19 @@ import com.example.readingapp.ui.model.BookStatus
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class UpdateViewModel @Inject constructor(
     private val fireRepository: FireRepository,
     savedStateHandle: SavedStateHandle,
+    private val dispatchers: CoroutineDispatcherProvider,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
     override val isNavigationDestination: Boolean = true
@@ -37,13 +37,16 @@ class UpdateViewModel @Inject constructor(
     val uiState: StateFlow<UpdateUiState>
         field: MutableStateFlow<UpdateUiState> = MutableStateFlow(UpdateUiState())
 
-    fun loadBook() = viewModelScope.launch(Dispatchers.IO) {
+    /** True from sending a save until it succeeds or fails, so a second tap is ignored. */
+    private var saving = false
+
+    fun loadBook() = viewModelScope.launch(dispatchers.getIo()) {
         try {
             updateLoadingState(LoadingState.Loading())
             val allSavedBooks = fireRepository.fetchSavedBooksByUser().getOrThrow()
             val savedBook = allSavedBooks.find { it.googleBookId == args.bookId }
             val parts = savedBook.finishedParts()
-            withContext(Dispatchers.Main) {
+            withContext(dispatchers.getMain()) {
                 uiState.update { state ->
                     state.copy(
                         bookId = savedBook?.id,
@@ -117,11 +120,12 @@ class UpdateViewModel @Inject constructor(
     }
 
     fun onSaveClick() {
+        if (saving) return
         uiState.value.book?.let { book ->
             var updates = emptyMap<String, Any?>()
 
-            // Notes
-            if (book.notes != uiState.value.noteInput) {
+            // Notes: no note is stored as missing, but shown as an empty field.
+            if ((book.notes ?: "") != uiState.value.noteInput) {
                 updates = updates.plus("notes" to uiState.value.noteInput)
             }
 
@@ -162,39 +166,53 @@ class UpdateViewModel @Inject constructor(
             }
 
             if (updates.isNotEmpty()) {
+                saving = true
                 updateLoadingState(LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN))
                 try {
                     fireRepository.updateBook(
                         bookId = book.id.toString(),
                         bookUpdates = updates,
+                        // Called for failures too (before onErrorListener), so this is the one
+                        // place the outcome is handled.
                         onCompleteListener = { successful ->
-                            if (successful) {
-                                viewModelScope.launch {
-                                    delay(3000.milliseconds)
-                                    loadBook()
-                                    showToast(getString(R.string.update_book_success))
-                                    navigateBack()
-                                }
-                            } else {
-                                updateLoadingState(LoadingState.Idle)
-                                showToast(getString(R.string.update_book_error))
-                            }
+                            if (successful) onSaved() else onSaveFailed()
                         },
                         onErrorListener = { e ->
                             Log.e("Error", "onSaveClick: Error updating book", e)
-                            updateLoadingState(LoadingState.Idle)
-                            showToast(getString(R.string.update_book_error))
                         }
                     )
                 } catch (e: Exception) {
                     Log.e("Error", "onSaveClick: Error updating book", e)
-                    updateLoadingState(LoadingState.Idle)
-                    showToast(getString(R.string.update_book_error))
+                    onSaveFailed()
                 }
             } else {
                 showToast(getString(R.string.update_no_changes_made))
             }
         }
+    }
+
+    private fun onSaved() {
+        viewModelScope.launch {
+            // Refresh the shared shelf so Details (underneath) shows the change straight away.
+            // The save already succeeded, so a failed refresh doesn't change the outcome.
+            try {
+                fireRepository.fetchSavedBooksByUser()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("Error", "onSaved: Error refreshing books", e)
+            }
+            saving = false
+            updateLoadingState(LoadingState.Idle)
+            showToast(getString(R.string.update_book_success))
+            navigateBack()
+        }
+    }
+
+    private fun onSaveFailed() {
+        saving = false
+        updateLoadingState(LoadingState.Idle)
+        showToast(getString(R.string.update_book_error))
     }
 
     fun onCancelClick() {

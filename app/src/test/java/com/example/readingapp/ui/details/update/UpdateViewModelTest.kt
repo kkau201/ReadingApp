@@ -17,10 +17,6 @@ import com.example.readingapp.testing.TestData.unsavedBook
 import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
 import com.example.readingapp.ui.model.BookStatus
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -30,7 +26,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.util.Calendar
-import kotlin.time.Duration.Companion.milliseconds
 
 /** The Update book screen: notes, rating, reading status and finished date. */
 class UpdateViewModelTest : BaseViewModelTest() {
@@ -50,27 +45,15 @@ class UpdateViewModelTest : BaseViewModelTest() {
         viewModel = UpdateViewModel(
             firestore.repository,
             SavedStateHandle(mapOf("bookId" to googleBookId)),
+            dispatcherProvider,
             DependencyContextWrapper(fakeContext())
         )
         viewModel.setMainViewModel(mainViewModel)
     }
 
-    /** Opens the screen and waits for the book to load (it loads off the main thread). */
-    private suspend fun open(googleBookId: String) {
+    private fun open(googleBookId: String) {
         createViewModel(googleBookId)
         viewModel.loadBook()
-        mainViewModel.loadingFlow.first { it == LoadingState.Success || it is LoadingState.Failed }
-    }
-
-    /**
-     * Saves, then waits out the app's 3s pause and the reload that follows, so nothing is still
-     * running off the main thread when the test ends.
-     */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private suspend fun TestScope.saveAndWait() {
-        viewModel.onSaveClick()
-        advanceTimeBy(3_001.milliseconds)
-        mainViewModel.loadingFlow.first { it == LoadingState.Success }
     }
 
     private fun lastUpdate(): Map<String, Any?> = firestore.bookUpdates.single().second
@@ -134,8 +117,6 @@ class UpdateViewModelTest : BaseViewModelTest() {
         firestore.booksError = FakeFirestore.unavailable()
 
         open(readingBook.googleBookId!!)
-        // The dialog follows the failed state from the background thread.
-        mainViewModel.dialogFlow.first { it != null }
 
         assertNull(state.book)
         assertEquals(LoadingState.Failed("Firestore unavailable"), mainViewModel.loadingFlow.value)
@@ -212,13 +193,34 @@ class UpdateViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun save_bookWithNoNotes_unchanged_saysNoChanges() = runTest {
+        // No note is stored as missing; the empty field mustn't count as a change.
+        open(readingBook.googleBookId!!)
+
+        viewModel.onSaveClick()
+
+        assertEquals(str(R.string.update_no_changes_made), mainViewModel.toastFlow.value)
+        assertTrue(firestore.bookUpdates.isEmpty())
+    }
+
+    @Test
+    fun save_bookWithNoNotes_addingOne_savesIt() = runTest {
+        open(readingBook.googleBookId!!)
+        viewModel.onNoteInputChanged("Captain Wentworth!")
+
+        viewModel.onSaveClick()
+
+        assertEquals(mapOf(StoredBook.NOTES to "Captain Wentworth!"), lastUpdate())
+    }
+
+    @Test
     fun save_notesAndRating_writesOnlyThoseThenConfirmsAndGoesBack() = runTest {
         collectNavigation()
         open(datedFinishedBook.googleBookId!!)
         viewModel.onNoteInputChanged("Better on a second read.")
         viewModel.onRatingChanged(5)
 
-        saveAndWait()
+        viewModel.onSaveClick()
 
         val (id, updates) = firestore.bookUpdates.single()
         assertEquals(datedFinishedBook.id, id)
@@ -231,21 +233,40 @@ class UpdateViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun save_showsFullScreenLoaderUntilConfirmed() = runTest {
+    fun save_inProgress_showsFullScreenLoaderAndIgnoresSecondTap() = runTest {
+        collectNavigation()
+        firestore.holdBookUpdates = true
         open(datedFinishedBook.googleBookId!!)
         viewModel.onRatingChanged(5)
 
         viewModel.onSaveClick()
+        viewModel.onSaveClick()
 
+        assertEquals(1, firestore.bookUpdates.size)
         assertEquals(
             LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN),
             mainViewModel.loadingFlow.value
         )
         assertNull(mainViewModel.toastFlow.value)
+        assertTrue(navigationEvents.isEmpty())
 
-        advanceTimeBy(3_001.milliseconds)
-        mainViewModel.loadingFlow.first { it == LoadingState.Success }
+        firestore.finishHeldBookUpdates()
+
+        // No fixed wait: done as soon as Firestore confirms.
         assertEquals(str(R.string.update_book_success), mainViewModel.toastFlow.value)
+        assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+        assertEquals(listOf<NavigationEvent?>(NavigateBack), navigationEvents)
+    }
+
+    @Test
+    fun save_refreshesShelfSoDetailsShowsTheChange() = runTest {
+        open(readingBook.googleBookId!!)
+        viewModel.onStatusChanged(BookStatus.FINISHED)
+
+        viewModel.onSaveClick()
+
+        val shelfCopy = firestore.repository.savedBooks.value.single { it.id == readingBook.id }
+        assertEquals(BookStatus.FINISHED, shelfCopy.bookStatus)
     }
 
     @Test
@@ -253,7 +274,7 @@ class UpdateViewModelTest : BaseViewModelTest() {
         open(datedFinishedBook.googleBookId!!)
         viewModel.onRatingChanged(0)
 
-        saveAndWait()
+        viewModel.onSaveClick()
 
         val updates = lastUpdate()
         assertTrue(StoredBook.RATING in updates)
@@ -268,7 +289,7 @@ class UpdateViewModelTest : BaseViewModelTest() {
         viewModel.onFinishedMonthChanged(6)
         viewModel.onFinishedDayChanged("14")
 
-        saveAndWait()
+        viewModel.onSaveClick()
 
         val updates = lastUpdate()
         assertFalse(StoredBook.STARTED_READING in updates)
@@ -283,7 +304,7 @@ class UpdateViewModelTest : BaseViewModelTest() {
         viewModel.onStatusChanged(BookStatus.FINISHED)
         viewModel.onFinishedYearChanged(2024)
 
-        saveAndWait()
+        viewModel.onSaveClick()
 
         assertEquals("2024", lastUpdate()[StoredBook.FINISHED_ON])
     }
@@ -311,7 +332,7 @@ class UpdateViewModelTest : BaseViewModelTest() {
         open(datedFinishedBook.googleBookId!!)
         viewModel.onStatusChanged(BookStatus.LIBRARY)
 
-        saveAndWait()
+        viewModel.onSaveClick()
 
         val updates = lastUpdate()
         assertNull(updates[StoredBook.STARTED_READING])
@@ -327,7 +348,7 @@ class UpdateViewModelTest : BaseViewModelTest() {
         open(TestData.libraryBook.googleBookId!!)
         viewModel.onStatusChanged(BookStatus.READING)
 
-        saveAndWait()
+        viewModel.onSaveClick()
 
         val updates = lastUpdate()
         assertNotNull(updates[StoredBook.STARTED_READING])
@@ -342,12 +363,27 @@ class UpdateViewModelTest : BaseViewModelTest() {
         viewModel.onRatingChanged(5)
 
         viewModel.onSaveClick()
-        advanceTimeBy(3_001.milliseconds)
 
         assertEquals(str(R.string.update_book_error), mainViewModel.toastFlow.value)
         assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
         assertTrue(navigationEvents.isEmpty())
         assertEquals(5, state.selectedRating)
+    }
+
+    @Test
+    fun save_failsThenRetried_saves() = runTest {
+        collectNavigation()
+        firestore.bookUpdateError = FakeFirestore.unavailable()
+        open(datedFinishedBook.googleBookId!!)
+        viewModel.onRatingChanged(5)
+        viewModel.onSaveClick()
+
+        firestore.bookUpdateError = null
+        viewModel.onSaveClick()
+
+        assertEquals(2, firestore.bookUpdates.size)
+        assertEquals(str(R.string.update_book_success), mainViewModel.toastFlow.value)
+        assertEquals(listOf<NavigationEvent?>(NavigateBack), navigationEvents)
     }
 
     @Test
