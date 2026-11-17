@@ -15,7 +15,6 @@ import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.TestData.UID
 import com.example.readingapp.testing.collectNavigation
 import com.example.readingapp.testing.fakeContext
-import com.example.readingapp.testing.str
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import com.example.readingapp.ui.model.Avatar
 import io.mockk.coEvery
@@ -59,12 +58,6 @@ class HomeViewModelTest : BaseViewModelTest() {
             data = books,
             e = error
         )
-    }
-
-    private fun assertErrorDialog(@Suppress("SameParameterValue") bodyRes: Int) {
-        val dialog = mainViewModel.dialogFlow.value ?: error("No dialog shown")
-        assertEquals(str(R.string.error_title), dialog.title)
-        assertEquals(str(bodyRes), dialog.message)
     }
 
     // region onLoad

@@ -19,9 +19,7 @@ import com.example.readingapp.testing.FakeFirestore
 import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
-import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.LoginScreenDestination
-import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -38,7 +36,7 @@ class UserViewModelAccountTest : BaseViewModelTest() {
     private val authRepository = FakeAuthRepository().apply { current = TestData.authUser }
     private val tokenProvider = FakeGoogleIdTokenProvider()
     private val fireRepository =
-        spyk(FakeFirestore(currentUserId = { authRepository.currentUserId }).repository)
+        FakeFirestore(currentUserId = { authRepository.currentUserId }).repository
     private lateinit var viewModel: UserViewModel
 
     private val toLogin = NavigateTo(LoginScreenDestination, clearBackStack = true)
@@ -53,8 +51,6 @@ class UserViewModelAccountTest : BaseViewModelTest() {
         )
         viewModel.setMainViewModel(mainViewModel)
     }
-
-    private fun dialog(): DialogState = mainViewModel.dialogFlow.value ?: error("No dialog shown")
 
     private fun typePassword(password: String) = dialog().passwordInput!!.onValueChange(password)
 

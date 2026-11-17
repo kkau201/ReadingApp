@@ -5,13 +5,21 @@ import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MSession
 import com.example.readingapp.model.MUser
 import com.example.readingapp.ui.model.Avatar
+import com.google.firebase.Timestamp
 import io.mockk.mockk
+import java.util.Date
 
 /** Shared sample data so tests describe the same signed-in reader and library. */
 object TestData {
     const val UID = "uid-1"
     const val DISPLAY_NAME = "Jane Austen"
     const val EMAIL = "jane@example.com"
+
+    /** A different account, e.g. to check one user never sees another's data. */
+    const val OTHER_UID = "uid-2"
+
+    /** What Jane changes her name to when tests edit the profile. */
+    const val EDITED_DISPLAY_NAME = "Jane A."
 
     /** The signed-in Firebase Auth account. */
     val authUser = AuthUser(uid = UID, displayName = DISPLAY_NAME, email = EMAIL)
@@ -51,6 +59,25 @@ object TestData {
 
     /** One book in each status. */
     val books = listOf(libraryBook, readingBook, finishedBook)
+
+    /** Finished with a date picked in the app, and real timestamps (for date maths). */
+    val datedFinishedBook = MBook(
+        id = "finished-dated",
+        googleBookId = "gb-lady-susan",
+        title = "Lady Susan",
+        userId = UID,
+        startedReading = Timestamp(Date()),
+        finishedReading = Timestamp(Date()),
+        finishedOn = "05/03/2025"
+    )
+
+    /** A Google Books result that isn't on Jane's shelf (no Firestore id or owner). */
+    val unsavedBook = MBook(
+        googleBookId = "gb-northanger",
+        title = "Northanger Abbey",
+        authors = listOf(DISPLAY_NAME),
+        pageCount = 251
+    )
 
     /** A logged reading session for [readingBook]. */
     val session = MSession(

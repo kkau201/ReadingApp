@@ -1,5 +1,7 @@
 package com.example.readingapp.auth
 
+import com.example.readingapp.testing.TestData.DISPLAY_NAME
+import com.example.readingapp.testing.TestData.EMAIL
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -7,13 +9,14 @@ class DefaultDisplayNameTest {
 
     @Test
     fun usesAccountNameWhenPresent() {
-        assertEquals("Jane Austen", defaultDisplayName("Jane Austen", "jane@example.com"))
+        assertEquals(DISPLAY_NAME, defaultDisplayName(DISPLAY_NAME, EMAIL))
     }
 
     @Test
     fun fallsBackToEmailPrefixWhenNameMissingOrBlank() {
-        assertEquals("jane", defaultDisplayName(null, "jane@example.com"))
-        assertEquals("jane", defaultDisplayName("  ", "jane@example.com"))
+        // EMAIL is jane@example.com
+        assertEquals("jane", defaultDisplayName(null, EMAIL))
+        assertEquals("jane", defaultDisplayName("  ", EMAIL))
     }
 
     @Test

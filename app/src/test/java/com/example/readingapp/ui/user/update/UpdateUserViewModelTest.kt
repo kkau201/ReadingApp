@@ -98,7 +98,7 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
 
         assertNull(state.userId)
         assertTrue(mainViewModel.loadingFlow.value is LoadingState.Failed)
-        assertEquals(str(R.string.error_unknown_user), mainViewModel.dialogFlow.value?.message)
+        assertErrorDialog(R.string.error_unknown_user)
     }
 
     @Test
@@ -109,7 +109,7 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
 
         assertNull(state.userId)
         assertEquals(LoadingState.Failed("Firestore unavailable"), mainViewModel.loadingFlow.value)
-        assertEquals(str(R.string.error_unknown), mainViewModel.dialogFlow.value?.message)
+        assertErrorDialog(R.string.error_unknown)
     }
 
     @Test
@@ -127,14 +127,14 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
     @Test
     fun leavingAndReturningMidEdit_keepsTheEdits() = runTest {
         viewModel.onLoad()
-        viewModel.onDisplayNameInputChange("Jane A.")
+        viewModel.onDisplayNameInputChange(TestData.EDITED_DISPLAY_NAME)
         viewModel.onBioInputChange("Half-written bio")
         viewModel.onAvatarChange(Avatar.AVATAR_6)
 
         // Check another app, come back: the screen starts again.
         viewModel.onLoad()
 
-        assertEquals("Jane A.", state.displayNameInput)
+        assertEquals(TestData.EDITED_DISPLAY_NAME, state.displayNameInput)
         assertEquals("Half-written bio", state.bioInput)
         assertEquals(Avatar.AVATAR_6, state.selectedAvatar)
     }
@@ -189,7 +189,7 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
     @Test
     fun save_sendsTrimmedEditsToThisUsersDocument() = runTest {
         viewModel.onLoad()
-        viewModel.onDisplayNameInputChange("  Jane A.  ")
+        viewModel.onDisplayNameInputChange("  ${TestData.EDITED_DISPLAY_NAME}  ")
         viewModel.onBioInputChange("Know your own happiness.")
         viewModel.onReadingGoalChange(15)
         viewModel.onAvatarChange(Avatar.AVATAR_5)
@@ -198,7 +198,7 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
 
         assertEquals(
             mapOf(
-                DISPLAY_NAME to "Jane A.",
+                DISPLAY_NAME to TestData.EDITED_DISPLAY_NAME,
                 QUOTE to "Know your own happiness.",
                 AVATAR_URL to Avatar.AVATAR_5.id,
                 READING_GOAL to 15
@@ -211,7 +211,7 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
     fun save_succeeds_confirmsRefreshesProfileAndGoesBackStraightAway() = runTest {
         collectNavigation()
         viewModel.onLoad()
-        viewModel.onDisplayNameInputChange("Jane A.")
+        viewModel.onDisplayNameInputChange(TestData.EDITED_DISPLAY_NAME)
 
         viewModel.onUpdateClick()
 
@@ -220,7 +220,7 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
         assertEquals(listOf<NavigationEvent?>(NavigateBack), navigationEvents)
         assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
         // The Profile screen underneath sees the new name straight away.
-        assertEquals("Jane A.", fireRepository.user.value?.displayName)
+        assertEquals(TestData.EDITED_DISPLAY_NAME, fireRepository.user.value?.displayName)
     }
 
     @Test
@@ -252,7 +252,7 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
         collectNavigation()
         firestore.userWriteError = FakeFirestore.unavailable()
         viewModel.onLoad()
-        viewModel.onDisplayNameInputChange("Jane A.")
+        viewModel.onDisplayNameInputChange(TestData.EDITED_DISPLAY_NAME)
 
         viewModel.onUpdateClick()
         advanceUntilIdle()
@@ -260,7 +260,7 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
         // Only the error: never followed by "saved" or leaving the screen.
         assertEquals(str(R.string.update_user_error), mainViewModel.toastFlow.value)
         assertTrue(navigationEvents.isEmpty())
-        assertEquals("Jane A.", state.displayNameInput)
+        assertEquals(TestData.EDITED_DISPLAY_NAME, state.displayNameInput)
         assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
         assertEquals(TestData.DISPLAY_NAME, fireRepository.user.value?.displayName)
     }
@@ -270,7 +270,7 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
         collectNavigation()
         firestore.userWriteError = FakeFirestore.unavailable()
         viewModel.onLoad()
-        viewModel.onDisplayNameInputChange("Jane A.")
+        viewModel.onDisplayNameInputChange(TestData.EDITED_DISPLAY_NAME)
         viewModel.onUpdateClick()
 
         firestore.userWriteError = null
@@ -308,7 +308,7 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
 
     @Test
     fun save_beforeProfileLoaded_savesNothing() = runTest {
-        viewModel.onDisplayNameInputChange("Jane")
+        viewModel.onDisplayNameInputChange(TestData.EDITED_DISPLAY_NAME)
 
         viewModel.onUpdateClick()
 

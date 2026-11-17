@@ -1,0 +1,428 @@
+package com.example.readingapp.ui.details
+
+import androidx.lifecycle.SavedStateHandle
+import com.example.readingapp.R
+import com.example.readingapp.auth.FakeAuthRepository
+import com.example.readingapp.common.DependencyContextWrapper
+import com.example.readingapp.common.ErrorType
+import com.example.readingapp.common.LoadingState
+import com.example.readingapp.data.RemoteResult
+import com.example.readingapp.model.StoredBook
+import com.example.readingapp.nav.NavigateTo
+import com.example.readingapp.repo.BookRepository
+import com.example.readingapp.testing.BaseViewModelTest
+import com.example.readingapp.testing.FakeFirestore
+import com.example.readingapp.testing.TestData
+import com.example.readingapp.testing.TestData.UID
+import com.example.readingapp.testing.TestData.datedFinishedBook
+import com.example.readingapp.testing.TestData.unsavedBook
+import com.example.readingapp.testing.fakeContext
+import com.example.readingapp.testing.str
+import com.example.readingapp.ui.destinations.UpdateScreenDestination
+import com.example.readingapp.ui.model.BookStatus
+import io.mockk.coEvery
+import io.mockk.mockk
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import java.util.Calendar
+
+class DetailsViewModelTest : BaseViewModelTest() {
+
+    private val authRepository = FakeAuthRepository().apply { current = TestData.authUser }
+    private val firestore = FakeFirestore(currentUserId = { authRepository.currentUserId })
+    private val fireRepository = firestore.repository
+    private val bookRepository = mockk<BookRepository>()
+    private lateinit var viewModel: DetailsViewModel
+
+    private val state get() = viewModel.uiState.value
+    private val thisYear = Calendar.getInstance().get(Calendar.YEAR)
+
+    @Before
+    fun setUp() {
+        firestore.books = TestData.books + datedFinishedBook
+        // DetailsViewModel adds and deletes books via FirebaseFirestore.getInstance().
+        firestore.interceptDirectBookWrites()
+        // Google Books knows every shelf book, plus one that isn't saved.
+        coEvery { bookRepository.getBookInfo(any()) } answers {
+            val id = firstArg<String>()
+            val book = (firestore.books + unsavedBook).first { it.googleBookId == id }
+            flowOf(RemoteResult.Loading, RemoteResult.Success(book))
+        }
+    }
+
+    @After
+    fun tearDown() = FakeFirestore.releaseDirectWrites()
+
+    private fun createViewModel(googleBookId: String) {
+        viewModel = DetailsViewModel(
+            bookRepository,
+            fireRepository,
+            authRepository,
+            SavedStateHandle(mapOf("bookId" to googleBookId)),
+            DependencyContextWrapper(fakeContext())
+        )
+        viewModel.setMainViewModel(mainViewModel)
+    }
+
+    /** Opens Details for [googleBookId] and waits for the book info (loaded off the main thread). */
+    private suspend fun open(googleBookId: String) {
+        createViewModel(googleBookId)
+        viewModel.loadBook()
+        viewModel.uiState.first { it.book != null }
+    }
+
+    private fun choose(label: Int) = dialog().choices.single { it.text == str(label) }.onClick()
+
+    private fun selectedChoice() = dialog().choices.singleOrNull { it.selected }?.text
+
+    // region Loading
+
+    @Test
+    fun open_unsavedBook_showsInfoAndNotSaved() = runTest {
+        open(unsavedBook.googleBookId!!)
+
+        assertEquals(unsavedBook, state.book)
+        assertFalse(state.isSaved)
+        assertNull(state.savedBook)
+        assertEquals(LoadingState.Success, mainViewModel.loadingFlow.value)
+    }
+
+    @Test
+    fun open_savedBook_showsShelfCopy() = runTest {
+        open(TestData.readingBook.googleBookId!!)
+
+        assertTrue(state.isSaved)
+        assertEquals(TestData.readingBook, state.savedBook)
+        assertEquals(TestData.readingBook.id, state.bookId)
+    }
+
+    @Test
+    fun open_infoFails_showsError() = runTest {
+        coEvery { bookRepository.getBookInfo(any()) } returns
+            flowOf(RemoteResult.Loading, RemoteResult.Error(ErrorType.NetworkException(null)))
+        createViewModel(unsavedBook.googleBookId!!)
+
+        viewModel.loadBook()
+        mainViewModel.dialogFlow.first { it != null }
+
+        assertErrorDialog(R.string.error_network)
+        assertTrue(mainViewModel.loadingFlow.value is LoadingState.Failed)
+    }
+
+    @Test
+    fun savedFromAnotherScreen_updatesWithoutReopening() = runTest {
+        open(unsavedBook.googleBookId!!)
+
+        firestore.books += unsavedBook.copy(id = "elsewhere", userId = UID)
+        fireRepository.fetchSavedBooksByUser()
+
+        assertTrue(state.isSaved)
+        assertEquals("elsewhere", state.bookId)
+    }
+
+    @Test
+    fun editNotes_navigatesToUpdateScreen() = runTest {
+        collectNavigation()
+        open(TestData.readingBook.googleBookId!!)
+
+        viewModel.navToUpdateScreen()
+
+        val event = navigationEvents.filterIsInstance<NavigateTo>().single()
+        assertEquals(UpdateScreenDestination(TestData.readingBook.googleBookId!!).route, event.to.route)
+    }
+
+    // endregion
+
+    // region Adding to the shelf
+
+    @Test
+    fun addToShelf_asksForStatusWithNothingSelected() = runTest {
+        open(unsavedBook.googleBookId!!)
+
+        viewModel.toggleSavedBook()
+
+        assertEquals(str(R.string.details_add_shelf), dialog().title)
+        assertEquals(
+            listOf(R.string.home_filter_want_to_read, R.string.home_filter_reading, R.string.home_filter_finished)
+                .map(::str),
+            dialog().choices.map { it.text }
+        )
+        assertNull(selectedChoice())
+        assertNull(dialog().finishedDate)
+    }
+
+    @Test
+    fun addAsReading_savesStartedBookAndConfirms() = runTest {
+        open(unsavedBook.googleBookId!!)
+        viewModel.toggleSavedBook()
+
+        choose(R.string.home_filter_reading)
+
+        val doc = firestore.addedBooks.single()
+        assertEquals(UID, doc[StoredBook.USER_ID])
+        assertEquals(unsavedBook.googleBookId, doc[StoredBook.GOOGLE_BOOK_ID])
+        assertEquals(unsavedBook.title, doc[StoredBook.TITLE])
+        assertNotNull(doc[StoredBook.STARTED_READING])
+        assertFalse(StoredBook.FINISHED_READING in doc)
+        assertEquals(str(R.string.book_saved_toast), mainViewModel.toastFlow.value)
+        assertNull(mainViewModel.dialogFlow.value)
+        assertTrue(state.isSaved)
+        assertEquals(BookStatus.READING, state.savedBook?.bookStatus)
+    }
+
+    @Test
+    fun addAsWantToRead_savesUnstartedBook() = runTest {
+        open(unsavedBook.googleBookId!!)
+        viewModel.toggleSavedBook()
+
+        choose(R.string.home_filter_want_to_read)
+
+        val doc = firestore.addedBooks.single()
+        assertFalse(StoredBook.STARTED_READING in doc)
+        assertFalse(StoredBook.FINISHED_READING in doc)
+        assertEquals(BookStatus.LIBRARY, state.savedBook?.bookStatus)
+    }
+
+    @Test
+    fun addAsFinished_asksForDateThenSavesIt() = runTest {
+        open(unsavedBook.googleBookId!!)
+        viewModel.toggleSavedBook()
+
+        choose(R.string.home_filter_finished)
+        // Nothing saved until the date is confirmed.
+        assertTrue(firestore.addedBooks.isEmpty())
+        with(dialog().finishedDate!!) {
+            assertEquals(thisYear, year)
+            assertNull(month)
+            assertEquals("", day)
+        }
+        assertEquals(str(R.string.update_save), dialog().primaryButtonText)
+        assertEquals(str(R.string.home_filter_finished), selectedChoice())
+
+        dialog().finishedDate!!.onYearChanged(2025)
+        dialog().finishedDate!!.onMonthChanged(3)
+        dialog().finishedDate!!.onDayChanged("5")
+        dialog().onPrimaryClick!!()
+
+        val doc = firestore.addedBooks.single()
+        assertEquals("05/03/2025", doc[StoredBook.FINISHED_ON])
+        assertNotNull(doc[StoredBook.STARTED_READING])
+        assertNotNull(doc[StoredBook.FINISHED_READING])
+        assertEquals(BookStatus.FINISHED, state.savedBook?.bookStatus)
+    }
+
+    @Test
+    fun addAsFinished_yearOnly_isAllowed() = runTest {
+        open(unsavedBook.googleBookId!!)
+        viewModel.toggleSavedBook()
+        choose(R.string.home_filter_finished)
+
+        dialog().finishedDate!!.onYearChanged(2019)
+        dialog().onPrimaryClick!!()
+
+        assertEquals("2019", firestore.addedBooks.single()[StoredBook.FINISHED_ON])
+    }
+
+    @Test
+    fun addAsFinished_dayThatDoesNotExist_flagsDayAndSavesNothing() = runTest {
+        open(unsavedBook.googleBookId!!)
+        viewModel.toggleSavedBook()
+        choose(R.string.home_filter_finished)
+
+        dialog().finishedDate!!.onYearChanged(2023)
+        dialog().finishedDate!!.onMonthChanged(2)
+        dialog().finishedDate!!.onDayChanged("29")
+        dialog().onPrimaryClick!!()
+
+        assertTrue(dialog().finishedDate!!.dayError)
+        assertTrue(firestore.addedBooks.isEmpty())
+
+        // Fixing the day clears the error.
+        dialog().finishedDate!!.onDayChanged("28")
+        assertFalse(dialog().finishedDate!!.dayError)
+    }
+
+    @Test
+    fun finishedDate_yearKeptInRangeAndClearingMonthClearsDay() = runTest {
+        open(unsavedBook.googleBookId!!)
+        viewModel.toggleSavedBook()
+        choose(R.string.home_filter_finished)
+
+        dialog().finishedDate!!.onYearChanged(thisYear + 3)
+        assertEquals(thisYear, dialog().finishedDate!!.year)
+        dialog().finishedDate!!.onMonthChanged(4)
+        dialog().finishedDate!!.onDayChanged("1x2")
+        assertEquals("12", dialog().finishedDate!!.day)
+
+        dialog().finishedDate!!.onMonthChanged(null)
+
+        assertEquals("", dialog().finishedDate!!.day)
+    }
+
+    @Test
+    fun addToShelf_cancelled_savesNothing() = runTest {
+        open(unsavedBook.googleBookId!!)
+        viewModel.toggleSavedBook()
+
+        dialog().onSecondaryClick!!()
+
+        assertTrue(firestore.addedBooks.isEmpty())
+        assertNull(mainViewModel.dialogFlow.value)
+    }
+
+    @Test
+    fun addToShelf_signedOut_savesNothing() = runTest {
+        open(unsavedBook.googleBookId!!)
+        viewModel.toggleSavedBook()
+        authRepository.current = null
+
+        choose(R.string.home_filter_reading)
+
+        assertTrue(firestore.addedBooks.isEmpty())
+    }
+
+    @Test
+    fun chooseStatus_onUnsavedBook_doesNothing() = runTest {
+        open(unsavedBook.googleBookId!!)
+
+        viewModel.onChooseStatus()
+
+        assertNull(mainViewModel.dialogFlow.value)
+    }
+
+    // endregion
+
+    // region Removing from the shelf
+
+    @Test
+    fun remove_confirmed_deletesAndConfirms() = runTest {
+        open(TestData.readingBook.googleBookId!!)
+
+        viewModel.toggleSavedBook()
+        assertEquals(str(R.string.remove_book_title), dialog().title)
+        dialog().onPrimaryClick!!()
+
+        assertEquals(listOf(TestData.readingBook.id), firestore.deletedBookIds)
+        assertEquals(str(R.string.book_removed_toast), mainViewModel.toastFlow.value)
+        assertFalse(state.isSaved)
+        assertNull(state.savedBook)
+    }
+
+    @Test
+    fun remove_duplicateCopies_removesThemAll() = runTest {
+        firestore.books += TestData.readingBook.copy(id = "reading-duplicate")
+        open(TestData.readingBook.googleBookId!!)
+
+        viewModel.toggleSavedBook()
+        dialog().onPrimaryClick!!()
+
+        assertEquals(setOf(TestData.readingBook.id, "reading-duplicate"), firestore.deletedBookIds.toSet())
+        assertFalse(state.isSaved)
+    }
+
+    @Test
+    fun remove_cancelled_keepsBook() = runTest {
+        open(TestData.readingBook.googleBookId!!)
+
+        viewModel.toggleSavedBook()
+        dialog().onSecondaryClick!!()
+
+        assertTrue(firestore.deletedBookIds.isEmpty())
+        assertTrue(state.isSaved)
+        assertNull(mainViewModel.dialogFlow.value)
+    }
+
+    // endregion
+
+    // region Changing status
+
+    @Test
+    fun chooseStatus_savedBook_showsCurrentStatus() = runTest {
+        open(TestData.readingBook.googleBookId!!)
+
+        viewModel.onChooseStatus()
+
+        assertEquals(str(R.string.details_update_status), dialog().title)
+        assertEquals(str(R.string.home_filter_reading), selectedChoice())
+    }
+
+    @Test
+    fun chooseStatus_sameStatus_changesNothing() = runTest {
+        open(TestData.readingBook.googleBookId!!)
+        viewModel.onChooseStatus()
+
+        choose(R.string.home_filter_reading)
+
+        assertTrue(firestore.bookUpdates.isEmpty())
+        assertNull(mainViewModel.dialogFlow.value)
+    }
+
+    @Test
+    fun chooseStatus_readingToWantToRead_clearsDatesAndConfirms() = runTest {
+        open(TestData.readingBook.googleBookId!!)
+        viewModel.onChooseStatus()
+
+        choose(R.string.home_filter_want_to_read)
+
+        val (id, updates) = firestore.bookUpdates.single()
+        assertEquals(TestData.readingBook.id, id)
+        assertNull(updates[StoredBook.STARTED_READING])
+        assertNull(updates[StoredBook.FINISHED_READING])
+        assertNull(updates[StoredBook.FINISHED_ON])
+        assertEquals(str(R.string.update_book_success), mainViewModel.toastFlow.value)
+        assertEquals(BookStatus.LIBRARY, state.savedBook?.bookStatus)
+    }
+
+    @Test
+    fun chooseStatus_readingToFinished_keepsStartDate() = runTest {
+        open(TestData.readingBook.googleBookId!!)
+        viewModel.onChooseStatus()
+        choose(R.string.home_filter_finished)
+
+        dialog().onPrimaryClick!!()
+
+        val updates = firestore.bookUpdates.single().second
+        assertSame(TestData.readingBook.startedReading, updates[StoredBook.STARTED_READING])
+        assertNotNull(updates[StoredBook.FINISHED_READING])
+        assertEquals(thisYear.toString(), updates[StoredBook.FINISHED_ON])
+        assertEquals(BookStatus.FINISHED, state.savedBook?.bookStatus)
+    }
+
+    @Test
+    fun chooseStatus_finishedBook_opensWithItsFinishedDate() = runTest {
+        open(datedFinishedBook.googleBookId!!)
+
+        viewModel.onChooseStatus()
+
+        assertEquals(str(R.string.home_filter_finished), selectedChoice())
+        with(dialog().finishedDate!!) {
+            assertEquals(2025, year)
+            assertEquals(3, month)
+            assertEquals("5", day)
+        }
+    }
+
+    @Test
+    fun chooseStatus_updateFails_showsErrorAndKeepsStatus() = runTest {
+        firestore.bookUpdateError = IllegalStateException("offline")
+        open(TestData.readingBook.googleBookId!!)
+        viewModel.onChooseStatus()
+
+        choose(R.string.home_filter_want_to_read)
+
+        assertEquals(str(R.string.update_book_error), mainViewModel.toastFlow.value)
+        assertEquals(BookStatus.READING, state.savedBook?.bookStatus)
+    }
+
+    // endregion
+}

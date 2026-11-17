@@ -13,7 +13,6 @@ import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.TestData.UID
 import com.example.readingapp.testing.collectNavigation
 import com.example.readingapp.testing.fakeContext
-import com.example.readingapp.testing.str
 import com.example.readingapp.ui.destinations.UpdateUserScreenDestination
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
@@ -48,12 +47,6 @@ class UserViewModelProfileTest : BaseViewModelTest() {
         viewModel.setMainViewModel(mainViewModel)
     }
 
-    private fun assertErrorDialog(@Suppress("SameParameterValue") bodyRes: Int) {
-        val dialog = mainViewModel.dialogFlow.value ?: error("No dialog shown")
-        assertEquals(str(R.string.error_title), dialog.title)
-        assertEquals(str(bodyRes), dialog.message)
-    }
-
     // region Loading
 
     @Test
@@ -68,7 +61,7 @@ class UserViewModelProfileTest : BaseViewModelTest() {
 
     @Test
     fun loadUser_onlyShowsThisUsersBooks() = runTest {
-        firestore.books = TestData.books + TestData.readingBook.copy(id = "theirs", userId = "uid-2")
+        firestore.books = TestData.books + TestData.readingBook.copy(id = "theirs", userId = TestData.OTHER_UID)
 
         viewModel.loadUser()
 
@@ -182,11 +175,11 @@ class UserViewModelProfileTest : BaseViewModelTest() {
         viewModel.loadUser()
 
         // e.g. edited on another device, or a book saved from Details.
-        firestore.profile = TestData.profile.copy(displayName = "Jane A.")
+        firestore.profile = TestData.profile.copy(displayName = TestData.EDITED_DISPLAY_NAME)
         firestore.books = TestData.books + TestData.otherReadingBook
         viewModel.loadUser()
 
-        assertEquals("Jane A.", state.user?.displayName)
+        assertEquals(TestData.EDITED_DISPLAY_NAME, state.user?.displayName)
         assertEquals(TestData.books + TestData.otherReadingBook, state.books)
     }
 

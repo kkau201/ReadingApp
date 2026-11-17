@@ -13,7 +13,6 @@ import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.TestData.UID
 import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
-import com.example.readingapp.ui.components.DialogState
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.just
@@ -78,8 +77,6 @@ class SessionViewModelTest : BaseViewModelTest() {
         viewModel.onPagesChanged(pages)
         viewModel.onNoteChanged(note)
     }
-
-    private fun dialog(): DialogState = mainViewModel.dialogFlow.value ?: error("No dialog shown")
 
     private fun assertNothingSaved() = coVerify(exactly = 0) { fireRepository.addSession(any()) }
 
