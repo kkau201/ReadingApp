@@ -1,6 +1,5 @@
 package com.example.readingapp.ui.home
 
-import com.example.readingapp.MainViewModel
 import com.example.readingapp.R
 import com.example.readingapp.auth.FakeAuthRepository
 import com.example.readingapp.common.DependencyContextWrapper
@@ -11,10 +10,9 @@ import com.example.readingapp.model.MUser
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.nav.NavigationEvent
 import com.example.readingapp.repo.FireRepository
-import com.example.readingapp.testing.MainDispatcherRule
+import com.example.readingapp.testing.BaseViewModelTest
 import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.TestData.UID
-import com.example.readingapp.testing.TestDispatcherProvider
 import com.example.readingapp.testing.collectNavigation
 import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
@@ -24,28 +22,21 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class HomeViewModelTest {
-
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+class HomeViewModelTest : BaseViewModelTest() {
 
     private val authRepository = FakeAuthRepository().apply { current = TestData.authUser }
     private val cachedUser = MutableStateFlow<MUser?>(null)
     private val fireRepository = mockk<FireRepository>().also { repo ->
         every { repo.user } returns cachedUser
     }
-    private val mainViewModel = MainViewModel()
     private lateinit var viewModel: HomeViewModel
 
     @Before
@@ -53,7 +44,7 @@ class HomeViewModelTest {
         viewModel = HomeViewModel(
             fireRepository,
             authRepository,
-            TestDispatcherProvider(mainDispatcherRule.testDispatcher),
+            dispatcherProvider,
             DependencyContextWrapper(fakeContext())
         )
         viewModel.setMainViewModel(mainViewModel)
@@ -64,7 +55,10 @@ class HomeViewModelTest {
     }
 
     private fun givenBooksFetch(books: List<MBook>?, error: Exception? = null) {
-        coEvery { fireRepository.fetchSavedBooksByUser() } returns DataOrException(data = books, e = error)
+        coEvery { fireRepository.fetchSavedBooksByUser() } returns DataOrException(
+            data = books,
+            e = error
+        )
     }
 
     private fun assertErrorDialog(@Suppress("SameParameterValue") bodyRes: Int) {

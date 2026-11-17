@@ -2,7 +2,6 @@ package com.example.readingapp.ui.user
 
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.NoCredentialException
-import com.example.readingapp.MainViewModel
 import com.example.readingapp.R
 import com.example.readingapp.auth.AuthException
 import com.example.readingapp.auth.AuthFailure
@@ -15,18 +14,15 @@ import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.nav.NavigationEvent
+import com.example.readingapp.testing.BaseViewModelTest
 import com.example.readingapp.testing.FakeFirestore
-import com.example.readingapp.testing.MainDispatcherRule
 import com.example.readingapp.testing.TestData
-import com.example.readingapp.testing.collectNavigation
 import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
 import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.LoginScreenDestination
 import io.mockk.spyk
 import io.mockk.verify
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -34,22 +30,15 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
 /** Logout and account deletion (with on-the-spot reauthentication) on the profile screen. */
-@OptIn(ExperimentalCoroutinesApi::class)
-class UserViewModelAccountTest {
-
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+class UserViewModelAccountTest : BaseViewModelTest() {
 
     private val authRepository = FakeAuthRepository().apply { current = TestData.authUser }
     private val tokenProvider = FakeGoogleIdTokenProvider()
     private val fireRepository =
         spyk(FakeFirestore(currentUserId = { authRepository.currentUserId }).repository)
-    private val mainViewModel = MainViewModel()
-    private val navigationEvents = mutableListOf<NavigationEvent?>()
     private lateinit var viewModel: UserViewModel
 
     private val toLogin = NavigateTo(LoginScreenDestination, clearBackStack = true)
@@ -64,8 +53,6 @@ class UserViewModelAccountTest {
         )
         viewModel.setMainViewModel(mainViewModel)
     }
-
-    private fun TestScope.collectNavigation() = collectNavigation(mainViewModel, into = navigationEvents)
 
     private fun dialog(): DialogState = mainViewModel.dialogFlow.value ?: error("No dialog shown")
 

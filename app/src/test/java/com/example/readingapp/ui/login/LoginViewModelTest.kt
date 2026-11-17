@@ -3,7 +3,6 @@ package com.example.readingapp.ui.login
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.viewModelScope
-import com.example.readingapp.MainViewModel
 import com.example.readingapp.R
 import com.example.readingapp.auth.AuthException
 import com.example.readingapp.auth.AuthFailure
@@ -15,36 +14,26 @@ import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.nav.NavigationEvent
-import com.example.readingapp.testing.MainDispatcherRule
+import com.example.readingapp.testing.BaseViewModelTest
 import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.TestData.UID
-import com.example.readingapp.testing.collectNavigation
 import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
 import com.example.readingapp.ui.destinations.DashboardScreenDestination
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class LoginViewModelTest {
-
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+class LoginViewModelTest : BaseViewModelTest() {
 
     private val tokenProvider = FakeGoogleIdTokenProvider()
     private val authRepository = FakeAuthRepository()
-    private val mainViewModel = MainViewModel()
-    private val navigationEvents = mutableListOf<NavigationEvent?>()
 
     private lateinit var viewModel: LoginViewModel
 
@@ -53,8 +42,6 @@ class LoginViewModelTest {
         viewModel = LoginViewModel(DependencyContextWrapper(fakeContext()), tokenProvider, authRepository)
         viewModel.setMainViewModel(mainViewModel)
     }
-
-    private fun TestScope.collectNavigation() = collectNavigation(mainViewModel, into = navigationEvents)
 
     private val dashboard = NavigateTo(to = DashboardScreenDestination, popCurrent = true)
 

@@ -1,6 +1,5 @@
 package com.example.readingapp.ui.splash
 
-import com.example.readingapp.MainViewModel
 import com.example.readingapp.R
 import com.example.readingapp.auth.FakeAuthRepository
 import com.example.readingapp.common.DependencyContextWrapper
@@ -8,10 +7,9 @@ import com.example.readingapp.data.DataOrException
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.nav.NavigationEvent
 import com.example.readingapp.repo.FireRepository
-import com.example.readingapp.testing.MainDispatcherRule
+import com.example.readingapp.testing.BaseViewModelTest
 import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.TestData.UID
-import com.example.readingapp.testing.collectNavigation
 import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
 import com.example.readingapp.ui.destinations.DashboardScreenDestination
@@ -25,26 +23,20 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Rule
 import org.junit.Test
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class SplashViewModelTest {
-
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+class SplashViewModelTest : BaseViewModelTest() {
 
     private val authRepository = FakeAuthRepository()
     private val fireRepository = mockk<FireRepository>()
-    private val mainViewModel = MainViewModel()
-    private val navigationEvents = mutableListOf<NavigationEvent?>()
 
     private val user = TestData.authUser
     private val profile = TestData.profile
 
     private fun TestScope.start() {
-        collectNavigation(mainViewModel, into = navigationEvents)
+        collectNavigation()
         SplashViewModel(DependencyContextWrapper(fakeContext()), fireRepository, authRepository)
             .setMainViewModel(mainViewModel)
     }

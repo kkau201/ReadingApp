@@ -1,7 +1,6 @@
 package com.example.readingapp.ui.search
 
 import androidx.lifecycle.SavedStateHandle
-import com.example.readingapp.MainViewModel
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.ErrorType
 import com.example.readingapp.data.RemoteResult
@@ -9,9 +8,8 @@ import com.example.readingapp.model.MBook
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.nav.NavigationEvent
 import com.example.readingapp.repo.BookRepository
-import com.example.readingapp.testing.MainDispatcherRule
+import com.example.readingapp.testing.BaseViewModelTest
 import com.example.readingapp.testing.TestData
-import com.example.readingapp.testing.TestDispatcherProvider
 import com.example.readingapp.testing.collectNavigation
 import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
@@ -34,18 +32,13 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class SearchViewModelTest {
-
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+class SearchViewModelTest : BaseViewModelTest() {
 
     private val bookRepository = mockk<BookRepository>()
-    private val mainViewModel = MainViewModel()
     private lateinit var savedStateHandle: SavedStateHandle
     private lateinit var viewModel: SearchViewModel
 
@@ -66,7 +59,7 @@ class SearchViewModelTest {
         viewModel = SearchViewModel(
             DependencyContextWrapper(fakeContext()),
             bookRepository,
-            TestDispatcherProvider(mainDispatcherRule.testDispatcher),
+            dispatcherProvider,
             handle
         )
         viewModel.setMainViewModel(mainViewModel)

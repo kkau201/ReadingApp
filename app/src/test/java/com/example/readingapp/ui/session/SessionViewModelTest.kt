@@ -1,6 +1,5 @@
 package com.example.readingapp.ui.session
 
-import com.example.readingapp.MainViewModel
 import com.example.readingapp.R
 import com.example.readingapp.auth.FakeAuthRepository
 import com.example.readingapp.common.DependencyContextWrapper
@@ -9,10 +8,9 @@ import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MSession
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.repo.FireRepository
-import com.example.readingapp.testing.MainDispatcherRule
+import com.example.readingapp.testing.BaseViewModelTest
 import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.TestData.UID
-import com.example.readingapp.testing.TestDispatcherProvider
 import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
 import com.example.readingapp.ui.components.DialogState
@@ -22,7 +20,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -30,20 +27,14 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import java.util.Calendar
 import java.util.Locale
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class SessionViewModelTest {
-
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+class SessionViewModelTest : BaseViewModelTest() {
 
     private val authRepository = FakeAuthRepository().apply { current = TestData.authUser }
     private val fireRepository = mockk<FireRepository>()
-    private val mainViewModel = MainViewModel()
     private lateinit var viewModel: SessionViewModel
 
     private val state get() = viewModel.uiState.value
@@ -65,7 +56,7 @@ class SessionViewModelTest {
         viewModel = SessionViewModel(
             fireRepository,
             authRepository,
-            TestDispatcherProvider(mainDispatcherRule.testDispatcher),
+            dispatcherProvider,
             DependencyContextWrapper(fakeContext())
         )
         viewModel.setMainViewModel(mainViewModel)

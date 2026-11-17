@@ -1,6 +1,5 @@
 package com.example.readingapp.ui.user.update
 
-import com.example.readingapp.MainViewModel
 import com.example.readingapp.R
 import com.example.readingapp.auth.FakeAuthRepository
 import com.example.readingapp.common.DependencyContextWrapper
@@ -14,8 +13,8 @@ import com.example.readingapp.model.READING_GOAL
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.nav.NavigateBack
 import com.example.readingapp.nav.NavigationEvent
+import com.example.readingapp.testing.BaseViewModelTest
 import com.example.readingapp.testing.FakeFirestore
-import com.example.readingapp.testing.MainDispatcherRule
 import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.TestData.UID
 import com.example.readingapp.testing.collectNavigation
@@ -34,21 +33,15 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class UpdateUserViewModelTest {
-
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+class UpdateUserViewModelTest : BaseViewModelTest() {
 
     private val authRepository = FakeAuthRepository().apply { current = TestData.authUser }
     private val firestore = FakeFirestore(currentUserId = { authRepository.currentUserId })
     private val fireRepository = spyk(firestore.repository)
-    private val mainViewModel = MainViewModel()
-    private val navigationEvents = mutableListOf<NavigationEvent?>()
     private lateinit var viewModel: UpdateUserViewModel
 
     private val state get() = viewModel.uiState.value

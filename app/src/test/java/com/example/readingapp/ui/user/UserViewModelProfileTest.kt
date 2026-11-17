@@ -1,6 +1,5 @@
 package com.example.readingapp.ui.user
 
-import com.example.readingapp.MainViewModel
 import com.example.readingapp.R
 import com.example.readingapp.auth.FakeAuthRepository
 import com.example.readingapp.auth.FakeGoogleIdTokenProvider
@@ -8,8 +7,8 @@ import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.nav.NavigationEvent
+import com.example.readingapp.testing.BaseViewModelTest
 import com.example.readingapp.testing.FakeFirestore
-import com.example.readingapp.testing.MainDispatcherRule
 import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.TestData.UID
 import com.example.readingapp.testing.collectNavigation
@@ -17,27 +16,20 @@ import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
 import com.example.readingapp.ui.destinations.UpdateUserScreenDestination
 import io.mockk.verify
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
 /** Loading the profile screen and keeping it in sync with the repository. */
-@OptIn(ExperimentalCoroutinesApi::class)
-class UserViewModelProfileTest {
-
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+class UserViewModelProfileTest : BaseViewModelTest() {
 
     private val authRepository = FakeAuthRepository().apply { current = TestData.authUser }
     private val firestore = FakeFirestore(currentUserId = { authRepository.currentUserId })
     private val fireRepository = firestore.repository
-    private val mainViewModel = MainViewModel()
     private lateinit var viewModel: UserViewModel
 
     private val state get() = viewModel.uiState.value
