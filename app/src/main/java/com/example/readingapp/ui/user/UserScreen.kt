@@ -101,6 +101,8 @@ fun UserScreen(
             userBio = uiState.user?.quote.orEmpty(),
             userAvatar = uiState.user?.avatar,
             books = uiState.books,
+            booksFailed = uiState.booksFailed,
+            onRetryBooks = viewModel::onRetryBooksClick,
             readingGoal = uiState.user?.readingGoal ?: DEFAULT_READING_GOAL,
             onUpdateClick = viewModel::navigateToUpdateUser,
             onLogoutClick = viewModel::onLogoutClick,
@@ -122,6 +124,8 @@ fun UserContent(
     userBio: String,
     userAvatar: Avatar? = null,
     books: List<MBook> = emptyList(),
+    booksFailed: Boolean = false,
+    onRetryBooks: () -> Unit = {},
     readingGoal: Int = DEFAULT_READING_GOAL,
     onUpdateClick: () -> Unit,
     onLogoutClick: () -> Unit,
@@ -163,16 +167,24 @@ fun UserContent(
             onVerifiedShown = onEmailVerifiedShown,
             modifier = Modifier.padding(horizontal = pagePadding)
         )
-        ReadingStampCard(
-            books = books,
-            goal = readingGoal,
-            modifier = Modifier.padding(horizontal = pagePadding)
-        )
-        ReadingSummary(
-            books = books,
-            nowReading = nowReading,
-            modifier = Modifier.padding(horizontal = pagePadding)
-        )
+        if (booksFailed) {
+            // Instead of the stamp card and stats, which would wrongly show zero books.
+            BooksErrorCard(
+                onRetry = onRetryBooks,
+                modifier = Modifier.padding(horizontal = pagePadding)
+            )
+        } else {
+            ReadingStampCard(
+                books = books,
+                goal = readingGoal,
+                modifier = Modifier.padding(horizontal = pagePadding)
+            )
+            ReadingSummary(
+                books = books,
+                nowReading = nowReading,
+                modifier = Modifier.padding(horizontal = pagePadding)
+            )
+        }
         Column(
             modifier = Modifier
                 .padding(horizontal = pagePadding)
@@ -537,6 +549,46 @@ private fun VerifyEmailCardPreview() {
         onDismiss = {},
         modifier = Modifier.padding(24.dp)
     )
+}
+
+/** Shown in place of the reading stats when the saved books couldn't be loaded. */
+@Composable
+private fun BooksErrorCard(
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(CardBackground)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        ProfileSectionTitle(text = stringResource(R.string.profile_section_reading))
+        Text(
+            text = stringResource(R.string.profile_books_error),
+            color = Muted,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            text = stringResource(R.string.error_try_again),
+            color = OnInk,
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .clip(CircleShape)
+                .background(Ink)
+                .clickable(onClick = onRetry)
+                .padding(horizontal = 18.dp, vertical = 10.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF7F4EF)
+@Composable
+private fun BooksErrorCardPreview() {
+    BooksErrorCard(onRetry = {}, modifier = Modifier.padding(24.dp))
 }
 
 @Composable

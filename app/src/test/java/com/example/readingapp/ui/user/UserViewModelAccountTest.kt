@@ -1,6 +1,7 @@
 package com.example.readingapp.ui.user
 
 import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.NoCredentialException
 import com.example.readingapp.MainViewModel
 import com.example.readingapp.R
 import com.example.readingapp.auth.AuthException
@@ -8,12 +9,13 @@ import com.example.readingapp.auth.AuthFailure
 import com.example.readingapp.auth.EmailVerificationStatus
 import com.example.readingapp.auth.FakeAuthRepository
 import com.example.readingapp.auth.FakeGoogleIdTokenProvider
+import com.example.readingapp.auth.NoActivityException
 import com.example.readingapp.auth.ReauthMethod
 import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.nav.NavigationEvent
-import com.example.readingapp.repo.FireRepository
+import com.example.readingapp.testing.FakeFirestore
 import com.example.readingapp.testing.MainDispatcherRule
 import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.collectNavigation
@@ -21,7 +23,6 @@ import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
 import com.example.readingapp.ui.components.DialogState
 import com.example.readingapp.ui.destinations.LoginScreenDestination
-import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -45,14 +46,8 @@ class UserViewModelAccountTest {
 
     private val authRepository = FakeAuthRepository().apply { current = TestData.authUser }
     private val tokenProvider = FakeGoogleIdTokenProvider()
-    private val fireRepository = spyk(
-        FireRepository(
-            queryBook = mockk(relaxed = true),
-            queryUser = mockk(relaxed = true),
-            querySession = mockk(relaxed = true),
-            currentUserId = { authRepository.currentUserId }
-        )
-    )
+    private val fireRepository =
+        spyk(FakeFirestore(currentUserId = { authRepository.currentUserId }).repository)
     private val mainViewModel = MainViewModel()
     private val navigationEvents = mutableListOf<NavigationEvent?>()
     private lateinit var viewModel: UserViewModel
@@ -93,6 +88,20 @@ class UserViewModelAccountTest {
         assertEquals(1, authRepository.signOutCount)
         verify { fireRepository.clearUserData() }
         assertEquals(listOf<NavigationEvent?>(toLogin), navigationEvents)
+        assertNull(mainViewModel.dialogFlow.value)
+    }
+
+    @Test
+    fun logout_cancelled_staysSignedIn() = runTest {
+        collectNavigation()
+
+        viewModel.onLogoutClick()
+        assertEquals(str(R.string.logout_title), dialog().title)
+        dialog().onSecondaryClick!!()
+
+        assertEquals(0, authRepository.signOutCount)
+        verify(exactly = 0) { fireRepository.clearUserData() }
+        assertTrue(navigationEvents.isEmpty())
         assertNull(mainViewModel.dialogFlow.value)
     }
 
@@ -236,6 +245,40 @@ class UserViewModelAccountTest {
     }
 
     @Test
+    fun deleteGoogleAccount_noScreenForPicker_showsGoogleError() = runTest {
+        tokenProvider.onRequest = { throw NoActivityException() }
+
+        viewModel.onDeleteAccountClick()
+        dialog().onPrimaryClick!!()
+
+        assertNothingDeleted()
+        assertEquals(str(R.string.google_sign_in_failed), mainViewModel.toastFlow.value)
+        assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+    }
+
+    @Test
+    fun deleteGoogleAccount_noGoogleAccountOnDevice_showsGoogleError() = runTest {
+        tokenProvider.onRequest = { throw NoCredentialException("no accounts") }
+
+        viewModel.onDeleteAccountClick()
+        dialog().onPrimaryClick!!()
+
+        assertNothingDeleted()
+        assertEquals(str(R.string.google_sign_in_failed), mainViewModel.toastFlow.value)
+    }
+
+    @Test
+    fun deleteAccount_whileAnotherRequestIsLoading_isIgnored() = runTest {
+        mainViewModel.updateLoadingState(LoadingState.Loading())
+
+        viewModel.onDeleteAccountClick()
+        dialog().onPrimaryClick!!()
+
+        assertEquals(0, tokenProvider.requestCount)
+        assertNothingDeleted()
+    }
+
+    @Test
     fun deleteAccount_cancelled_doesNothing() = runTest {
         collectNavigation()
 
@@ -302,6 +345,20 @@ class UserViewModelAccountTest {
         // Typing again clears the error.
         typePassword("s")
         assertNull(dialog().passwordInput!!.error)
+    }
+
+    @Test
+    fun deletePasswordAccount_offline_showsNetworkErrorWithoutReopeningDialog() = runTest {
+        authRepository.reauthMethod = ReauthMethod.PASSWORD
+        authRepository.reauthError = AuthException(AuthFailure.NETWORK)
+
+        viewModel.onDeleteAccountClick()
+        typePassword("secret1")
+        dialog().onPrimaryClick!!()
+
+        assertNothingDeleted()
+        assertEquals(str(R.string.auth_error_network), mainViewModel.toastFlow.value)
+        assertNull(mainViewModel.dialogFlow.value)
     }
 
     // endregion

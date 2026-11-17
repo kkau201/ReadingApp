@@ -93,6 +93,7 @@
     <string name="profile_version">Version %1$s</string>
     <string name="profile_section_reading">Your reading</string>
     <string name="profile_section_now">Now reading</string>
+    <string name="profile_books_error">We couldn’t load your books, so your stats aren’t shown. Check your connection and try again.</string>
     <string name="profile_stamp_title">Books I’ve read</string>
     <plurals name="profile_stamp_goal">
         <item quantity="one">%1$d book before the year ends</item>

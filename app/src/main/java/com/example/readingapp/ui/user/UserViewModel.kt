@@ -69,13 +69,34 @@ class UserViewModel @Inject constructor(
                 val currentUserId = authRepository.currentUserId
                     ?: throw ErrorType.UnknownUserException
                 fireRepository.fetchUser(currentUserId).getOrThrow()
-                fireRepository.fetchSavedBooksByUser()
+                // A books failure doesn't stop the profile showing; the screen says so in place.
+                fetchBooks()
                 updateLoadingState(LoadingState.Success)
             } catch (e: Exception) {
                 updateLoadingState(LoadingState.Failed(e.message))
                 showErrorDialog(e)
             }
         }
+    }
+
+    fun onRetryBooksClick() {
+        viewModelScope.launch {
+            updateLoadingState(LoadingState.Loading())
+            fetchBooks()
+            updateLoadingState(LoadingState.Success)
+        }
+    }
+
+    private suspend fun fetchBooks() {
+        val failed = try {
+            fireRepository.fetchSavedBooksByUser().e != null
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.d(TAG, "Loading books failed: $e")
+            true
+        }
+        uiState.update { it.copy(booksFailed = failed) }
     }
 
     fun navigateToUpdateUser() {
