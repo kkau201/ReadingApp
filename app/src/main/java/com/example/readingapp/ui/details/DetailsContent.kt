@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -35,9 +33,11 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.readingapp.R
 import com.example.readingapp.model.MBook
+import com.example.readingapp.ui.components.BookTags
 import com.example.readingapp.ui.components.OutlineStar
 import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
+import com.example.readingapp.ui.components.tags
 import com.example.readingapp.ui.details.update.finishedDateLabel
 import com.example.readingapp.ui.model.BookStatus
 import com.example.readingapp.ui.theme.AppTheme
@@ -68,10 +68,7 @@ fun DetailsScreenContent(
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             BookHeading(book = book, cloth = cloth)
-            val genres = book.genreTags()
-            if (genres.isNotEmpty()) {
-                GenreTags(genres)
-            }
+            BookTags(tags = book.tags())
         }
         savedBook?.let { shelf ->
             YourShelfCard(book = shelf, onStatusClick = onStatusClick)
@@ -248,39 +245,11 @@ private fun BookCover(
     }
 }
 
-@Composable
-private fun GenreTags(genres: List<String>) {
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        genres.forEach { genre ->
-            Text(
-                text = genre,
-                color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(CardBackground)
-                    .padding(horizontal = 14.dp, vertical = 8.dp)
-            )
-        }
-    }
-}
-
 private fun MBook.shelfRating(): Int? {
     val value = rating ?: return null
     val stars = value.toInt()
     if (stars !in 1..5 || value != stars.toDouble()) return null
     return stars
-}
-
-private fun MBook.genreTags(): List<String> {
-    return genres.orEmpty()
-        .flatMap { it.split("/") }
-        .map { it.trim() }
-        .filter { it.isNotBlank() }
-        .distinct()
 }
 
 private fun String.publishedYear(): String {
