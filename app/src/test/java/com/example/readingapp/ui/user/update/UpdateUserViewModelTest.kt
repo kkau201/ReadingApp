@@ -282,6 +282,23 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun save_offline_savesLocallyGoesBackAndSaysItWillSync() = runTest {
+        collectNavigation()
+        firestore.online = false
+        viewModel.onLoad()
+        viewModel.onDisplayNameInputChange(TestData.EDITED_DISPLAY_NAME)
+
+        viewModel.onUpdateClick()
+
+        // No waiting for a server that isn't there.
+        assertEquals(str(R.string.saved_offline_toast), mainViewModel.toastFlow.value)
+        assertEquals(listOf<NavigationEvent?>(NavigateBack), navigationEvents)
+        assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+        // Profile shows the edit straight away, from the device cache.
+        assertEquals(TestData.EDITED_DISPLAY_NAME, fireRepository.user.value?.displayName)
+    }
+
+    @Test
     fun save_refreshAfterSaveFails_stillConfirmsAndGoesBack() = runTest {
         collectNavigation()
         viewModel.onLoad()

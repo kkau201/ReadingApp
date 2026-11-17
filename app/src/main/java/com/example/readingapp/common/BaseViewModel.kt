@@ -3,8 +3,10 @@ package com.example.readingapp.common
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import com.example.readingapp.MainViewModel
+import com.example.readingapp.R
 import com.example.readingapp.nav.NavigateBack
 import com.example.readingapp.nav.NavigationEvent
+import com.example.readingapp.repo.WriteResult
 import com.example.readingapp.ui.components.DialogState
 
 abstract class BaseViewModel(
@@ -65,6 +67,15 @@ abstract class BaseViewModel(
 
     fun showToast(text: String) {
         mainViewModel.showToast(text)
+    }
+
+    /** Confirms a write: [savedRes] if the server has it, or that it'll sync once back online. */
+    fun showWriteToast(
+        result: WriteResult,
+        @StringRes savedRes: Int,
+        @StringRes offlineRes: Int = R.string.saved_offline_toast
+    ) {
+        showToast(getString(if (result == WriteResult.SAVED) savedRes else offlineRes))
     }
 
     fun getString(@StringRes resId: Int): String {

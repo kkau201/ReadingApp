@@ -10,6 +10,7 @@ import com.example.readingapp.model.StoredBook
 import com.example.readingapp.model.USER_ID
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.repo.FireRepository.Companion.BOOKS_COLLECTION
+import com.example.readingapp.repo.WriteResult
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskCompletionSource
 import com.google.android.gms.tasks.Tasks
@@ -21,6 +22,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.Source
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -34,6 +36,12 @@ import io.mockk.unmockkStatic
  * Writes are applied to [profile] and [books], so screens see them on their next read.
  */
 class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
+
+    /**
+     * Whether the device has a connection. Offline, writes still apply to [profile] and
+     * [books] (Firestore's local cache) but report [WriteResult.SAVED_OFFLINE].
+     */
+    var online = true
 
     /** The users/{uid} document; null means it doesn't exist. */
     var profile: MUser? = TestData.profile
@@ -93,7 +101,8 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
             queryBook = bookQuery,
             queryUser = users,
             querySession = mockk(relaxed = true),
-            currentUserId = currentUserId
+            currentUserId = currentUserId,
+            hasConnection = { online }
         )
     )
 
@@ -101,7 +110,7 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
         every { users.document(any()) } answers {
             val uid = firstArg<String>()
             mockk<DocumentReference>().also { ref ->
-                every { ref.get() } answers {
+                every { ref.get(any<Source>()) } answers {
                     userError?.let { Tasks.forException(it) }
                         ?: Tasks.forResult(userSnapshot(uid, profile?.takeIf { it.userId == uid }))
                 }
@@ -117,17 +126,21 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
         every { repository.updateBook(any(), any(), any(), any()) } answers {
             val id = firstArg<String>()
             val updates = secondArg<Map<String, Any?>>()
-            val onComplete = thirdArg<(Boolean) -> Unit>()
+            val onSaved = thirdArg<(WriteResult) -> Unit>()
             val onError = arg<(Exception) -> Unit>(3)
             bookUpdates += id to updates
+            if (!online) {
+                // Firestore applies it locally and syncs later.
+                books = books.map { if (it.id == id) it.withUpdates(updates) else it }
+                onSaved(WriteResult.SAVED_OFFLINE)
+                return@answers
+            }
             val finish = {
                 val error = bookUpdateError
                 if (error == null) {
                     books = books.map { if (it.id == id) it.withUpdates(updates) else it }
-                    onComplete(true)
+                    onSaved(WriteResult.SAVED)
                 } else {
-                    // Like Firebase: complete (unsuccessfully), then fail.
-                    onComplete(false)
                     onError(error)
                 }
             }
@@ -136,7 +149,7 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
         every { bookQuery.whereEqualTo(StoredBook.USER_ID, any()) } answers {
             val uid = secondArg<String>()
             mockk<Query>().also { query ->
-                every { query.get() } answers {
+                every { query.get(any<Source>()) } answers {
                     booksError?.let { Tasks.forException(it) } ?: Tasks.forResult(
                         mockk<QuerySnapshot>().also { snapshot ->
                             every { snapshot.documents } returns

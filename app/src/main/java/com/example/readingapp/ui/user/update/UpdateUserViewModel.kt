@@ -117,7 +117,7 @@ class UpdateUserViewModel @Inject constructor(
         val userId = state.userId ?: return
         saveJob = viewModelScope.launch {
             updateLoadingState(LoadingState.Loading(LoadingState.LoadingType.FULL_SCREEN))
-            try {
+            val result = try {
                 fireRepository.updateUser(
                     userId = userId,
                     userUpdates = mapOf(
@@ -146,7 +146,7 @@ class UpdateUserViewModel @Inject constructor(
                 Log.d(TAG, "Refreshing profile after save failed: $e")
             }
             updateLoadingState(LoadingState.Idle)
-            showToast(getString(R.string.update_user_saved))
+            showWriteToast(result, savedRes = R.string.update_user_saved)
             navigateBack()
         }
     }

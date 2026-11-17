@@ -146,7 +146,11 @@ class SessionViewModel @Inject constructor(
         }
     }
 
+    /** True while a session is being saved, so a second tap doesn't log it twice. */
+    private var saving = false
+
     fun onSaveSession() {
+        if (saving) return
         val state = uiState.value
         val book = state.books.find { it.shelfId() == state.selectedBookId }
         val pages = state.pagesInput.toIntOrNull()?.takeIf { it > 0 }
@@ -172,9 +176,11 @@ class SessionViewModel @Inject constructor(
             readOn = readOn.display,
             readAt = readOn.toTimestamp()
         )
+        saving = true
         viewModelScope.launch(dispatchers.getIo()) {
             try {
-                fireRepository.addSession(session)
+                val result = fireRepository.addSession(session)
+                // Includes the new session even offline (Firestore's cache has it).
                 val sessions = fireRepository.fetchSessions(userId)
                 withContext(dispatchers.getMain()) {
                     uiState.update {
@@ -189,11 +195,13 @@ class SessionViewModel @Inject constructor(
                             dateError = false
                         )
                     }
-                    showToast(getString(R.string.session_saved))
+                    showWriteToast(result, savedRes = R.string.session_saved)
                 }
             } catch (e: Exception) {
                 Log.e("Error", "onSaveSession: Error saving session", e)
                 showToast(getString(R.string.session_error))
+            } finally {
+                saving = false
             }
         }
     }
@@ -220,11 +228,15 @@ class SessionViewModel @Inject constructor(
         val userId = authRepository.currentUserId ?: return
         viewModelScope.launch(dispatchers.getIo()) {
             try {
-                fireRepository.deleteSession(sessionId)
+                val result = fireRepository.deleteSession(sessionId)
                 val sessions = fireRepository.fetchSessions(userId)
                 withContext(dispatchers.getMain()) {
                     uiState.update { it.copy(sessions = sessions) }
-                    showToast(getString(R.string.session_removed))
+                    showWriteToast(
+                        result,
+                        savedRes = R.string.session_removed,
+                        offlineRes = R.string.removed_offline_toast
+                    )
                 }
             } catch (e: Exception) {
                 Log.e("Error", "deleteSession: Error removing session", e)

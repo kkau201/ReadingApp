@@ -8,6 +8,7 @@ import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MSession
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.repo.FireRepository
+import com.example.readingapp.repo.WriteResult
 import com.example.readingapp.testing.BaseViewModelTest
 import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.TestData.UID
@@ -15,10 +16,9 @@ import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.runs
 import io.mockk.slot
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -49,8 +49,8 @@ class SessionViewModelTest : BaseViewModelTest() {
     fun setUp() {
         givenSavedBooks(TestData.books + TestData.otherReadingBook)
         givenSessions(listOf(TestData.session))
-        coEvery { fireRepository.addSession(any()) } just runs
-        coEvery { fireRepository.deleteSession(any()) } just runs
+        coEvery { fireRepository.addSession(any()) } returns WriteResult.SAVED
+        coEvery { fireRepository.deleteSession(any()) } returns WriteResult.SAVED
 
         viewModel = SessionViewModel(
             fireRepository,
@@ -269,7 +269,7 @@ class SessionViewModelTest : BaseViewModelTest() {
         fillValidLog(pages = "12", note = "  Chapter 3  ")
         givenSessions(listOf(newSession, TestData.session))
         val saved = slot<MSession>()
-        coEvery { fireRepository.addSession(capture(saved)) } just runs
+        coEvery { fireRepository.addSession(capture(saved)) } returns WriteResult.SAVED
 
         viewModel.onSaveSession()
 
@@ -292,7 +292,7 @@ class SessionViewModelTest : BaseViewModelTest() {
     fun onSaveSession_blankNote_isSavedWithoutNote() = runTest {
         fillValidLog(note = "   ")
         val saved = slot<MSession>()
-        coEvery { fireRepository.addSession(capture(saved)) } just runs
+        coEvery { fireRepository.addSession(capture(saved)) } returns WriteResult.SAVED
 
         viewModel.onSaveSession()
 
@@ -307,7 +307,7 @@ class SessionViewModelTest : BaseViewModelTest() {
         viewModel.onMonthChanged(2)
         viewModel.onDayChanged("29")
         val saved = slot<MSession>()
-        coEvery { fireRepository.addSession(capture(saved)) } just runs
+        coEvery { fireRepository.addSession(capture(saved)) } returns WriteResult.SAVED
 
         viewModel.onSaveSession()
 
@@ -389,9 +389,36 @@ class SessionViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun onSaveSession_offline_savesAndSaysItWillSync() = runTest {
+        fillValidLog(pages = "12")
+        coEvery { fireRepository.addSession(any()) } returns WriteResult.SAVED_OFFLINE
+        givenSessions(listOf(newSession, TestData.session)) // read from the device cache
+
+        viewModel.onSaveSession()
+
+        assertEquals(str(R.string.saved_offline_toast), mainViewModel.toastFlow.value)
+        assertFalse(state.logging)
+        assertEquals(listOf(newSession, TestData.session), state.sessions)
+    }
+
+    @Test
+    fun onSaveSession_tappedAgainWhileSaving_logsOnce() = runTest {
+        fillValidLog(pages = "12")
+        val confirmed = CompletableDeferred<WriteResult>()
+        coEvery { fireRepository.addSession(any()) } coAnswers { confirmed.await() }
+
+        viewModel.onSaveSession()
+        viewModel.onSaveSession()
+        confirmed.complete(WriteResult.SAVED)
+
+        coVerify(exactly = 1) { fireRepository.addSession(any()) }
+        assertEquals(str(R.string.session_saved), mainViewModel.toastFlow.value)
+    }
+
+    @Test
     fun onSaveSession_saveFails_showsErrorAndKeepsForm() = runTest {
         fillValidLog(pages = "12")
-        coEvery { fireRepository.addSession(any()) } throws IllegalStateException("offline")
+        coEvery { fireRepository.addSession(any()) } throws IllegalStateException("rejected")
 
         viewModel.onSaveSession()
 
@@ -420,6 +447,19 @@ class SessionViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun onRemoveSession_offline_removesAndSaysItWillSync() = runTest {
+        viewModel.onLoad()
+        coEvery { fireRepository.deleteSession(any()) } returns WriteResult.SAVED_OFFLINE
+        givenSessions(emptyList())
+
+        viewModel.onRemoveSession(TestData.session)
+        dialog().onPrimaryClick!!()
+
+        assertTrue(state.sessions.isEmpty())
+        assertEquals(str(R.string.removed_offline_toast), mainViewModel.toastFlow.value)
+    }
+
+    @Test
     fun onRemoveSession_cancel_deletesNothing() = runTest {
         viewModel.onRemoveSession(TestData.session)
 
@@ -439,7 +479,7 @@ class SessionViewModelTest : BaseViewModelTest() {
     @Test
     fun onRemoveSession_deleteFails_showsErrorAndKeepsSessions() = runTest {
         viewModel.onLoad()
-        coEvery { fireRepository.deleteSession(any()) } throws IllegalStateException("offline")
+        coEvery { fireRepository.deleteSession(any()) } throws IllegalStateException("rejected")
 
         viewModel.onRemoveSession(TestData.session)
         dialog().onPrimaryClick!!()

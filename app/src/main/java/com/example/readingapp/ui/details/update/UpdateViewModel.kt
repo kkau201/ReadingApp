@@ -12,6 +12,7 @@ import com.example.readingapp.coroutines.CoroutineDispatcherProvider
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.model.limitTo
 import com.example.readingapp.repo.FireRepository
+import com.example.readingapp.repo.WriteResult
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
 import com.example.readingapp.ui.model.BookStatus
 import com.google.firebase.Timestamp
@@ -171,13 +172,10 @@ class UpdateViewModel @Inject constructor(
                     fireRepository.updateBook(
                         bookId = book.id.toString(),
                         bookUpdates = updates,
-                        // Called for failures too (before onErrorListener), so this is the one
-                        // place the outcome is handled.
-                        onCompleteListener = { successful ->
-                            if (successful) onSaved() else onSaveFailed()
-                        },
-                        onErrorListener = { e ->
+                        onSaved = ::onSaved,
+                        onError = { e ->
                             Log.e("Error", "onSaveClick: Error updating book", e)
+                            onSaveFailed()
                         }
                     )
                 } catch (e: Exception) {
@@ -190,7 +188,7 @@ class UpdateViewModel @Inject constructor(
         }
     }
 
-    private fun onSaved() {
+    private fun onSaved(result: WriteResult) {
         viewModelScope.launch {
             // Refresh the shared shelf so Details (underneath) shows the change straight away.
             // The save already succeeded, so a failed refresh doesn't change the outcome.
@@ -203,7 +201,7 @@ class UpdateViewModel @Inject constructor(
             }
             saving = false
             updateLoadingState(LoadingState.Idle)
-            showToast(getString(R.string.update_book_success))
+            showWriteToast(result, savedRes = R.string.update_book_success)
             navigateBack()
         }
     }

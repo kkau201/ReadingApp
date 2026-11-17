@@ -13,6 +13,7 @@ import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.repo.FireRepository.Companion.BOOKS_COLLECTION
 import com.example.readingapp.repo.FireRepository.Companion.SESSIONS_COLLECTION
 import com.example.readingapp.repo.FireRepository.Companion.USERS_COLLECTION
+import com.example.readingapp.utils.hasInternet
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
@@ -63,13 +64,17 @@ object ReadingAppModule {
 
     @Singleton
     @Provides
-    fun providesFireBookRepo(authRepository: AuthRepository): FireRepository {
+    fun providesFireBookRepo(
+        authRepository: AuthRepository,
+        @ApplicationContext context: Context
+    ): FireRepository {
         val firestore = FirebaseFirestore.getInstance()
         return FireRepository(
             queryBook = firestore.collection(BOOKS_COLLECTION),
             queryUser = firestore.collection(USERS_COLLECTION),
             querySession = firestore.collection(SESSIONS_COLLECTION),
-            currentUserId = { authRepository.currentUserId }
+            currentUserId = { authRepository.currentUserId },
+            hasConnection = { context.hasInternet() }
         )
     }
 }

@@ -148,6 +148,10 @@
     <string name="login_error_message">Sorry, unable to get your account to log in</string>
     <string name="login_error_primary_btn">Try again</string>
 
+    <!-- After a change made with no connection: it's saved on the device and syncs later. -->
+    <string name="saved_offline_toast">Saved offline. It’ll sync when you’re back online.</string>
+    <string name="removed_offline_toast">Removed offline. It’ll sync when you’re back online.</string>
+
     <string name="book_saved_toast">Book saved successfully</string>
     <string name="book_removed_toast">Book removed successfully</string>
     <string name="book_save_error">Couldn’t save this book. Please try again.</string>

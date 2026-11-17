@@ -382,6 +382,21 @@ class UpdateViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun save_offline_savesLocallyGoesBackAndSaysItWillSync() = runTest {
+        collectNavigation()
+        firestore.online = false
+        open(datedFinishedBook.googleBookId!!)
+        viewModel.onRatingChanged(5)
+
+        viewModel.onSaveClick()
+
+        assertEquals(str(R.string.saved_offline_toast), mainViewModel.toastFlow.value)
+        assertEquals(LoadingState.Idle, mainViewModel.loadingFlow.value)
+        assertEquals(listOf<NavigationEvent?>(NavigateBack), navigationEvents)
+        assertEquals(5.0, firestore.books.single { it.id == datedFinishedBook.id }.rating)
+    }
+
+    @Test
     fun save_beforeBookLoaded_writesNothing() {
         createViewModel(readingBook.googleBookId!!)
         viewModel.onRatingChanged(5)

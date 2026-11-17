@@ -16,6 +16,8 @@ import com.example.readingapp.repo.BookRepository
 import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.repo.FireRepository.Companion.BOOKS_COLLECTION
+import com.example.readingapp.repo.WriteResult
+import com.example.readingapp.repo.onWriteDone
 import com.example.readingapp.ui.model.BookStatus
 import com.example.readingapp.ui.components.DialogChoice
 import com.example.readingapp.ui.components.DialogFinishedDate
@@ -267,14 +269,17 @@ class DetailsViewModel @Inject constructor(
         )
         db.collection(BOOKS_COLLECTION)
             .add(storedBook.toStoredDocument())
-            .addOnSuccessListener {
-                showToast(getString(R.string.book_saved_toast))
-                fetchSavedBooks()
-            }
-            .addOnFailureListener {
-                Log.e("Error", "saveBook: Error saving book", it)
-                showToast(getString(R.string.book_save_error))
-            }
+            .onWriteDone(
+                online = fireRepository.isOnline(),
+                onSaved = { result ->
+                    showWriteToast(result, savedRes = R.string.book_saved_toast)
+                    fetchSavedBooks()
+                },
+                onError = {
+                    Log.e("Error", "saveBook: Error saving book", it)
+                    showToast(getString(R.string.book_save_error))
+                }
+            )
     }
 
     private fun updateStatus(saved: MBook, status: BookStatus, finishedOn: FinishedOn? = null) {
@@ -287,13 +292,11 @@ class DetailsViewModel @Inject constructor(
                 "finished_reading" to finished,
                 "finished_on" to finishedOn?.display
             ),
-            onCompleteListener = { successful ->
-                if (successful) {
-                    showToast(getString(R.string.update_book_success))
-                    fetchSavedBooks()
-                }
+            onSaved = { result ->
+                showWriteToast(result, savedRes = R.string.update_book_success)
+                fetchSavedBooks()
             },
-            onErrorListener = {
+            onError = {
                 Log.e("Error", "updateStatus: Error updating book", it)
                 showToast(getString(R.string.update_book_error))
             }
@@ -324,28 +327,36 @@ class DetailsViewModel @Inject constructor(
         val ids = bookIds.distinct()
         if (ids.isEmpty()) return
         val db = FirebaseFirestore.getInstance().collection(BOOKS_COLLECTION)
+        val online = fireRepository.isOnline()
         var remaining = ids.size
         var anyFailed = false
+        var anyOffline = false
+        fun onOneDone() {
+            remaining -= 1
+            if (remaining > 0) return
+            when {
+                anyFailed -> showToast(getString(R.string.book_remove_error))
+                anyOffline -> showToast(getString(R.string.removed_offline_toast))
+                else -> showToast(getString(R.string.book_removed_toast))
+            }
+            // Refresh either way: some copies may have been removed.
+            fetchSavedBooks()
+        }
         ids.forEach { bookId ->
             db.document(bookId)
                 .delete()
-                // Firebase calls this for failures too, so check the result before confirming.
-                .addOnCompleteListener { task ->
-                    if (!task.isSuccessful) {
+                .onWriteDone(
+                    online = online,
+                    onSaved = { result ->
+                        if (result == WriteResult.SAVED_OFFLINE) anyOffline = true
+                        onOneDone()
+                    },
+                    onError = {
                         anyFailed = true
-                        Log.e("Error", "removeBook: Error deleting doc", task.exception)
+                        Log.e("Error", "removeBook: Error deleting doc", it)
+                        onOneDone()
                     }
-                    remaining -= 1
-                    if (remaining == 0) {
-                        showToast(
-                            getString(
-                                if (anyFailed) R.string.book_remove_error else R.string.book_removed_toast
-                            )
-                        )
-                        // Refresh either way: some copies may have been removed.
-                        fetchSavedBooks()
-                    }
-                }
+                )
         }
     }
 

@@ -15,6 +15,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -27,7 +28,17 @@ class FireRepository @Inject constructor(
     private val querySession: CollectionReference,
     /** The signed-in user's uid (from AuthRepository), or null. */
     private val currentUserId: () -> String?,
+    /** Whether the device has a connection right now. */
+    private val hasConnection: () -> Boolean = { true },
 ) {
+
+    fun isOnline(): Boolean = hasConnection()
+
+    /**
+     * Offline, read straight from the device cache. The default source would first wait
+     * several seconds for the server before falling back to it.
+     */
+    private fun readSource(): Source = if (isOnline()) Source.DEFAULT else Source.CACHE
 
     companion object {
         const val USERS_COLLECTION = "users"
@@ -83,7 +94,7 @@ class FireRepository @Inject constructor(
         try {
             dataOrException.data = queryBook
                 .whereEqualTo(StoredBook.USER_ID, userId)
-                .get()
+                .get(readSource())
                 .await()
                 .documents
                 .map { documentSnapshot ->
@@ -125,7 +136,7 @@ class FireRepository @Inject constructor(
         try {
             // User documents are keyed by the Firebase Auth uid: users/{uid}.
             val userDocument = currentUserId
-                ?.let { queryUser.document(it).get().await() }
+                ?.let { queryUser.document(it).get(readSource()).await() }
                 ?.takeIf { it.exists() }
             userDocument?.let { document ->
                 val unused = listOf("profession", "profile_color").filter { document.contains(it) }
@@ -144,26 +155,27 @@ class FireRepository @Inject constructor(
     suspend fun fetchSessions(userId: String): List<MSession> {
         return querySession
             .whereEqualTo(StoredSession.USER_ID, userId)
-            .get()
+            .get(readSource())
             .await()
             .documents
             .map { it.toSession() }
             .sortedByDescending { it.readAt?.seconds ?: 0L }
     }
 
-    suspend fun addSession(session: MSession) {
-        querySession.add(session.toStoredDocument()).await()
-    }
+    /** Throws if the server rejects it. */
+    suspend fun addSession(session: MSession): WriteResult =
+        querySession.add(session.toStoredDocument()).awaitWrite(isOnline())
 
-    suspend fun deleteSession(sessionId: String) {
-        querySession.document(sessionId).delete().await()
-    }
+    /** Throws if the server rejects it. */
+    suspend fun deleteSession(sessionId: String): WriteResult =
+        querySession.document(sessionId).delete().awaitWrite(isOnline())
 
+    /** Exactly one of [onSaved] or [onError] is called. */
     fun updateBook(
         bookId: String,
         bookUpdates: Map<String, Any?>,
-        onCompleteListener: (Boolean) -> Unit,
-        onErrorListener: (Exception) -> Unit
+        onSaved: (WriteResult) -> Unit,
+        onError: (Exception) -> Unit
     ) {
         val updates = bookUpdates.mapValues { (_, value) ->
             when (value) {
@@ -176,14 +188,10 @@ class FireRepository @Inject constructor(
             .collection(BOOKS_COLLECTION)
             .document(bookId)
             .update(updates)
-            .addOnCompleteListener {
-                onCompleteListener(it.isSuccessful)
-            }
-            .addOnFailureListener { onErrorListener(it) }
+            .onWriteDone(isOnline(), onSaved, onError)
     }
 
-    /** Updates fields of users/{userId}. Throws if the write fails. */
-    suspend fun updateUser(userId: String, userUpdates: Map<String, Any?>) {
-        queryUser.document(userId).update(userUpdates).await()
-    }
+    /** Updates fields of users/{userId}. Throws if the server rejects it. */
+    suspend fun updateUser(userId: String, userUpdates: Map<String, Any?>): WriteResult =
+        queryUser.document(userId).update(userUpdates).awaitWrite(isOnline())
 }

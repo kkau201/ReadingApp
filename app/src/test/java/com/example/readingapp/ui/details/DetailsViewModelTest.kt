@@ -270,6 +270,42 @@ class DetailsViewModelTest : BaseViewModelTest() {
     }
 
     @Test
+    fun addToShelf_offline_savesLocallyAndSaysItWillSync() = runTest {
+        open(unsavedBook.googleBookId!!)
+        firestore.online = false
+        viewModel.toggleSavedBook()
+
+        choose(R.string.home_filter_reading)
+
+        assertEquals(str(R.string.saved_offline_toast), mainViewModel.toastFlow.value)
+        assertTrue(state.isSaved)
+    }
+
+    @Test
+    fun chooseStatus_offline_updatesLocallyAndSaysItWillSync() = runTest {
+        open(TestData.readingBook.googleBookId!!)
+        firestore.online = false
+        viewModel.onChooseStatus()
+
+        choose(R.string.home_filter_want_to_read)
+
+        assertEquals(str(R.string.saved_offline_toast), mainViewModel.toastFlow.value)
+        assertEquals(BookStatus.LIBRARY, state.savedBook?.bookStatus)
+    }
+
+    @Test
+    fun remove_offline_removesLocallyAndSaysItWillSync() = runTest {
+        open(TestData.readingBook.googleBookId!!)
+        firestore.online = false
+
+        viewModel.toggleSavedBook()
+        dialog().onPrimaryClick!!()
+
+        assertEquals(str(R.string.removed_offline_toast), mainViewModel.toastFlow.value)
+        assertFalse(state.isSaved)
+    }
+
+    @Test
     fun addToShelf_saveFails_saysSoAndStaysUnsaved() = runTest {
         firestore.bookAddError = FakeFirestore.unavailable()
         open(unsavedBook.googleBookId!!)
