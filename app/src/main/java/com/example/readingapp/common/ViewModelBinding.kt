@@ -1,5 +1,7 @@
 package com.example.readingapp.common
 
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.readingapp.MainViewModel
@@ -13,7 +15,7 @@ import com.ramcosta.composedestinations.spec.Direction
 @Composable
 fun ViewModelBinding(
     viewModel: BaseViewModel,
-    mainViewModel: MainViewModel = hiltViewModel(),
+    mainViewModel: MainViewModel = hiltViewModel(LocalActivity.current as ComponentActivity),
     navigator: DestinationsNavigator? = null,
 ) {
     viewModel.setMainViewModel(mainViewModel)
