@@ -180,34 +180,67 @@ class SessionViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun onLoad_signedOut_showsErrorToastAndFetchesNothing() = runTest {
+    fun onLoad_signedOut_showsLoadErrorAndFetchesNothing() = runTest {
         authRepository.current = null
 
         viewModel.onLoad()
 
         coVerify(exactly = 0) { fireRepository.fetchSavedBooksByUser(any<String>()) }
         assertFalse(state.booksLoaded)
-        assertEquals(str(R.string.session_error), mainViewModel.toastFlow.value)
+        assertTrue(state.loadFailed)
     }
 
     @Test
-    fun onLoad_booksFetchFails_showsErrorToast() = runTest {
+    fun onLoad_booksFetchFails_showsLoadErrorNotSaveToast() = runTest {
         givenSavedBooks(null, error = IllegalStateException("Firestore unavailable"))
 
         viewModel.onLoad()
 
         assertFalse(state.booksLoaded)
-        assertEquals(str(R.string.session_error), mainViewModel.toastFlow.value)
+        assertTrue(state.loadFailed)
+        assertNull(mainViewModel.toastFlow.value)
     }
 
     @Test
-    fun onLoad_sessionsFetchFails_showsErrorToast() = runTest {
+    fun onLoad_sessionsFetchFails_showsLoadError() = runTest {
         coEvery { fireRepository.fetchSessions(UID) } throws IllegalStateException("offline")
 
         viewModel.onLoad()
 
         assertFalse(state.booksLoaded)
-        assertEquals(str(R.string.session_error), mainViewModel.toastFlow.value)
+        assertTrue(state.loadFailed)
+    }
+
+    @Test
+    fun onRetryClick_afterFailedLoad_loadsAndClearsError() = runTest {
+        givenSavedBooks(null, error = IllegalStateException("Firestore unavailable"))
+        viewModel.onLoad()
+        givenSavedBooks(TestData.books + TestData.otherReadingBook)
+
+        viewModel.onRetryClick()
+
+        assertTrue(state.booksLoaded)
+        assertFalse(state.loadFailed)
+        assertEquals(listOf(TestData.otherReadingBook, TestData.readingBook), state.books)
+        assertEquals(listOf(TestData.session), state.sessions)
+    }
+
+    @Test
+    fun onRetryClick_failsAgain_keepsShowingError() = runTest {
+        givenSavedBooks(null, error = IllegalStateException("Firestore unavailable"))
+        viewModel.onLoad()
+
+        viewModel.onRetryClick()
+
+        assertFalse(state.booksLoaded)
+        assertTrue(state.loadFailed)
+    }
+
+    @Test
+    fun onLoad_succeeds_hasNoLoadError() = runTest {
+        viewModel.onLoad()
+
+        assertFalse(state.loadFailed)
     }
 
     // endregion

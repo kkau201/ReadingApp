@@ -44,6 +44,7 @@ class SessionViewModel @Inject constructor(
 
     fun onLoad() {
         watchForChanges()
+        uiState.update { it.copy(loadFailed = false) }
         viewModelScope.launch(dispatchers.getIo()) {
             try {
                 val userId = authRepository.currentUserId
@@ -52,17 +53,19 @@ class SessionViewModel @Inject constructor(
                 val sessions = fireRepository.fetchSessions(userId)
                 withContext(dispatchers.getMain()) {
                     uiState.update { state ->
-                        state.withShelf(books).copy(booksLoaded = true, sessions = sessions)
+                        state.withShelf(books).copy(booksLoaded = true, sessions = sessions, loadFailed = false)
                     }
                 }
             } catch (e: Exception) {
                 Log.e("Error", "onLoad: Error loading sessions", e)
                 withContext(dispatchers.getMain()) {
-                    showToast(getString(R.string.session_error))
+                    uiState.update { it.copy(loadFailed = true) }
                 }
             }
         }
     }
+
+    fun onRetryClick() = onLoad()
 
     /** Once loaded, keeps the journal and the books to pick from current as they change. */
     private fun watchForChanges() {

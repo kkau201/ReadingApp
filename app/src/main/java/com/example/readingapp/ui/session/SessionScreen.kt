@@ -46,6 +46,7 @@ fun SessionScreen(
             onUseToday = viewModel::onUseToday,
             onSave = viewModel::onSaveSession,
             onRemove = viewModel::onRemoveSession,
+            onRetry = viewModel::onRetryClick,
             modifier = Modifier.padding(padding)
         )
     }

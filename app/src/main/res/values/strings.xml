@@ -222,6 +222,7 @@
     <string name="session_no_books">Mark a book as reading, then log a session.</string>
     <string name="session_saved">Session saved</string>
     <string name="session_error">Couldn’t save that session</string>
+    <string name="session_load_error">We couldn’t load your reading journal. Check your connection and try again.</string>
     <string name="session_removed">Session removed</string>
     <string name="session_remove">Remove</string>
     <string name="session_remove_title">Remove session?</string>

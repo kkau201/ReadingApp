@@ -100,6 +100,7 @@ fun SessionContent(
     onUseToday: () -> Unit,
     onSave: () -> Unit,
     onRemove: (MSession) -> Unit,
+    onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val selected =
@@ -118,6 +119,12 @@ fun SessionContent(
             )
             if (!state.booksLoaded) {
                 // Still loading: show nothing rather than flashing the empty state.
+                if (state.loadFailed) {
+                    LoadErrorCard(
+                        onRetry = onRetry,
+                        modifier = Modifier.padding(horizontal = AppTheme.spacing.mdSpacing)
+                    )
+                }
             } else if (state.books.isEmpty()) {
                 NoReadingBooks(
                     modifier = Modifier
@@ -158,6 +165,45 @@ fun SessionContent(
             )
         }
     }
+}
+
+/** Shown when the books and journal couldn't load, instead of leaving the screen blank. */
+@Composable
+private fun LoadErrorCard(
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(CardShape)
+            .background(CardBackground)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.session_load_error),
+            color = Muted,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            text = stringResource(R.string.error_try_again),
+            color = OnInk,
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .clip(CircleShape)
+                .background(Ink)
+                .clickable(onClick = onRetry)
+                .padding(horizontal = 18.dp, vertical = 10.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF7F4EF)
+@Composable
+private fun LoadErrorCardPreview() {
+    LoadErrorCard(onRetry = {}, modifier = Modifier.padding(24.dp))
 }
 
 /** Empty state when no book is marked as reading: the diver illustration plus a hint. */

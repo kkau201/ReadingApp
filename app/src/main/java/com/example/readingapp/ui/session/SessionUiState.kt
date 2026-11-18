@@ -10,6 +10,8 @@ data class SessionUiState(
      * isn't mistaken for "no books" (which would flash the empty state).
      */
     val booksLoaded: Boolean = false,
+    /** The last load failed, so the screen offers to try again instead of staying blank. */
+    val loadFailed: Boolean = false,
     val sessions: List<MSession> = emptyList(),
     val selectedBookId: String? = null,
     val pagesInput: String = "",
