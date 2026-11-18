@@ -23,5 +23,20 @@ data class SessionUiState(
     val pagesError: Boolean = false,
     val dateError: Boolean = false,
     val logging: Boolean = false,
-    val changingDate: Boolean = false
+    val changingDate: Boolean = false,
+    /** The finish form, while it's open. */
+    val finishing: FinishForm? = null
+)
+
+/** How the Session screen identifies a book: its Google Books id, as sessions store. */
+internal fun MBook.shelfId(): String? = googleBookId ?: id
+
+/** Marking a book finished, with an optional rating and note for it. */
+data class FinishForm(
+    val title: String,
+    val message: String,
+    val cancelText: String,
+    /** 1 to 5 stars, or 0 for none. */
+    val rating: Int = 0,
+    val noteInput: String = ""
 )

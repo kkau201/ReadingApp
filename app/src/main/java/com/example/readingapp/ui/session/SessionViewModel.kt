@@ -10,12 +10,14 @@ import com.example.readingapp.common.ErrorType
 import com.example.readingapp.coroutines.CoroutineDispatcherProvider
 import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MSession
+import com.example.readingapp.model.StoredBook
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.model.limitTo
 import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.model.BookStatus
 import com.example.readingapp.ui.components.DialogState
+import com.example.readingapp.ui.details.update.FinishedOn
 import com.example.readingapp.ui.details.update.FinishedParts
 import com.example.readingapp.ui.details.update.MIN_FINISHED_YEAR
 import com.example.readingapp.ui.details.update.maxFinishedYear
@@ -208,6 +210,10 @@ class SessionViewModel @Inject constructor(
                         )
                     }
                     showWriteToast(result, savedRes = R.string.session_saved)
+                    val loggedPages = sessions
+                        .filter { it.googleBookId == session.googleBookId }
+                        .sumOf { it.pages ?: 0 }
+                    if (book.allPagesRead(loggedPages)) offerToFinish(book, finishedOn = readOn)
                 }
             } catch (e: Exception) {
                 Log.e("Error", "onSaveSession: Error saving session", e)
@@ -216,6 +222,109 @@ class SessionViewModel @Inject constructor(
                 saving = false
             }
         }
+    }
+
+    /**
+     * Every page has now been logged, so the book is probably done. Asks rather than marking it
+     * straight away, as Google Books page counts don't always match the reader's edition.
+     */
+    private fun offerToFinish(book: MBook, finishedOn: FinishedOn) {
+        confirmFinish(
+            book = book,
+            finishedOn = finishedOn,
+            title = getString(R.string.session_finish_title),
+            message = getString(R.string.session_finish_message, book.title.orEmpty()),
+            cancelText = getString(R.string.session_finish_not_yet)
+        )
+    }
+
+    /** The selected book is done, whatever has been logged. Finished today. */
+    fun onMarkFinishedClick() {
+        val state = uiState.value
+        val book = state.books.find { it.shelfId() == state.selectedBookId } ?: return
+        val today = todaySessionParts().toFinishedOn() ?: return
+        confirmFinish(
+            book = book,
+            finishedOn = today,
+            title = getString(R.string.session_mark_finished_title, book.title.orEmpty()),
+            message = getString(R.string.session_mark_finished_message),
+            cancelText = getString(R.string.update_cancel)
+        )
+    }
+
+    /** The book and date the open finish form will save, while [SessionUiState.finishing] is set. */
+    private var finishing: Pair<MBook, FinishedOn>? = null
+
+    /** Opens the finish form, starting from the book's current rating and note. */
+    private fun confirmFinish(
+        book: MBook,
+        finishedOn: FinishedOn,
+        title: String,
+        message: String,
+        cancelText: String
+    ) {
+        if (book.id == null) return
+        finishing = book to finishedOn
+        uiState.update {
+            it.copy(
+                finishing = FinishForm(
+                    title = title,
+                    message = message,
+                    cancelText = cancelText,
+                    rating = book.rating?.toInt()?.takeIf { rating -> rating in 1..5 } ?: 0,
+                    noteInput = book.notes.orEmpty()
+                )
+            )
+        }
+    }
+
+    /** Tapping the chosen star again clears the rating, as it's optional. */
+    fun onFinishRatingChanged(rating: Int) {
+        uiState.update { state ->
+            val form = state.finishing ?: return@update state
+            state.copy(finishing = form.copy(rating = if (rating == form.rating) 0 else rating))
+        }
+    }
+
+    fun onFinishNoteChanged(input: String) {
+        uiState.update { state ->
+            val form = state.finishing ?: return@update state
+            state.copy(finishing = form.copy(noteInput = input.limitTo(TextLimits.BOOK_NOTES)))
+        }
+    }
+
+    fun onCancelFinish() {
+        finishing = null
+        uiState.update { it.copy(finishing = null) }
+    }
+
+    fun onConfirmFinish() {
+        val (book, finishedOn) = finishing ?: return
+        val form = uiState.value.finishing ?: return
+        onCancelFinish()
+        markFinished(book, finishedOn, form)
+    }
+
+    /** The shelf listener then moves the book off this screen and onto the Finished shelf. */
+    private fun markFinished(book: MBook, finishedOn: FinishedOn, form: FinishForm) {
+        val bookId = book.id ?: return
+        val updates = buildMap<String, Any?> {
+            put(StoredBook.FINISHED_READING, finishedOn.toTimestamp())
+            put(StoredBook.FINISHED_ON, finishedOn.display)
+            // No rating chosen clears any old one, as when finishing from the book's Edit screen.
+            put(StoredBook.RATING, form.rating.takeIf { it in 1..5 }?.toDouble())
+            val note = form.noteInput.trim()
+            if (note != book.notes.orEmpty().trim()) put(StoredBook.NOTES, note)
+        }
+        fireRepository.updateBook(
+            bookId = bookId,
+            bookUpdates = updates,
+            onSaved = { result -> showWriteToast(result, savedRes = R.string.session_marked_finished) },
+            onError = { e ->
+                Log.e("Error", "markFinished: Error updating book", e)
+                showToast(getString(R.string.update_book_error))
+            }
+        )
     }
 
     fun onRemoveSession(session: MSession) {
@@ -258,7 +367,11 @@ class SessionViewModel @Inject constructor(
     }
 }
 
-private fun MBook.shelfId(): String? = googleBookId ?: id
+/** Still being read, with a known page count that [loggedPages] has reached. */
+private fun MBook.allPagesRead(loggedPages: Int): Boolean {
+    val total = pageCount?.takeIf { it > 0 } ?: return false
+    return bookStatus == BookStatus.READING && loggedPages >= total
+}
 
 /** Offers the books being read from [shelf], keeping the selection if it's still one of them. */
 private fun SessionUiState.withShelf(shelf: List<MBook>): SessionUiState {

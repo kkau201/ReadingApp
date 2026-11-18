@@ -47,6 +47,11 @@ fun SessionScreen(
             onSave = viewModel::onSaveSession,
             onRemove = viewModel::onRemoveSession,
             onRetry = viewModel::onRetryClick,
+            onMarkFinished = viewModel::onMarkFinishedClick,
+            onFinishRatingChanged = viewModel::onFinishRatingChanged,
+            onFinishNoteChanged = viewModel::onFinishNoteChanged,
+            onCancelFinish = viewModel::onCancelFinish,
+            onConfirmFinish = viewModel::onConfirmFinish,
             modifier = Modifier.padding(padding)
         )
     }

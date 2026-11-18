@@ -6,6 +6,7 @@ import com.example.readingapp.common.DependencyContextWrapper
 import com.example.readingapp.data.DataOrException
 import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MSession
+import com.example.readingapp.model.StoredBook
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.repo.WriteResult
@@ -19,6 +20,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
@@ -498,6 +500,257 @@ class SessionViewModelTest : BaseViewModelTest() {
         assertEquals(str(R.string.session_error), mainViewModel.toastFlow.value)
         assertTrue(state.logging)
         assertEquals("12", state.pagesInput)
+    }
+
+    // endregion
+
+    // region Finishing on the last page
+
+    /**
+     * [TestData.readingBook] with [pageCount] pages and [TestData.session]'s 20 already logged.
+     * Logging [pages] more and saving leaves 20 + [pages] logged in all.
+     */
+    private fun logPagesOfBook(pageCount: Int?, pages: Int) {
+        givenSavedBooks(listOf(TestData.readingBook.copy(pageCount = pageCount)))
+        val added = MSession(
+            id = "session-2",
+            userId = UID,
+            googleBookId = TestData.readingBook.googleBookId,
+            pages = pages
+        )
+        // Another book's pages don't count towards this one.
+        val otherBook = MSession(id = "session-3", userId = UID, googleBookId = "gb-other", pages = 500)
+        fillValidLog(pages = pages.toString())
+        givenSessions(listOf(added, TestData.session, otherBook))
+        viewModel.onSaveSession()
+    }
+
+    private fun givenBookUpdate(result: WriteResult = WriteResult.SAVED, error: Exception? = null) {
+        every { fireRepository.updateBook(any(), any(), any(), any()) } answers {
+            if (error != null) arg<(Exception) -> Unit>(3)(error)
+            else thirdArg<(WriteResult) -> Unit>()(result)
+        }
+    }
+
+    private val form get() = state.finishing ?: error("Finish form not open")
+
+    /** Captures what the next book update writes, and reports it saved. */
+    private fun captureBookUpdate(): io.mockk.CapturingSlot<Map<String, Any?>> {
+        val updates = slot<Map<String, Any?>>()
+        every { fireRepository.updateBook(any(), capture(updates), any(), any()) } answers {
+            thirdArg<(WriteResult) -> Unit>()(WriteResult.SAVED)
+        }
+        return updates
+    }
+
+    @Test
+    fun onSaveSession_reachesPageCount_offersToFinish() = runTest {
+        logPagesOfBook(pageCount = 32, pages = 12)
+
+        assertEquals(str(R.string.session_finish_title), form.title)
+        assertEquals(str(R.string.session_finish_not_yet), form.cancelText)
+        assertEquals(0, form.rating)
+        assertEquals("", form.noteInput)
+    }
+
+    @Test
+    fun onSaveSession_goesPastPageCount_offersToFinish() = runTest {
+        logPagesOfBook(pageCount = 30, pages = 12)
+
+        assertEquals(str(R.string.session_finish_title), form.title)
+    }
+
+    @Test
+    fun onSaveSession_belowPageCount_doesNotOffer() = runTest {
+        logPagesOfBook(pageCount = 33, pages = 12)
+
+        assertNull(state.finishing)
+    }
+
+    @Test
+    fun onSaveSession_unknownPageCount_doesNotOffer() = runTest {
+        logPagesOfBook(pageCount = null, pages = 12)
+
+        assertNull(state.finishing)
+    }
+
+    @Test
+    fun finishOffer_confirm_marksFinishedOnTheSessionDay() = runTest {
+        logPagesOfBook(pageCount = 32, pages = 12)
+        val updates = captureBookUpdate()
+
+        viewModel.onConfirmFinish()
+
+        verify { fireRepository.updateBook(TestData.readingBook.id!!, any(), any(), any()) }
+        assertEquals(todayDisplay, updates.captured[StoredBook.FINISHED_ON])
+        assertNotNull(updates.captured[StoredBook.FINISHED_READING])
+        assertNull(state.finishing)
+        assertEquals(str(R.string.session_marked_finished), mainViewModel.toastFlow.value)
+    }
+
+    @Test
+    fun finishOffer_confirmOffline_saysItWillSync() = runTest {
+        givenBookUpdate(result = WriteResult.SAVED_OFFLINE)
+        logPagesOfBook(pageCount = 32, pages = 12)
+
+        viewModel.onConfirmFinish()
+
+        assertEquals(str(R.string.saved_offline_toast), mainViewModel.toastFlow.value)
+    }
+
+    @Test
+    fun finishOffer_updateFails_showsError() = runTest {
+        givenBookUpdate(error = IllegalStateException("rejected"))
+        logPagesOfBook(pageCount = 32, pages = 12)
+
+        viewModel.onConfirmFinish()
+
+        assertEquals(str(R.string.update_book_error), mainViewModel.toastFlow.value)
+    }
+
+    @Test
+    fun finishOffer_notYet_leavesBookAsReading() = runTest {
+        givenBookUpdate()
+        logPagesOfBook(pageCount = 32, pages = 12)
+
+        viewModel.onCancelFinish()
+
+        assertNull(state.finishing)
+        verify(exactly = 0) { fireRepository.updateBook(any(), any(), any(), any()) }
+        assertEquals(str(R.string.session_saved), mainViewModel.toastFlow.value)
+    }
+
+    @Test
+    fun onMarkFinishedClick_asksAboutTheSelectedBook() = runTest {
+        viewModel.onLoad()
+        viewModel.onBookSelected(TestData.readingBook.googleBookId!!)
+
+        viewModel.onMarkFinishedClick()
+
+        assertEquals(str(R.string.session_mark_finished_title), form.title)
+        assertEquals(str(R.string.update_cancel), form.cancelText)
+
+        // ...and finishing applies to that book, not the first one in the carousel.
+        givenBookUpdate()
+        viewModel.onConfirmFinish()
+        verify { fireRepository.updateBook(TestData.readingBook.id!!, any(), any(), any()) }
+    }
+
+    @Test
+    fun onMarkFinishedClick_confirm_marksSelectedBookFinishedToday() = runTest {
+        viewModel.onLoad()
+        viewModel.onBookSelected(TestData.readingBook.googleBookId!!)
+        val updates = captureBookUpdate()
+        viewModel.onMarkFinishedClick()
+
+        viewModel.onConfirmFinish()
+
+        assertEquals(todayDisplay, updates.captured[StoredBook.FINISHED_ON])
+        assertEquals(str(R.string.session_marked_finished), mainViewModel.toastFlow.value)
+    }
+
+    @Test
+    fun onMarkFinishedClick_cancel_changesNothing() = runTest {
+        givenBookUpdate()
+        viewModel.onLoad()
+        viewModel.onMarkFinishedClick()
+
+        viewModel.onCancelFinish()
+
+        assertNull(state.finishing)
+        verify(exactly = 0) { fireRepository.updateBook(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun onMarkFinishedClick_noBooksBeingRead_doesNothing() = runTest {
+        givenSavedBooks(emptyList())
+        viewModel.onLoad()
+
+        viewModel.onMarkFinishedClick()
+
+        assertNull(state.finishing)
+    }
+
+    // Rating and note
+
+    /** Opens the finish form for [TestData.readingBook] as stored with [rating] and [notes]. */
+    private fun openFinishFormFor(rating: Double? = null, notes: String? = null) {
+        givenSavedBooks(listOf(TestData.readingBook.copy(rating = rating, notes = notes)))
+        viewModel.onLoad()
+        viewModel.onMarkFinishedClick()
+    }
+
+    @Test
+    fun finishForm_startsFromTheBooksRatingAndNote() = runTest {
+        openFinishFormFor(rating = 3.0, notes = "Loved Anne.")
+
+        assertEquals(3, form.rating)
+        assertEquals("Loved Anne.", form.noteInput)
+    }
+
+    @Test
+    fun finishForm_ratingAndNote_areSavedWithIt() = runTest {
+        openFinishFormFor()
+        val updates = captureBookUpdate()
+        viewModel.onFinishRatingChanged(4)
+        viewModel.onFinishNoteChanged("  Wonderful ending.  ")
+
+        viewModel.onConfirmFinish()
+
+        assertEquals(4.0, updates.captured[StoredBook.RATING])
+        assertEquals("Wonderful ending.", updates.captured[StoredBook.NOTES])
+    }
+
+    @Test
+    fun finishForm_tappingTheChosenStarAgain_clearsTheRating() = runTest {
+        openFinishFormFor()
+        viewModel.onFinishRatingChanged(4)
+
+        viewModel.onFinishRatingChanged(4)
+
+        assertEquals(0, form.rating)
+    }
+
+    @Test
+    fun finishForm_noRating_clearsAnyOldRating() = runTest {
+        openFinishFormFor(rating = 2.0)
+        val updates = captureBookUpdate()
+        viewModel.onFinishRatingChanged(2) // un-chosen
+
+        viewModel.onConfirmFinish()
+
+        assertTrue(updates.captured.containsKey(StoredBook.RATING))
+        assertNull(updates.captured[StoredBook.RATING])
+    }
+
+    @Test
+    fun finishForm_noteUnchanged_isNotRewritten() = runTest {
+        openFinishFormFor(notes = "Loved Anne.")
+        val updates = captureBookUpdate()
+
+        viewModel.onConfirmFinish()
+
+        assertFalse(updates.captured.containsKey(StoredBook.NOTES))
+    }
+
+    @Test
+    fun finishForm_noteCleared_removesTheOldNote() = runTest {
+        openFinishFormFor(notes = "Loved Anne.")
+        val updates = captureBookUpdate()
+        viewModel.onFinishNoteChanged("")
+
+        viewModel.onConfirmFinish()
+
+        assertEquals("", updates.captured[StoredBook.NOTES])
+    }
+
+    @Test
+    fun finishForm_noteTooLong_isCutToTheLimit() = runTest {
+        openFinishFormFor()
+
+        viewModel.onFinishNoteChanged("a".repeat(TextLimits.BOOK_NOTES + 10))
+
+        assertEquals(TextLimits.BOOK_NOTES, form.noteInput.length)
     }
 
     // endregion

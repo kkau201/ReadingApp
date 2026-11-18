@@ -174,12 +174,14 @@ private fun StatusField(
     }
 }
 
+/** Five stars to tap, with a label. Also used when finishing a book from the Session screen. */
 @Composable
-private fun RatingField(
+internal fun RatingField(
     selectedRating: Int,
-    onRatingChanged: (Int) -> Unit
+    onRatingChanged: (Int) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column {
+    Column(modifier = modifier) {
         FieldLabel(text = stringResource(R.string.update_book_rating))
         Row(
             modifier = Modifier.padding(top = 8.dp),
