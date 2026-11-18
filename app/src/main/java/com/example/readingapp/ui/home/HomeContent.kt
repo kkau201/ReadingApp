@@ -127,7 +127,7 @@ fun HomeContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(padding)
-            .padding(top = 12.dp, bottom = 20.dp)
+            .padding(top = 24.dp, bottom = 20.dp)
     ) {
         HomeHeader(
             displayName = displayName,

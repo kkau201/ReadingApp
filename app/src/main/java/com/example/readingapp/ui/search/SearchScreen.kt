@@ -49,7 +49,7 @@ fun SearchScreen(
             modifier = Modifier.padding(
                 start = AppTheme.spacing.mdSpacing,
                 end = AppTheme.spacing.mdSpacing,
-                top = 12.dp
+                top = 24.dp
             )
         )
         SearchInput(

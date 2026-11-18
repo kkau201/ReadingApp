@@ -11,6 +11,7 @@ import com.example.readingapp.model.StoredBook
 import com.example.readingapp.nav.NavigateTo
 import com.example.readingapp.repo.BookRepository
 import com.example.readingapp.testing.BaseViewModelTest
+import com.example.readingapp.testing.FakeConnectivityObserver
 import com.example.readingapp.testing.FakeFirestore
 import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.TestData.UID
@@ -21,6 +22,7 @@ import com.example.readingapp.testing.str
 import com.example.readingapp.ui.destinations.UpdateScreenDestination
 import com.example.readingapp.ui.model.BookStatus
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -42,6 +44,7 @@ class DetailsViewModelTest : BaseViewModelTest() {
     private val firestore = FakeFirestore(currentUserId = { authRepository.currentUserId })
     private val fireRepository = firestore.repository
     private val bookRepository = mockk<BookRepository>()
+    private val connectivity = FakeConnectivityObserver()
     private lateinit var viewModel: DetailsViewModel
 
     private val state get() = viewModel.uiState.value
@@ -52,7 +55,11 @@ class DetailsViewModelTest : BaseViewModelTest() {
         firestore.books = TestData.books + datedFinishedBook
         // DetailsViewModel adds and deletes books via FirebaseFirestore.getInstance().
         firestore.interceptDirectBookWrites()
-        // Google Books knows every shelf book, plus one that isn't saved.
+        givenGoogleBooksReachable()
+    }
+
+    /** Google Books knows every shelf book, plus one that isn't saved. */
+    private fun givenGoogleBooksReachable() {
         coEvery { bookRepository.getBookInfo(any()) } answers {
             val id = firstArg<String>()
             val book = (firestore.books + unsavedBook).first { it.googleBookId == id }
@@ -68,6 +75,7 @@ class DetailsViewModelTest : BaseViewModelTest() {
             bookRepository,
             fireRepository,
             authRepository,
+            connectivity,
             SavedStateHandle(mapOf("bookId" to googleBookId)),
             DependencyContextWrapper(fakeContext())
         )
@@ -148,6 +156,32 @@ class DetailsViewModelTest : BaseViewModelTest() {
         assertEquals(loaded, state.book)
         assertFalse(state.showingShelfCopy)
         assertNull(mainViewModel.dialogFlow.value)
+    }
+
+    @Test
+    fun backOnline_whileShowingShelfCopy_loadsTheFullBook() = runTest {
+        connectivity.online.value = false
+        givenGoogleBooksUnreachable()
+        createViewModel(TestData.readingBook.googleBookId!!)
+        viewModel.loadBook()
+        viewModel.uiState.first { it.showingShelfCopy }
+
+        givenGoogleBooksReachable()
+        connectivity.online.value = true
+
+        viewModel.uiState.first { !it.showingShelfCopy }
+        assertEquals(TestData.readingBook, state.book)
+    }
+
+    @Test
+    fun backOnline_withFullDetailsShown_doesNotReload() = runTest {
+        open(TestData.readingBook.googleBookId!!)
+        connectivity.online.value = false
+
+        connectivity.online.value = true
+
+        // Only the first open asked Google Books.
+        coVerify(exactly = 1) { bookRepository.getBookInfo(any()) }
     }
 
     private fun givenGoogleBooksUnreachable() {

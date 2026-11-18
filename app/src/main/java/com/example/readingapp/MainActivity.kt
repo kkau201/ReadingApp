@@ -19,6 +19,8 @@ import com.example.readingapp.common.LoadingState
 import com.example.readingapp.nav.ReadingAppNavHost
 import com.example.readingapp.ui.components.FullScreenLoadingLottie
 import com.example.readingapp.ui.components.ReadingAppDialog
+import com.example.readingapp.ui.connection.ConnectionBannerViewModel
+import com.example.readingapp.ui.connection.WithConnectionBanner
 import com.example.readingapp.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -39,9 +41,14 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainContent(
-    mainViewModel: MainViewModel = hiltViewModel(LocalActivity.current as ComponentActivity)
+    mainViewModel: MainViewModel = hiltViewModel(LocalActivity.current as ComponentActivity),
+    connectionViewModel: ConnectionBannerViewModel =
+        hiltViewModel(LocalActivity.current as ComponentActivity)
 ) {
-    ReadingAppNavHost()
+    val banner by connectionViewModel.banner.collectAsStateWithLifecycle()
+    WithConnectionBanner(banner) {
+        ReadingAppNavHost()
+    }
 
     val loadingState by mainViewModel.loadingFlow.collectAsStateWithLifecycle()
     if (loadingState is LoadingState.Loading &&

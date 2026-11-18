@@ -8,6 +8,8 @@ import com.example.readingapp.network.BookApi
 import com.example.readingapp.network.BooksApiKeyInterceptor
 import com.example.readingapp.repo.BookRepository
 import com.example.readingapp.config.Constants
+import com.example.readingapp.network.AndroidConnectivityObserver
+import com.example.readingapp.network.ConnectivityObserver
 import com.example.readingapp.network.NetworkInterceptor
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.repo.FireRepository.Companion.BOOKS_COLLECTION
@@ -55,6 +57,12 @@ object ReadingAppModule {
             .build()
             .create()
     }
+
+    @Singleton
+    @Provides
+    fun provideConnectivityObserver(
+        @ApplicationContext context: Context
+    ): ConnectivityObserver = AndroidConnectivityObserver(context)
 
     @Singleton
     @Provides

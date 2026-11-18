@@ -109,7 +109,7 @@ fun SessionContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(top = 12.dp, bottom = 32.dp),
+                .padding(top = 24.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(28.dp)
         ) {
             LibraryPageTitle(

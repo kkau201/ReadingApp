@@ -12,6 +12,7 @@ import com.example.readingapp.data.RemoteResult
 import com.example.readingapp.model.MBook
 import com.example.readingapp.model.toStoredDocument
 import com.example.readingapp.nav.NavigateTo
+import com.example.readingapp.network.ConnectivityObserver
 import com.example.readingapp.repo.BookRepository
 import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.repo.FireRepository
@@ -38,6 +39,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -47,6 +50,7 @@ class DetailsViewModel @Inject constructor(
     private val bookRepository: BookRepository,
     private val fireRepository: FireRepository,
     private val authRepository: AuthRepository,
+    private val connectivity: ConnectivityObserver,
     savedStateHandle: SavedStateHandle,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
@@ -78,6 +82,14 @@ class DetailsViewModel @Inject constructor(
                         )
                     }
                 }
+            }
+            // Showing the saved copy (offline)? Load the full book as soon as we're back online,
+            // as the callout promises.
+            viewModelScope.launch {
+                connectivity.isOnline
+                    .drop(1) // the current state, not a change
+                    .filter { online -> online }
+                    .collect { if (uiState.value.showingShelfCopy) loadBook() }
             }
         }
 

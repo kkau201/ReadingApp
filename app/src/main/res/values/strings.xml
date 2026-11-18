@@ -153,6 +153,10 @@
     <string name="login_error_message">Sorry, unable to get your account to log in</string>
     <string name="login_error_primary_btn">Try again</string>
 
+    <!-- Strip at the top of every screen while there's no connection, then briefly after. -->
+    <string name="offline_banner">You’re offline. Changes will sync when you’re back online.</string>
+    <string name="back_online_banner">Back online</string>
+
     <!-- After a change made with no connection: it's saved on the device and syncs later. -->
     <string name="saved_offline_toast">Saved offline. It’ll sync when you’re back online.</string>
     <string name="removed_offline_toast">Removed offline. It’ll sync when you’re back online.</string>
