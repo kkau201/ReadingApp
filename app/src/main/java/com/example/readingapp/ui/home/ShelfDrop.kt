@@ -1,6 +1,5 @@
 package com.example.readingapp.ui.home
 
-import android.provider.Settings
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.Spring
@@ -8,8 +7,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
@@ -56,18 +53,4 @@ internal fun rememberShelfDrop(
         }
     }
     return drop
-}
-
-/** Off when the user has turned animations off (Accessibility), and in previews. */
-@Composable
-internal fun rememberShelfMotionEnabled(): Boolean {
-    val context = LocalContext.current
-    val inPreview = LocalInspectionMode.current
-    return remember(context, inPreview) {
-        !inPreview && Settings.Global.getFloat(
-            context.contentResolver,
-            Settings.Global.ANIMATOR_DURATION_SCALE,
-            1f
-        ) != 0f
-    }
 }

@@ -21,6 +21,8 @@ import com.example.readingapp.ui.components.FullScreenLoadingLottie
 import com.example.readingapp.ui.components.ReadingAppDialog
 import com.example.readingapp.ui.connection.ConnectionBannerViewModel
 import com.example.readingapp.ui.connection.WithConnectionBanner
+import com.example.readingapp.ui.stamps.StampCelebrationHost
+import com.example.readingapp.ui.stamps.StampCelebrationViewModel
 import com.example.readingapp.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -43,6 +45,8 @@ class MainActivity : ComponentActivity() {
 fun MainContent(
     mainViewModel: MainViewModel = hiltViewModel(LocalActivity.current as ComponentActivity),
     connectionViewModel: ConnectionBannerViewModel =
+        hiltViewModel(LocalActivity.current as ComponentActivity),
+    stampViewModel: StampCelebrationViewModel =
         hiltViewModel(LocalActivity.current as ComponentActivity)
 ) {
     val banner by connectionViewModel.banner.collectAsStateWithLifecycle()
@@ -59,6 +63,9 @@ fun MainContent(
 
     val dialogState by mainViewModel.dialogFlow.collectAsStateWithLifecycle()
     dialogState?.let { ReadingAppDialog(state = it) }
+
+    // Over everything, as a book can be finished from several screens.
+    StampCelebrationHost(stampViewModel)
 
     val context = LocalContext.current
     val toastFlow by mainViewModel.toastFlow.collectAsStateWithLifecycle()

@@ -28,6 +28,7 @@ import com.example.readingapp.ui.components.PulledHeight
 import com.example.readingapp.ui.components.PulledWidth
 import com.example.readingapp.ui.components.ShelfVolume
 import com.example.readingapp.ui.components.onCloth
+import com.example.readingapp.ui.components.rememberMotionEnabled
 import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.components.shelfSwatches
 import com.example.readingapp.ui.theme.AppTheme
@@ -49,7 +50,7 @@ internal fun ShelfRow(
     pulledKey: String?,
     onBookClick: (String) -> Unit
 ) {
-    val animate = rememberShelfMotionEnabled()
+    val animate = rememberMotionEnabled()
     // The very first time the shelf fills in, books land one after another.
     val firstFill = remember { ShelfArrivals.noneYet }
     BoxWithConstraints(

@@ -17,6 +17,7 @@ import com.example.readingapp.testing.TestData.unsavedBook
 import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
 import com.example.readingapp.ui.model.BookStatus
+import com.example.readingapp.ui.stamps.StampCelebrations
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -31,6 +32,7 @@ import java.util.Calendar
 class UpdateViewModelTest : BaseViewModelTest() {
 
     private val firestore = FakeFirestore()
+    private val celebrations = StampCelebrations()
     private lateinit var viewModel: UpdateViewModel
 
     private val state get() = viewModel.uiState.value
@@ -46,6 +48,7 @@ class UpdateViewModelTest : BaseViewModelTest() {
             firestore.repository,
             SavedStateHandle(mapOf("bookId" to googleBookId)),
             dispatcherProvider,
+            celebrations,
             DependencyContextWrapper(fakeContext())
         )
         viewModel.setMainViewModel(mainViewModel)
@@ -290,6 +293,39 @@ class UpdateViewModelTest : BaseViewModelTest() {
             BookStatus.FINISHED,
             firestore.books.single { it.id == readingBook.id }.bookStatus
         )
+    }
+
+    @Test
+    fun save_readingToFinishedThisYear_popsUpTheStampCard() = runTest {
+        open(readingBook.googleBookId!!)
+        viewModel.onStatusChanged(BookStatus.FINISHED) // this year by default
+
+        viewModel.onSaveClick()
+
+        assertEquals(readingBook.googleBookId, celebrations.pending.value)
+    }
+
+    @Test
+    fun save_readingToFinishedInAnEarlierYear_noStampCard() = runTest {
+        open(readingBook.googleBookId!!)
+        viewModel.onStatusChanged(BookStatus.FINISHED)
+        viewModel.onFinishedYearChanged(thisYear - 1)
+
+        viewModel.onSaveClick()
+
+        assertNull(celebrations.pending.value)
+    }
+
+    @Test
+    fun save_alreadyFinishedBook_noStampCard() = runTest {
+        // Editing a finished book's rating isn't finishing it again.
+        open(datedFinishedBook.googleBookId!!)
+        viewModel.onFinishedYearChanged(thisYear)
+        viewModel.onRatingChanged(5)
+
+        viewModel.onSaveClick()
+
+        assertNull(celebrations.pending.value)
     }
 
     @Test

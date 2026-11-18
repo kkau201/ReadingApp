@@ -20,6 +20,7 @@ import com.example.readingapp.testing.TestData.unsavedBook
 import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
 import com.example.readingapp.ui.destinations.UpdateScreenDestination
+import com.example.readingapp.ui.stamps.StampCelebrations
 import com.example.readingapp.ui.model.BookStatus
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -45,6 +46,7 @@ class DetailsViewModelTest : BaseViewModelTest() {
     private val fireRepository = firestore.repository
     private val bookRepository = mockk<BookRepository>()
     private val connectivity = FakeConnectivityObserver()
+    private val celebrations = StampCelebrations()
     private lateinit var viewModel: DetailsViewModel
 
     private val state get() = viewModel.uiState.value
@@ -76,6 +78,7 @@ class DetailsViewModelTest : BaseViewModelTest() {
             fireRepository,
             authRepository,
             connectivity,
+            celebrations,
             SavedStateHandle(mapOf("bookId" to googleBookId)),
             DependencyContextWrapper(fakeContext())
         )
@@ -289,6 +292,50 @@ class DetailsViewModelTest : BaseViewModelTest() {
         assertNotNull(doc[StoredBook.STARTED_READING])
         assertNotNull(doc[StoredBook.FINISHED_READING])
         assertEquals(BookStatus.FINISHED, state.savedBook?.bookStatus)
+    }
+
+    @Test
+    fun addAsFinished_thisYear_popsUpTheStampCard() = runTest {
+        open(unsavedBook.googleBookId!!)
+        viewModel.toggleSavedBook()
+        choose(R.string.home_filter_finished)
+
+        dialog().onPrimaryClick!!() // the year defaults to this one
+
+        assertEquals(unsavedBook.googleBookId, celebrations.pending.value)
+    }
+
+    @Test
+    fun addAsFinished_inAnEarlierYear_noStampCard() = runTest {
+        open(unsavedBook.googleBookId!!)
+        viewModel.toggleSavedBook()
+        choose(R.string.home_filter_finished)
+
+        dialog().finishedDate!!.onYearChanged(thisYear - 1)
+        dialog().onPrimaryClick!!()
+
+        assertNull(celebrations.pending.value)
+    }
+
+    @Test
+    fun addAsReading_noStampCard() = runTest {
+        open(unsavedBook.googleBookId!!)
+        viewModel.toggleSavedBook()
+
+        choose(R.string.home_filter_reading)
+
+        assertNull(celebrations.pending.value)
+    }
+
+    @Test
+    fun changeReadingToFinished_thisYear_popsUpTheStampCard() = runTest {
+        open(TestData.readingBook.googleBookId!!)
+        viewModel.onChooseStatus()
+        choose(R.string.home_filter_finished)
+
+        dialog().onPrimaryClick!!()
+
+        assertEquals(TestData.readingBook.googleBookId, celebrations.pending.value)
     }
 
     @Test

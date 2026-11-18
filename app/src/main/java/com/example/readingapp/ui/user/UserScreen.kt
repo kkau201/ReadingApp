@@ -44,6 +44,7 @@ fun UserScreen(
             userAvatar = uiState.user?.avatar,
             books = uiState.books,
             booksFailed = uiState.booksFailed,
+            booksLoaded = uiState.booksLoaded,
             onRetryBooks = viewModel::onRetryBooksClick,
             readingGoal = uiState.user?.readingGoal ?: DEFAULT_READING_GOAL,
             onUpdateClick = viewModel::navigateToUpdateUser,

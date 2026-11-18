@@ -17,6 +17,8 @@ import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.ui.model.BookStatus
 import com.example.readingapp.ui.components.DialogState
+import com.example.readingapp.ui.components.shelfKey
+import com.example.readingapp.ui.stamps.StampCelebrations
 import com.example.readingapp.ui.details.update.FinishedOn
 import com.example.readingapp.ui.details.update.FinishedParts
 import com.example.readingapp.ui.details.update.MIN_FINISHED_YEAR
@@ -36,6 +38,7 @@ class SessionViewModel @Inject constructor(
     private val fireRepository: FireRepository,
     private val authRepository: AuthRepository,
     private val dispatchers: CoroutineDispatcherProvider,
+    private val celebrations: StampCelebrations,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
 
@@ -319,7 +322,10 @@ class SessionViewModel @Inject constructor(
         fireRepository.updateBook(
             bookId = bookId,
             bookUpdates = updates,
-            onSaved = { result -> showWriteToast(result, savedRes = R.string.session_marked_finished) },
+            onSaved = { result ->
+                showWriteToast(result, savedRes = R.string.session_marked_finished)
+                celebrations.bookFinished(book.shelfKey(), finishedOn.toTimestamp())
+            },
             onError = { e ->
                 Log.e("Error", "markFinished: Error updating book", e)
                 showToast(getString(R.string.update_book_error))

@@ -42,6 +42,7 @@ fun UserContent(
     userAvatar: Avatar? = null,
     books: List<MBook> = emptyList(),
     booksFailed: Boolean = false,
+    booksLoaded: Boolean = true,
     onRetryBooks: () -> Unit = {},
     readingGoal: Int = DEFAULT_READING_GOAL,
     onUpdateClick: () -> Unit,
@@ -93,6 +94,7 @@ fun UserContent(
             ReadingStampCard(
                 books = books,
                 goal = readingGoal,
+                ready = booksLoaded,
                 modifier = Modifier.padding(horizontal = pagePadding)
             )
             ReadingSummary(

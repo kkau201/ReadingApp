@@ -15,6 +15,7 @@ import com.example.readingapp.testing.TestData
 import com.example.readingapp.testing.TestData.UID
 import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
+import com.example.readingapp.ui.stamps.StampCelebrations
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -43,6 +44,7 @@ class SessionViewModelTest : BaseViewModelTest() {
         every { repo.savedBooks } returns liveBooks
         every { repo.sessions } returns liveSessions
     }
+    private val celebrations = StampCelebrations()
     private lateinit var viewModel: SessionViewModel
 
     private val state get() = viewModel.uiState.value
@@ -65,6 +67,7 @@ class SessionViewModelTest : BaseViewModelTest() {
             fireRepository,
             authRepository,
             dispatcherProvider,
+            celebrations,
             DependencyContextWrapper(fakeContext())
         )
         viewModel.setMainViewModel(mainViewModel)
@@ -586,6 +589,27 @@ class SessionViewModelTest : BaseViewModelTest() {
         assertNotNull(updates.captured[StoredBook.FINISHED_READING])
         assertNull(state.finishing)
         assertEquals(str(R.string.session_marked_finished), mainViewModel.toastFlow.value)
+    }
+
+    @Test
+    fun finishOffer_confirm_popsUpTheStampCard() = runTest {
+        givenBookUpdate()
+        logPagesOfBook(pageCount = 32, pages = 12)
+
+        viewModel.onConfirmFinish()
+
+        // Finished today, so this year: its stamp lands.
+        assertEquals(TestData.readingBook.googleBookId, celebrations.pending.value)
+    }
+
+    @Test
+    fun finishOffer_updateFails_noStampCard() = runTest {
+        givenBookUpdate(error = IllegalStateException("rejected"))
+        logPagesOfBook(pageCount = 32, pages = 12)
+
+        viewModel.onConfirmFinish()
+
+        assertNull(celebrations.pending.value)
     }
 
     @Test

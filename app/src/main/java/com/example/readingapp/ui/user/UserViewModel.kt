@@ -96,7 +96,7 @@ class UserViewModel @Inject constructor(
             Log.d(TAG, "Loading books failed: $e")
             true
         }
-        uiState.update { it.copy(booksFailed = failed) }
+        uiState.update { it.copy(booksFailed = failed, booksLoaded = it.booksLoaded || !failed) }
     }
 
     fun navigateToUpdateUser() {

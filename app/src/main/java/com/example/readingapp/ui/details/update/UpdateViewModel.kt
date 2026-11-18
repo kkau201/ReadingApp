@@ -13,7 +13,9 @@ import com.example.readingapp.model.TextLimits
 import com.example.readingapp.model.limitTo
 import com.example.readingapp.repo.FireRepository
 import com.example.readingapp.repo.WriteResult
+import com.example.readingapp.ui.components.shelfKey
 import com.example.readingapp.ui.destinations.DetailsScreenDestination
+import com.example.readingapp.ui.stamps.StampCelebrations
 import com.example.readingapp.ui.model.BookStatus
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,6 +32,7 @@ class UpdateViewModel @Inject constructor(
     private val fireRepository: FireRepository,
     savedStateHandle: SavedStateHandle,
     private val dispatchers: CoroutineDispatcherProvider,
+    private val celebrations: StampCelebrations,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
     override val isNavigationDestination: Boolean = true
@@ -172,7 +175,14 @@ class UpdateViewModel @Inject constructor(
                     fireRepository.updateBook(
                         bookId = book.id.toString(),
                         bookUpdates = updates,
-                        onSaved = ::onSaved,
+                        onSaved = { result ->
+                            if (selectedStatus == BookStatus.FINISHED &&
+                                book.bookStatus != BookStatus.FINISHED
+                            ) {
+                                celebrations.bookFinished(book.shelfKey(), finishedTimeStamp)
+                            }
+                            onSaved(result)
+                        },
                         onError = { e ->
                             Log.e("Error", "onSaveClick: Error updating book", e)
                             onSaveFailed()

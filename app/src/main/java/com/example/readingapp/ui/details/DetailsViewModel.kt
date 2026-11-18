@@ -23,6 +23,8 @@ import com.example.readingapp.ui.model.BookStatus
 import com.example.readingapp.ui.components.DialogChoice
 import com.example.readingapp.ui.components.DialogFinishedDate
 import com.example.readingapp.ui.components.DialogState
+import com.example.readingapp.ui.components.shelfKey
+import com.example.readingapp.ui.stamps.StampCelebrations
 import com.example.readingapp.ui.details.update.FinishedOn
 import com.example.readingapp.ui.details.update.FinishedParts
 import com.example.readingapp.ui.details.update.MIN_FINISHED_YEAR
@@ -51,6 +53,7 @@ class DetailsViewModel @Inject constructor(
     private val fireRepository: FireRepository,
     private val authRepository: AuthRepository,
     private val connectivity: ConnectivityObserver,
+    private val celebrations: StampCelebrations,
     savedStateHandle: SavedStateHandle,
     dependencyContextWrapper: DependencyContextWrapper
 ) : BaseViewModel(dependencyContextWrapper), DefaultLifecycleObserver {
@@ -310,6 +313,9 @@ class DetailsViewModel @Inject constructor(
                 online = fireRepository.isOnline(),
                 onSaved = { result ->
                     showWriteToast(result, savedRes = R.string.book_saved_toast)
+                    if (status == BookStatus.FINISHED) {
+                        celebrations.bookFinished(storedBook.shelfKey(), finished)
+                    }
                     fetchSavedBooks()
                 },
                 onError = {
@@ -331,6 +337,9 @@ class DetailsViewModel @Inject constructor(
             ),
             onSaved = { result ->
                 showWriteToast(result, savedRes = R.string.update_book_success)
+                if (status == BookStatus.FINISHED && saved.bookStatus != BookStatus.FINISHED) {
+                    celebrations.bookFinished(saved.shelfKey(), finished)
+                }
                 fetchSavedBooks()
             },
             onError = {

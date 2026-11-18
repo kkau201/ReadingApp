@@ -226,6 +226,7 @@
     <string name="session_finish_confirm">Mark as finished</string>
     <string name="session_finish_not_yet">Not yet</string>
     <string name="session_marked_finished">Marked as finished</string>
+    <string name="stamp_celebration_done">Done</string>
     <string name="session_finish_note_hint">What did you think of it?</string>
     <string name="session_mark_finished_title">Finished %1$s?</string>
     <string name="session_mark_finished_message">It’ll move to your Finished shelf, dated today. You can change the date from the book’s details.</string>

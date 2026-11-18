@@ -120,6 +120,34 @@ class UserViewModelProfileTest : BaseViewModelTest() {
     }
 
     @Test
+    fun booksLoaded_falseUntilTheBooksHaveLoaded() = runTest {
+        assertFalse(state.booksLoaded)
+
+        viewModel.loadUser()
+
+        assertTrue(state.booksLoaded)
+    }
+
+    @Test
+    fun booksLoaded_staysFalseWhenTheBooksFailToLoad() = runTest {
+        firestore.booksError = FakeFirestore.unavailable()
+
+        viewModel.loadUser()
+
+        assertFalse(state.booksLoaded)
+    }
+
+    @Test
+    fun booksLoaded_staysTrueIfALaterRefreshFails() = runTest {
+        viewModel.loadUser()
+        firestore.booksError = FakeFirestore.unavailable()
+
+        viewModel.onRetryBooksClick()
+
+        assertTrue(state.booksLoaded)
+    }
+
+    @Test
     fun loadUser_booksReadFails_showsProfileAndFlagsBooks() = runTest {
         firestore.booksError = FakeFirestore.unavailable()
 
