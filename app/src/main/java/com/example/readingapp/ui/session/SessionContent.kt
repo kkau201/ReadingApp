@@ -3,7 +3,6 @@ package com.example.readingapp.ui.session
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -76,11 +75,10 @@ import com.example.readingapp.ui.details.update.todaySessionParts
 import com.example.readingapp.ui.theme.AppTheme
 import com.example.readingapp.ui.theme.CardBackground
 import com.example.readingapp.ui.theme.Cover
-import com.example.readingapp.ui.theme.OnInk
 import com.example.readingapp.ui.theme.Ink
 import com.example.readingapp.ui.theme.Muted
+import com.example.readingapp.ui.theme.OnInk
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 private val CardShape = RoundedCornerShape(20.dp)
 private val FieldShape = RoundedCornerShape(20.dp)
@@ -392,8 +390,8 @@ private fun SelectedBook(
 
 @Composable
 private fun BookProgress(logged: Int, total: Int) {
-    val percent = ((logged * 100f) / total).roundToInt().coerceIn(0, 100)
     val fraction = (logged.toFloat() / total).coerceIn(0f, 1f)
+    val percent = fraction * 100f
     Column(
         modifier = Modifier.fillMaxWidth(0.72f),
         horizontalAlignment = Alignment.CenterHorizontally,

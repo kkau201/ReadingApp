@@ -201,7 +201,7 @@
 
     <string name="session_title">Sessions</string>
     <string name="session_author">by %1$s</string>
-    <string name="session_progress">%1$d%%</string>
+    <string name="session_progress">%1$.2f%%</string>
     <string name="session_progress_of">%1$d of %2$d pages</string>
     <string name="session_log">Log a session</string>
     <string name="session_today">Today</string>
