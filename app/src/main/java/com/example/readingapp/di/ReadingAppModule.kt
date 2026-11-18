@@ -6,6 +6,7 @@ import com.example.readingapp.auth.AuthRepository
 import com.example.readingapp.common.ActivityProvider
 import com.example.readingapp.network.BookApi
 import com.example.readingapp.network.BooksApiKeyInterceptor
+import com.example.readingapp.network.CacheForOfflineInterceptor
 import com.example.readingapp.repo.BookRepository
 import com.example.readingapp.config.Constants
 import com.example.readingapp.network.AndroidConnectivityObserver
@@ -22,15 +23,19 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
+import java.io.File
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object ReadingAppModule {
+
+    private const val BOOKS_CACHE_BYTES = 10L * 1024 * 1024
 
     @Provides
     fun provideActivityProvider(
@@ -42,12 +47,16 @@ object ReadingAppModule {
     @Singleton
     @Provides
     fun provideBookApi(
+        @ApplicationContext context: Context,
         booksApiKeyInterceptor: BooksApiKeyInterceptor,
         networkInterceptor: NetworkInterceptor
     ): BookApi {
         val client = OkHttpClient.Builder()
+            // Keeps Google Books responses so books seen before still show in full offline.
+            .cache(Cache(File(context.cacheDir, "google_books"), BOOKS_CACHE_BYTES))
             .addInterceptor(booksApiKeyInterceptor)
             .addInterceptor(networkInterceptor)
+            .addNetworkInterceptor(CacheForOfflineInterceptor())
             .build()
 
         return Retrofit.Builder()

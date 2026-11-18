@@ -12,14 +12,6 @@ object Libs {
         const val Testing = "com.google.dagger:hilt-android-testing:$version"
     }
 
-    object Room {
-        private const val version = "2.8.5"
-        const val Runtime = "androidx.room:room-runtime:$version"
-        const val Compiler = "androidx.room:room-compiler:$version"
-        const val KspCompiler = "androidx.room:room-compiler:$version"
-        const val Ktx = "androidx.room:room-ktx:$version"
-    }
-
     object Destinations {
         private const val version = "2.3.0"
         const val Core = "io.github.raamcosta.compose-destinations:core:$version"
@@ -49,6 +41,7 @@ object Libs {
     object Testing {
         const val CoroutinesTest = "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0"
         const val Mockk = "io.mockk:mockk:1.14.12"
+        const val MockWebServer = "com.squareup.okhttp3:mockwebserver3:5.5.1"
     }
 
     object Misc {
