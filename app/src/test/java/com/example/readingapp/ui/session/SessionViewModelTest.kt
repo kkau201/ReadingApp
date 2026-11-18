@@ -16,9 +16,11 @@ import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -33,7 +35,12 @@ import java.util.Locale
 class SessionViewModelTest : BaseViewModelTest() {
 
     private val authRepository = FakeAuthRepository().apply { current = TestData.authUser }
-    private val fireRepository = mockk<FireRepository>()
+    private val liveBooks = MutableStateFlow<List<MBook>>(emptyList())
+    private val liveSessions = MutableStateFlow<List<MSession>>(emptyList())
+    private val fireRepository = mockk<FireRepository>().also { repo ->
+        every { repo.savedBooks } returns liveBooks
+        every { repo.sessions } returns liveSessions
+    }
     private lateinit var viewModel: SessionViewModel
 
     private val state get() = viewModel.uiState.value
@@ -98,6 +105,39 @@ class SessionViewModelTest : BaseViewModelTest() {
         assertTrue(state.booksLoaded)
         assertEquals(listOf(TestData.session), state.sessions)
         assertEquals(TestData.otherReadingBook.googleBookId, state.selectedBookId)
+    }
+
+    @Test
+    fun sessionsChangeAfterLoad_updatesJournal() = runTest {
+        viewModel.onLoad()
+
+        liveSessions.value = listOf(newSession, TestData.session)
+
+        assertEquals(listOf(newSession, TestData.session), state.sessions)
+    }
+
+    @Test
+    fun booksChangeAfterLoad_updatesBooksAndMovesSelectionOffFinishedBook() = runTest {
+        viewModel.onLoad()
+
+        // otherReadingBook (selected) was finished on another device.
+        liveBooks.value = listOf(TestData.readingBook)
+
+        assertEquals(listOf(TestData.readingBook), state.books)
+        assertEquals(TestData.readingBook.googleBookId, state.selectedBookId)
+    }
+
+    @Test
+    fun changesAfterFailedLoad_areIgnored() = runTest {
+        givenSavedBooks(null, error = IllegalStateException("Firestore unavailable"))
+        viewModel.onLoad()
+
+        liveSessions.value = listOf(newSession)
+        liveBooks.value = listOf(TestData.readingBook)
+
+        assertFalse(state.booksLoaded)
+        assertTrue(state.sessions.isEmpty())
+        assertTrue(state.books.isEmpty())
     }
 
     @Test

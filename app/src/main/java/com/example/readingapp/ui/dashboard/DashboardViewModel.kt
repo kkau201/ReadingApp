@@ -28,6 +28,8 @@ class DashboardViewModel @Inject constructor(
         field: MutableStateFlow<DashboardUiState> = MutableStateFlow(DashboardUiState())
 
     fun onLoad() {
+        // Every tab then updates by itself when the user's data changes, even on another device.
+        authRepository.currentUserId?.let(fireRepository::startListening)
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val currentUserId =

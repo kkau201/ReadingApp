@@ -64,6 +64,96 @@ class FireRepositoryTest {
         assertEquals(TestData.books, repository.savedBooks.value)
     }
 
+    // region Listening
+
+    @Test
+    fun startListening_documentsChange_updatesUserAndBooks() {
+        repository.startListening(UID)
+        firestore.profile = TestData.profile.copy(displayName = TestData.EDITED_DISPLAY_NAME)
+        firestore.books = listOf(TestData.readingBook)
+
+        firestore.pushChanges()
+
+        assertEquals(TestData.EDITED_DISPLAY_NAME, repository.user.value?.displayName)
+        assertEquals(listOf(TestData.readingBook), repository.savedBooks.value)
+    }
+
+    @Test
+    fun startListening_onlineCacheSnapshot_isIgnoredUntilServerAnswers() {
+        repository.startListening(UID)
+
+        firestore.pushChanges(fromCache = true)
+
+        assertNull(repository.user.value)
+        assertTrue(repository.savedBooks.value.isEmpty())
+    }
+
+    @Test
+    fun startListening_offline_usesCacheSnapshot() {
+        firestore.online = false
+        repository.startListening(UID)
+
+        firestore.pushChanges(fromCache = true)
+
+        assertEquals(TestData.DISPLAY_NAME, repository.user.value?.displayName)
+        assertEquals(TestData.books, repository.savedBooks.value)
+    }
+
+    @Test
+    fun startListening_profileMissingOnlyInCache_keepsProfile() = runTest {
+        firestore.online = false
+        repository.fetchUser(UID)
+        repository.startListening(UID)
+        firestore.profile = null
+
+        firestore.pushChanges(fromCache = true)
+
+        assertEquals(TestData.DISPLAY_NAME, repository.user.value?.displayName)
+    }
+
+    @Test
+    fun startListening_profileDeletedOnServer_clearsProfile() = runTest {
+        repository.fetchUser(UID)
+        repository.startListening(UID)
+        firestore.profile = null
+
+        firestore.pushChanges()
+
+        assertNull(repository.user.value)
+    }
+
+    @Test
+    fun startListening_twiceForSameUser_attachesOnce() {
+        repository.startListening(UID)
+        repository.startListening(UID)
+
+        assertEquals(2, firestore.activeListeners)
+    }
+
+    @Test
+    fun startListening_afterListenersFail_attachesAgain() {
+        repository.startListening(UID)
+        firestore.failListeners()
+
+        repository.startListening(UID)
+
+        assertEquals(2, firestore.activeListeners)
+    }
+
+    @Test
+    fun clearUserData_stopsListening() {
+        repository.startListening(UID)
+
+        repository.clearUserData()
+        firestore.pushChanges()
+
+        assertEquals(0, firestore.activeListeners)
+        assertNull(repository.user.value)
+        assertTrue(repository.savedBooks.value.isEmpty())
+    }
+
+    // endregion
+
     @Test
     fun clearUserData_removesCachedUserAndBooks() = runTest {
         repository.fetchUser(UID)

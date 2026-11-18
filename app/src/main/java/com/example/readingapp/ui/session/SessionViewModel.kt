@@ -40,26 +40,19 @@ class SessionViewModel @Inject constructor(
     val uiState: StateFlow<SessionUiState>
         field = MutableStateFlow(SessionUiState().withToday())
 
+    private var isWatching = false
+
     fun onLoad() {
+        watchForChanges()
         viewModelScope.launch(dispatchers.getIo()) {
             try {
                 val userId = authRepository.currentUserId
                     ?: throw ErrorType.UnknownUserException
                 val books = fireRepository.fetchSavedBooksByUser(userId).getOrThrow()
-                    .filter { it.bookStatus == BookStatus.READING }
-                    .sortedBy { it.title.orEmpty() }
                 val sessions = fireRepository.fetchSessions(userId)
                 withContext(dispatchers.getMain()) {
                     uiState.update { state ->
-                        val selected = state.selectedBookId?.takeIf { id ->
-                            books.any { it.shelfId() == id }
-                        } ?: books.firstOrNull()?.shelfId()
-                        state.copy(
-                            books = books,
-                            booksLoaded = true,
-                            sessions = sessions,
-                            selectedBookId = selected
-                        )
+                        state.withShelf(books).copy(booksLoaded = true, sessions = sessions)
                     }
                 }
             } catch (e: Exception) {
@@ -67,6 +60,22 @@ class SessionViewModel @Inject constructor(
                 withContext(dispatchers.getMain()) {
                     showToast(getString(R.string.session_error))
                 }
+            }
+        }
+    }
+
+    /** Once loaded, keeps the journal and the books to pick from current as they change. */
+    private fun watchForChanges() {
+        if (isWatching) return
+        isWatching = true
+        viewModelScope.launch {
+            fireRepository.savedBooks.collect { books ->
+                uiState.update { if (it.booksLoaded) it.withShelf(books) else it }
+            }
+        }
+        viewModelScope.launch {
+            fireRepository.sessions.collect { sessions ->
+                uiState.update { if (it.booksLoaded) it.copy(sessions = sessions) else it }
             }
         }
     }
@@ -247,6 +256,16 @@ class SessionViewModel @Inject constructor(
 }
 
 private fun MBook.shelfId(): String? = googleBookId ?: id
+
+/** Offers the books being read from [shelf], keeping the selection if it's still one of them. */
+private fun SessionUiState.withShelf(shelf: List<MBook>): SessionUiState {
+    val books = shelf
+        .filter { it.bookStatus == BookStatus.READING }
+        .sortedBy { it.title.orEmpty() }
+    val selected = selectedBookId?.takeIf { id -> books.any { it.shelfId() == id } }
+        ?: books.firstOrNull()?.shelfId()
+    return copy(books = books, selectedBookId = selected)
+}
 
 private fun SessionUiState.withToday(): SessionUiState {
     val today = todaySessionParts()

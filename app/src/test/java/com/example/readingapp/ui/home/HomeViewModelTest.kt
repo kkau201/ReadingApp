@@ -33,8 +33,10 @@ class HomeViewModelTest : BaseViewModelTest() {
 
     private val authRepository = FakeAuthRepository().apply { current = TestData.authUser }
     private val cachedUser = MutableStateFlow<MUser?>(null)
+    private val liveBooks = MutableStateFlow<List<MBook>>(emptyList())
     private val fireRepository = mockk<FireRepository>().also { repo ->
         every { repo.user } returns cachedUser
+        every { repo.savedBooks } returns liveBooks
     }
     private lateinit var viewModel: HomeViewModel
 
@@ -138,6 +140,38 @@ class HomeViewModelTest : BaseViewModelTest() {
         assertNull(viewModel.uiState.value)
         assertEquals(LoadingState.Failed("Firestore unavailable"), mainViewModel.loadingFlow.value)
         assertErrorDialog(R.string.error_unknown)
+    }
+
+    @Test
+    fun booksChangeAfterLoad_updatesShelf() = runTest {
+        givenUserFetch(TestData.profile)
+        givenBooksFetch(TestData.books)
+        viewModel.onLoad()
+
+        liveBooks.value = listOf(TestData.readingBook)
+
+        assertEquals(listOf(TestData.readingBook), viewModel.uiState.value?.readingList)
+    }
+
+    @Test
+    fun profileChangeAfterLoad_updatesGreeting() = runTest {
+        givenUserFetch(TestData.profile)
+        givenBooksFetch(TestData.books)
+        viewModel.onLoad()
+
+        cachedUser.value = TestData.profile.copy(displayName = TestData.EDITED_DISPLAY_NAME)
+
+        assertEquals(TestData.EDITED_DISPLAY_NAME, viewModel.uiState.value?.displayName)
+    }
+
+    @Test
+    fun booksChangeBeforeLoadSucceeds_staysLoading() = runTest {
+        givenUserFetch(null, error = IllegalStateException("Firestore unavailable"))
+        viewModel.onLoad()
+
+        liveBooks.value = TestData.books
+
+        assertNull(viewModel.uiState.value)
     }
 
     @Test

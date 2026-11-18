@@ -1,5 +1,6 @@
 package com.example.readingapp.repo
 
+import android.util.Log
 import com.example.readingapp.data.DataOrException
 import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MSession
@@ -14,7 +15,9 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SnapshotMetadata
 import com.google.firebase.firestore.Source
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,6 +47,7 @@ class FireRepository @Inject constructor(
         const val USERS_COLLECTION = "users"
         const val BOOKS_COLLECTION = "books"
         const val SESSIONS_COLLECTION = "sessions"
+        private const val TAG = "FireRepository"
     }
 
     val user: StateFlow<MUser?>
@@ -52,13 +56,68 @@ class FireRepository @Inject constructor(
     val savedBooks: StateFlow<List<MBook>>
         field = MutableStateFlow<List<MBook>>(emptyList())
 
+    /** The user's reading sessions, newest first. */
+    val sessions: StateFlow<List<MSession>>
+        field = MutableStateFlow<List<MSession>>(emptyList())
+
+    private var listeningFor: String? = null
+    private val listeners = mutableListOf<ListenerRegistration>()
+
+    /**
+     * Keeps [user], [savedBooks] and [sessions] up to date as the documents change, including
+     * from another device, until [clearUserData]. Calling it again for the same user does nothing.
+     */
+    fun startListening(userId: String) {
+        if (listeningFor == userId) return
+        stopListening()
+        listeningFor = userId
+        listeners += queryUser.document(userId).addSnapshotListener { snapshot, e ->
+            if (e != null) onListenerFailed("User", e)
+            if (snapshot == null || snapshot.metadata.isIncomplete()) return@addSnapshotListener
+            // Only a confirmed missing document clears the profile, as in fetchUser.
+            if (!snapshot.exists() && snapshot.metadata.isFromCache) return@addSnapshotListener
+            user.value = snapshot.takeIf { it.exists() }?.toModel()
+        }
+        listeners += queryBook.whereEqualTo(StoredBook.USER_ID, userId).addSnapshotListener { snapshot, e ->
+            if (e != null) onListenerFailed("Books", e)
+            if (snapshot == null || snapshot.metadata.isIncomplete()) return@addSnapshotListener
+            savedBooks.value = snapshot.documents.map { it.toStoredBook() }
+        }
+        listeners += querySession.whereEqualTo(StoredSession.USER_ID, userId).addSnapshotListener { snapshot, e ->
+            if (e != null) onListenerFailed("Sessions", e)
+            if (snapshot == null || snapshot.metadata.isIncomplete()) return@addSnapshotListener
+            sessions.value = snapshot.documents.map { it.toSession() }.newestFirst()
+        }
+    }
+
+    /**
+     * Online, a snapshot served from the cache before the server answers may hold only the
+     * documents this device happened to cache, so wait for the server's. Offline, the cache
+     * is all there is.
+     */
+    private fun SnapshotMetadata.isIncomplete(): Boolean = isFromCache && isOnline()
+
+    /** Firestore stops a listener after an error, so the next [startListening] attaches afresh. */
+    private fun onListenerFailed(what: String, e: Exception) {
+        Log.w(TAG, "$what listener failed", e)
+        listeningFor = null
+    }
+
+    private fun stopListening() {
+        listeners.forEach { it.remove() }
+        listeners.clear()
+        listeningFor = null
+    }
+
     /**
      * Drops everything cached for the signed-in user. This repository is a singleton, so call
      * this on sign-out or the next user to sign in on the device would briefly see this data.
      */
     fun clearUserData() {
+        stopListening()
         user.value = null
         savedBooks.value = emptyList()
+        sessions.value = emptyList()
     }
 
     suspend fun fetchUser(userId: String?): DataOrException<MUser?, Exception> {
@@ -153,14 +212,18 @@ class FireRepository @Inject constructor(
     }
 
     suspend fun fetchSessions(userId: String): List<MSession> {
-        return querySession
+        val fetched = querySession
             .whereEqualTo(StoredSession.USER_ID, userId)
             .get(readSource())
             .await()
             .documents
             .map { it.toSession() }
-            .sortedByDescending { it.readAt?.seconds ?: 0L }
+            .newestFirst()
+        sessions.value = fetched
+        return fetched
     }
+
+    private fun List<MSession>.newestFirst() = sortedByDescending { it.readAt?.seconds ?: 0L }
 
     /** Throws if the server rejects it. */
     suspend fun addSession(session: MSession): WriteResult =

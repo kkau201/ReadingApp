@@ -18,10 +18,13 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.SnapshotMetadata
 import com.google.firebase.firestore.Source
 import io.mockk.every
 import io.mockk.mockk
@@ -92,6 +95,44 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
     val users = mockk<CollectionReference>()
     private val bookQuery = mockk<Query>()
 
+    private val userListeners = mutableListOf<Pair<String, EventListener<DocumentSnapshot>>>()
+    private val bookListeners = mutableListOf<Pair<String, EventListener<QuerySnapshot>>>()
+
+    /** How many snapshot listeners are attached to users and books right now. */
+    val activeListeners get() = userListeners.size + bookListeners.size
+
+    /**
+     * Sends what Firestore now holds to every listener, as Firestore does when documents
+     * change. [fromCache] marks it as read from the device cache rather than the server.
+     */
+    fun pushChanges(fromCache: Boolean = false) {
+        userListeners.toList().forEach { (uid, listener) ->
+            listener.onEvent(userSnapshot(uid, profile?.takeIf { it.userId == uid }, fromCache), null)
+        }
+        bookListeners.toList().forEach { (uid, listener) ->
+            listener.onEvent(booksSnapshot(uid, fromCache), null)
+        }
+    }
+
+    /** Fails every listener with [error]; Firestore then stops them. */
+    fun failListeners(error: FirebaseFirestoreException = unavailable()) {
+        val failed = userListeners.map { it.second } + bookListeners.map { it.second }
+        userListeners.clear()
+        bookListeners.clear()
+        failed.forEach { it.onEvent(null, error) }
+    }
+
+    private fun <T> MutableList<T>.register(entry: T): ListenerRegistration {
+        add(entry)
+        return mockk<ListenerRegistration>().also { every { it.remove() } answers { remove(entry) } }
+    }
+
+    private fun booksSnapshot(uid: String, fromCache: Boolean = false): QuerySnapshot =
+        mockk<QuerySnapshot>().also { snapshot ->
+            every { snapshot.documents } returns books.filter { it.userId == uid }.map(::bookSnapshot)
+            every { snapshot.metadata } returns metadata(fromCache)
+        }
+
     /**
      * The repository under test. A spy only so [FireRepository.updateBook], which writes via
      * FirebaseFirestore.getInstance(), lands in [books] instead; everything else is real.
@@ -113,6 +154,9 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
                 every { ref.get(any<Source>()) } answers {
                     userError?.let { Tasks.forException(it) }
                         ?: Tasks.forResult(userSnapshot(uid, profile?.takeIf { it.userId == uid }))
+                }
+                every { ref.addSnapshotListener(any<EventListener<DocumentSnapshot>>()) } answers {
+                    userListeners.register(uid to firstArg())
                 }
                 every { ref.update(any<Map<String, Any>>()) } answers {
                     val updates = firstArg<Map<String, Any?>>()
@@ -150,12 +194,10 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
             val uid = secondArg<String>()
             mockk<Query>().also { query ->
                 every { query.get(any<Source>()) } answers {
-                    booksError?.let { Tasks.forException(it) } ?: Tasks.forResult(
-                        mockk<QuerySnapshot>().also { snapshot ->
-                            every { snapshot.documents } returns
-                                books.filter { it.userId == uid }.map(::bookSnapshot)
-                        }
-                    )
+                    booksError?.let { Tasks.forException(it) } ?: Tasks.forResult(booksSnapshot(uid))
+                }
+                every { query.addSnapshotListener(any<EventListener<QuerySnapshot>>()) } answers {
+                    bookListeners.register(uid to firstArg())
                 }
             }
         }
@@ -243,9 +285,13 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
         fun unavailable(message: String = "Firestore unavailable") =
             FirebaseFirestoreException(message, FirebaseFirestoreException.Code.UNAVAILABLE)
 
-        private fun userSnapshot(uid: String, user: MUser?): DocumentSnapshot =
+        private fun metadata(fromCache: Boolean): SnapshotMetadata =
+            mockk<SnapshotMetadata>().also { every { it.isFromCache } returns fromCache }
+
+        private fun userSnapshot(uid: String, user: MUser?, fromCache: Boolean = false): DocumentSnapshot =
             mockk<DocumentSnapshot>().also { doc ->
                 every { doc.exists() } returns (user != null)
+                every { doc.metadata } returns metadata(fromCache)
                 if (user == null) return@also
                 every { doc.id } returns uid
                 every { doc.contains(any<String>()) } returns false
