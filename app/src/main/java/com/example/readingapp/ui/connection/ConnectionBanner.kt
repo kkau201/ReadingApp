@@ -14,7 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudDone
 import androidx.compose.material.icons.outlined.CloudOff
@@ -52,25 +53,26 @@ fun WithConnectionBanner(
     if (visible) shown = banner
 
     Column(Modifier.fillMaxSize()) {
+        // The status bar area is always handled here (in the page colour, as every screen's
+        // top is), so only the strip's own height animates and screens slide smoothly with it.
+        Spacer(
+            Modifier
+                .fillMaxWidth()
+                .windowInsetsTopHeight(WindowInsets.statusBars)
+                .background(MaterialTheme.colorScheme.background)
+        )
         AnimatedVisibility(
             visible = visible,
             enter = expandVertically(),
             exit = shrinkVertically()
         ) {
-            ConnectionStrip(
-                banner = shown,
-                // The strip sits below the status bar, which keeps the page colour.
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.background)
-                    .statusBarsPadding()
-            )
+            ConnectionStrip(banner = shown)
         }
         Box(
             modifier = Modifier
                 .weight(1f)
-                // While the strip is there it has handled the status bar, so screens below
-                // shouldn't pad for it again.
-                .then(if (visible) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier)
+                // Already handled above, so screens don't pad for the status bar again.
+                .consumeWindowInsets(WindowInsets.statusBars)
         ) {
             content()
         }
