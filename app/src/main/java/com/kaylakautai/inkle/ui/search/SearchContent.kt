@@ -33,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -51,8 +50,8 @@ import com.kaylakautai.inkle.ui.components.ShelfSpineShape
 import com.kaylakautai.inkle.ui.components.shelfKey
 import com.kaylakautai.inkle.ui.components.shelfSwatches
 import com.kaylakautai.inkle.ui.theme.AppTheme
-import com.kaylakautai.inkle.ui.theme.Ink
 import com.kaylakautai.inkle.ui.theme.Muted
+import com.kaylakautai.inkle.ui.theme.isAppInDarkTheme
 
 @Composable
 fun SearchInput(
@@ -128,11 +127,12 @@ private fun SearchIdleContent(modifier: Modifier = Modifier) {
             .padding(horizontal = AppTheme.spacing.mdSpacing, vertical = 48.dp)
     ) {
         Image(
-            painter = painterResource(R.drawable.illustration_browse_shelves),
+            painter = painterResource(
+                if (isAppInDarkTheme()) R.drawable.illustration_browse_shelves_night
+                else R.drawable.illustration_browse_shelves
+            ),
             // Decorative: the text below says what to do.
             contentDescription = null,
-            colorFilter = ColorFilter.tint(Ink),
-            // Wider than Session's diver: this art is square and has finer lines.
             modifier = Modifier.width(200.dp)
         )
         Text(
