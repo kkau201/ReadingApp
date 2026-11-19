@@ -2,7 +2,7 @@
 <resources>
 
     <!-- Dark theme: window background matches Compose's NightBase. -->
-    <style name="Theme.ReadingApp" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.Inkle" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">#171412</item>
     </style>
 </resources>

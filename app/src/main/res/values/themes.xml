@@ -3,7 +3,7 @@
 
     <!-- Window background matches Compose's Paper, so the launch screen and the first frame
          don't flash white. Dark version in values-night/themes.xml. -->
-    <style name="Theme.ReadingApp" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.Inkle" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">#F7F4EF</item>
     </style>
 </resources>

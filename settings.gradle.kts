@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ReadingApp"
+rootProject.name = "Inkle"
 include(":app")

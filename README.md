@@ -1,6 +1,6 @@
-# ReadingApp
+# inkle
 
-This project is a reading app built to learn Firebase and Google Cloud: how to set up authentication and a database, then use them from an Android app. Sign-in uses Firebase Auth. Shelves, profiles, and saved books live in Firestore. Book search and details come from the Google Books API, which needs its own key restricted to this Android app. The Firebase key in `google-services.json` is only for Auth and Firestore.
+inkle is a reading app built to learn Firebase and Google Cloud: how to set up authentication and a database, then use them from an Android app. Sign-in uses Firebase Auth. Shelves, profiles, and saved books live in Firestore. Book search and details come from the Google Books API, which needs its own key restricted to this Android app. The Firebase key in `google-services.json` is only for Auth and Firestore.
 
 `google-services.json` is part of the app and stays in git. `secrets.properties` is the Books API key and stays on your machine.
 
@@ -9,7 +9,7 @@ This project is a reading app built to learn Firebase and Google Cloud: how to s
 1. In your Google Cloud project, enable **Books API**.
 2. Create an API key.
 3. Restrict it:
-   - **Android apps:** package `com.example.readingapp` and the SHA-1 of the keystore that signs the build.
+   - **Android apps:** package `com.kaylakautai.inkle` and the SHA-1 of the keystore that signs the build.
    - **API restrictions:** Books API only.
 4. Put the key in `secrets.properties` at the project root:
 

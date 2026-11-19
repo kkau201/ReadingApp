@@ -1,4 +1,4 @@
-import com.example.dependencies.Libs
+import com.kaylakautai.inkle.dependencies.Libs
 import java.util.Properties
 
 plugins {
@@ -10,11 +10,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.readingapp"
+    namespace = "com.kaylakautai.inkle"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.example.readingapp"
+        applicationId = "com.kaylakautai.inkle"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
@@ -63,7 +63,7 @@ fun booksApiKey(): String {
 }
 
 ksp {
-    arg("compose-destinations.codeGenPackageName", "com.example.readingapp.ui")
+    arg("compose-destinations.codeGenPackageName", "com.kaylakautai.inkle.ui")
 }
 
 dependencies {
