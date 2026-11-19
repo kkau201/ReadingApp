@@ -4,6 +4,7 @@ internal object StoredBook {
     const val TITLE = "title"
     const val AUTHORS = "authors"
     const val PAGE_COUNT = "page_count"
+    const val CURRENT_PAGE = "current_page"
     const val NOTES = "notes"
     const val RATING = "rating"
     const val STARTED_READING = "started_reading"
@@ -19,6 +20,7 @@ internal object StoredBook {
         TITLE,
         AUTHORS,
         PAGE_COUNT,
+        CURRENT_PAGE,
         NOTES,
         RATING,
         STARTED_READING,
@@ -38,6 +40,7 @@ internal fun MBook.toStoredDocument(): Map<String, Any> = buildMap {
         ?.takeIf { it.isNotEmpty() }
         ?.let { put(StoredBook.AUTHORS, it) }
     pageCount?.takeIf { it > 0 }?.let { put(StoredBook.PAGE_COUNT, it) }
+    currentPage?.takeIf { it > 0 }?.let { put(StoredBook.CURRENT_PAGE, it) }
     putText(StoredBook.GOOGLE_BOOK_ID, googleBookId)
     putText(StoredBook.USER_ID, userId)
     startedReading?.let { put(StoredBook.STARTED_READING, it) }

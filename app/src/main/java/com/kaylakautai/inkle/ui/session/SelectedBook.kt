@@ -46,7 +46,7 @@ internal fun SelectedBook(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         BookHeading(book)
-        PagesRead(logged = sessions.sumOf { it.pages ?: 0 }, total = book.pageCount?.takeIf { it > 0 })
+        PagesRead(place = book.readingPlace(sessions), total = book.pageCount?.takeIf { it > 0 })
         Spacer(modifier = Modifier.height(12.dp))
         InkleButton(
             text = stringResource(R.string.session_log),
@@ -90,18 +90,18 @@ private fun BookHeading(book: MBook) {
     }
 }
 
-/** A progress bar when the page count is known, otherwise whichever count there is. */
+/** A progress bar from the page reached when the length is known, otherwise whichever count there is. */
 @Composable
-private fun PagesRead(logged: Int, total: Int?) {
+private fun PagesRead(place: Int, total: Int?) {
     when {
-        total != null && logged > 0 -> BookProgress(logged = logged, total = total)
-        total != null -> Text(
-            text = stringResource(R.string.home_pages, total),
+        total != null && place > 0 -> BookProgress(logged = place, total = total)
+        place > 0 -> Text(
+            text = stringResource(R.string.session_on_page, place),
             color = Muted,
             style = MaterialTheme.typography.bodyLarge
         )
-        logged > 0 -> Text(
-            text = pluralStringResource(R.plurals.session_pages_logged, logged, logged),
+        total != null -> Text(
+            text = stringResource(R.string.home_pages, total),
             color = Muted,
             style = MaterialTheme.typography.bodyLarge
         )

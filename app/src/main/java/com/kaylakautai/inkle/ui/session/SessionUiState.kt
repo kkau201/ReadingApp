@@ -14,6 +14,8 @@ data class SessionUiState(
     val loadFailed: Boolean = false,
     val sessions: List<MSession> = emptyList(),
     val selectedBookId: String? = null,
+    /** Pages read in the sitting, or the page reached. See [SessionLogBy]. */
+    val logBy: SessionLogBy = SessionLogBy.PAGES,
     val pagesInput: String = "",
     val noteInput: String = "",
     val year: Int = 0,

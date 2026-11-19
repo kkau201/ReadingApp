@@ -232,6 +232,17 @@
     <string name="session_pages">Pages</string>
     <string name="session_pages_hint">How many?</string>
     <string name="session_pages_error">Enter the pages you read</string>
+    <string name="session_record">Record</string>
+    <string name="session_by_pages">Pages read</string>
+    <string name="session_by_reached">Page reached</string>
+    <string name="session_page">Page</string>
+    <string name="session_page_hint">Which page?</string>
+    <string name="session_page_error">Enter the page you reached</string>
+    <string name="session_page_behind">That page is before where you are</string>
+    <string name="session_on_page">You’re on page %1$d</string>
+    <string name="session_place_hint">This sets where you are. It isn’t counted as pages you read.</string>
+    <string name="session_reached_hint">The session is the pages since page %1$d.</string>
+    <string name="session_place_saved">Saved where you are</string>
     <string name="session_book_error">Choose a book</string>
     <string name="session_date_error">Choose the day</string>
     <string name="session_note">Note</string>

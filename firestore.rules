@@ -27,6 +27,7 @@ rules_version = '2';
 //   - title: string (optional, 1-500 chars)
 //   - authors: list<string> (optional, 1-10 entries, each 1-200 chars)
 //   - page_count: int (optional, 1-100000)
+//   - current_page: int (optional, 1-100000): the page the reader has reached
 //   - notes: string (optional, 1-1000 chars)
 //   - rating: number (optional, 1-5)
 //   - started_reading: timestamp (optional)
@@ -123,7 +124,7 @@ service cloud.firestore {
     function isValidBook(data) {
       return data.keys().hasAll(['user_id', 'google_book_id']) &&
         data.keys().hasOnly([
-          'user_id', 'google_book_id', 'title', 'authors', 'page_count',
+          'user_id', 'google_book_id', 'title', 'authors', 'page_count', 'current_page',
           'notes', 'rating', 'started_reading', 'finished_reading', 'finished_on'
         ]) &&
         data.user_id == request.auth.uid &&
@@ -132,6 +133,7 @@ service cloud.firestore {
         optionalString(data, 'title', 1, 500) &&
         (!('authors' in data) || isValidAuthors(data.authors)) &&
         optionalIntInRange(data, 'page_count', 1, 100000) &&
+        optionalIntInRange(data, 'current_page', 1, 100000) &&
         optionalString(data, 'notes', 1, 1000) &&
         (!('rating' in data) || (data.rating is number && data.rating >= 1 && data.rating <= 5)) &&
         optionalTimestamp(data, 'started_reading') &&

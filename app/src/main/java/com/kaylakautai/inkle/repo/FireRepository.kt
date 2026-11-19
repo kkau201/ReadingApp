@@ -180,6 +180,7 @@ class FireRepository @Inject constructor(
             title = getString(StoredBook.TITLE),
             authors = authorList,
             pageCount = getLong(StoredBook.PAGE_COUNT)?.toInt(),
+            currentPage = getLong(StoredBook.CURRENT_PAGE)?.toInt(),
             notes = getString(StoredBook.NOTES),
             rating = getDouble(StoredBook.RATING),
             startedReading = getTimestamp(StoredBook.STARTED_READING),

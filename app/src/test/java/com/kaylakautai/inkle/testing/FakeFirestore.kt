@@ -254,6 +254,7 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
             title = this[StoredBook.TITLE] as String?,
             authors = this[StoredBook.AUTHORS] as List<String>?,
             pageCount = this[StoredBook.PAGE_COUNT] as Int?,
+            currentPage = this[StoredBook.CURRENT_PAGE] as Int?,
             userId = this[StoredBook.USER_ID] as String?,
             googleBookId = this[StoredBook.GOOGLE_BOOK_ID] as String?,
             startedReading = this[StoredBook.STARTED_READING] as Timestamp?,
@@ -269,6 +270,7 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
                 return (updates[key] as T?)?.takeUnless { it is String && it.isBlank() }
             }
             return copy(
+                currentPage = field(StoredBook.CURRENT_PAGE, currentPage),
                 notes = field(StoredBook.NOTES, notes),
                 rating = field(StoredBook.RATING, rating),
                 startedReading = field(StoredBook.STARTED_READING, startedReading),
@@ -324,6 +326,7 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
                 every { doc.getString(StoredBook.USER_ID) } returns book.userId
                 every { doc.getString(StoredBook.GOOGLE_BOOK_ID) } returns book.googleBookId
                 every { doc.getLong(StoredBook.PAGE_COUNT) } returns book.pageCount?.toLong()
+                every { doc.getLong(StoredBook.CURRENT_PAGE) } returns book.currentPage?.toLong()
                 every { doc.getDouble(StoredBook.RATING) } returns book.rating
                 every { doc.getTimestamp(StoredBook.STARTED_READING) } returns book.startedReading
                 every { doc.getTimestamp(StoredBook.FINISHED_READING) } returns book.finishedReading

@@ -28,6 +28,8 @@ data class MBook(
     /** The user's rating, 1-5 (finished books only). */
     val rating: Double? = null,
     val startedReading: Timestamp? = null,
+    /** The page the reader has reached. Ahead of logged sessions when a book was already underway. */
+    val currentPage: Int? = null,
     val finishedReading: Timestamp? = null,
     /** The finished date as picked: "yyyy", "MM/yyyy" or "dd/MM/yyyy". */
     val finishedOn: String? = null

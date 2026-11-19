@@ -33,11 +33,12 @@ import com.kaylakautai.inkle.ui.theme.Ink
 import com.kaylakautai.inkle.ui.theme.Muted
 import com.kaylakautai.inkle.ui.theme.OnInk
 
-/** The "Log a session" form: which book, how many pages, an optional note and the day. */
+/** The "Log a session" form: which book, pages read or the page reached, an optional note and the day. */
 @Composable
 internal fun SessionLogDialog(
     state: SessionUiState,
     onBookSelected: (String) -> Unit,
+    onLogByChanged: (SessionLogBy) -> Unit,
     onPagesChanged: (String) -> Unit,
     onNoteChanged: (String) -> Unit,
     onYearChanged: (Int) -> Unit,
@@ -52,6 +53,7 @@ internal fun SessionLogDialog(
         LogSessionForm(
             state = state,
             onBookSelected = onBookSelected,
+            onLogByChanged = onLogByChanged,
             onPagesChanged = onPagesChanged,
             onNoteChanged = onNoteChanged,
             onYearChanged = onYearChanged,
@@ -69,6 +71,7 @@ internal fun SessionLogDialog(
 private fun ColumnScope.LogSessionForm(
     state: SessionUiState,
     onBookSelected: (String) -> Unit,
+    onLogByChanged: (SessionLogBy) -> Unit,
     onPagesChanged: (String) -> Unit,
     onNoteChanged: (String) -> Unit,
     onYearChanged: (Int) -> Unit,
@@ -84,36 +87,95 @@ private fun ColumnScope.LogSessionForm(
         color = MaterialTheme.colorScheme.onBackground,
         style = MaterialTheme.typography.headlineSmall
     )
+    val book = state.books.find { it.shelfId() == state.selectedBookId } ?: state.books.singleOrNull()
+    val place = book?.readingPlace(state.sessions) ?: 0
+    val settingPlace = state.logBy == SessionLogBy.REACHED && place <= 0
     BookChoice(
         books = state.books,
         selectedBookId = state.selectedBookId,
         bookError = state.bookError,
         onBookSelected = onBookSelected
     )
+    RecordChoice(selected = state.logBy, onSelected = onLogByChanged)
     NumberField(
-        label = stringResource(R.string.session_pages),
+        label = stringResource(
+            if (state.logBy == SessionLogBy.REACHED) R.string.session_page else R.string.session_pages
+        ),
         value = state.pagesInput,
-        placeholder = stringResource(R.string.session_pages_hint),
-        error = if (state.pagesError) stringResource(R.string.session_pages_error) else null,
+        placeholder = stringResource(
+            if (state.logBy == SessionLogBy.REACHED) R.string.session_page_hint else R.string.session_pages_hint
+        ),
+        error = pagesErrorText(state, place),
         onValueChange = onPagesChanged
     )
-    NoteField(
-        value = state.noteInput,
-        onValueChange = onNoteChanged
-    )
-    SessionDay(
+    recordHint(state.logBy, place)?.let { hint ->
+        Text(
+            text = hint,
+            color = Muted,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+    if (!settingPlace) {
+        NoteField(
+            value = state.noteInput,
+            onValueChange = onNoteChanged
+        )
+        SessionDay(
         state = state,
         onYearChanged = onYearChanged,
         onMonthChanged = onMonthChanged,
         onDayChanged = onDayChanged,
-        onChangeDay = onChangeDay,
-        onUseToday = onUseToday
-    )
+            onChangeDay = onChangeDay,
+            onUseToday = onUseToday
+        )
+    }
     InkleButton(
         text = stringResource(R.string.update_save),
         onClick = onSave
     )
     FormCancelLink(text = stringResource(R.string.update_cancel), onClick = onCancel)
+}
+
+@Composable
+private fun RecordChoice(selected: SessionLogBy, onSelected: (SessionLogBy) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FieldLabel(text = stringResource(R.string.session_record))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ChoiceChip(
+                text = stringResource(R.string.session_by_pages),
+                selected = selected == SessionLogBy.PAGES,
+                onClick = { onSelected(SessionLogBy.PAGES) }
+            )
+            ChoiceChip(
+                text = stringResource(R.string.session_by_reached),
+                selected = selected == SessionLogBy.REACHED,
+                onClick = { onSelected(SessionLogBy.REACHED) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun pagesErrorText(state: SessionUiState, place: Int): String? {
+    if (!state.pagesError) return null
+    val amount = state.pagesInput.toIntOrNull()
+    val behind = state.logBy == SessionLogBy.REACHED &&
+        place > 0 && amount != null && amount > 0 && amount <= place
+    return stringResource(
+        when {
+            behind -> R.string.session_page_behind
+            state.logBy == SessionLogBy.REACHED -> R.string.session_page_error
+            else -> R.string.session_pages_error
+        }
+    )
+}
+
+@Composable
+private fun recordHint(by: SessionLogBy, place: Int): String? = when {
+    by == SessionLogBy.REACHED && place <= 0 -> stringResource(R.string.session_place_hint)
+    by == SessionLogBy.REACHED -> stringResource(R.string.session_reached_hint, place)
+    place > 0 -> stringResource(R.string.session_on_page, place)
+    else -> null
 }
 
 @Composable

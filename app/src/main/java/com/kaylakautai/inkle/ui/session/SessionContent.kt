@@ -24,6 +24,7 @@ import com.kaylakautai.inkle.ui.theme.AppTheme
 fun SessionContent(
     state: SessionUiState,
     onBookSelected: (String) -> Unit,
+    onLogByChanged: (SessionLogBy) -> Unit,
     onPagesChanged: (String) -> Unit,
     onNoteChanged: (String) -> Unit,
     onYearChanged: (Int) -> Unit,
@@ -94,6 +95,7 @@ fun SessionContent(
             SessionLogDialog(
                 state = state.copy(books = listOf(selected)),
                 onBookSelected = onBookSelected,
+                onLogByChanged = onLogByChanged,
                 onPagesChanged = onPagesChanged,
                 onNoteChanged = onNoteChanged,
                 onYearChanged = onYearChanged,

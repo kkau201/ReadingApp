@@ -62,6 +62,9 @@ class SessionViewModelTest : BaseViewModelTest() {
         givenSessions(listOf(TestData.session))
         coEvery { fireRepository.addSession(any()) } returns WriteResult.SAVED
         coEvery { fireRepository.deleteSession(any()) } returns WriteResult.SAVED
+        every { fireRepository.updateBook(any(), any(), any(), any()) } answers {
+            thirdArg<(WriteResult) -> Unit>()(WriteResult.SAVED)
+        }
 
         viewModel = SessionViewModel(
             fireRepository,
@@ -286,10 +289,10 @@ class SessionViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun onPagesChanged_keepsOnlyDigitsUpToFive() {
-        viewModel.onPagesChanged("1a2-3 4567")
+    fun onPagesChanged_keepsOnlyDigitsUpToSix() {
+        viewModel.onPagesChanged("1a2-3 45678")
 
-        assertEquals("12345", state.pagesInput)
+        assertEquals("123456", state.pagesInput)
     }
 
     @Test
@@ -416,6 +419,70 @@ class SessionViewModelTest : BaseViewModelTest() {
         assertTrue(state.pagesError)
         assertFalse(state.bookError)
         assertNothingSaved()
+    }
+
+    @Test
+    fun onSaveSession_pagesRead_savesTheSittingAndThePageReached() = runTest {
+        fillValidLog(pages = "12")
+        val updates = captureBookUpdate()
+        val saved = slot<MSession>()
+        coEvery { fireRepository.addSession(capture(saved)) } returns WriteResult.SAVED
+
+        viewModel.onSaveSession()
+
+        // 20 pages were already logged for this book.
+        assertEquals(12, saved.captured.pages)
+        assertEquals(32, updates.captured[StoredBook.CURRENT_PAGE])
+    }
+
+    @Test
+    fun onSaveSession_pageReached_logsThePagesSinceLastTime() = runTest {
+        fillValidLog()
+        viewModel.onLogByChanged(SessionLogBy.REACHED)
+        viewModel.onPagesChanged("35")
+        val updates = captureBookUpdate()
+        val saved = slot<MSession>()
+        coEvery { fireRepository.addSession(capture(saved)) } returns WriteResult.SAVED
+
+        viewModel.onSaveSession()
+
+        assertEquals(15, saved.captured.pages)
+        assertEquals(35, updates.captured[StoredBook.CURRENT_PAGE])
+        assertEquals(str(R.string.session_saved), mainViewModel.toastFlow.value)
+    }
+
+    @Test
+    fun onSaveSession_pageReachedBeforeTheSavedPlace_flagsPages() = runTest {
+        fillValidLog()
+        viewModel.onLogByChanged(SessionLogBy.REACHED)
+        viewModel.onPagesChanged("20")
+
+        viewModel.onSaveSession()
+
+        assertTrue(state.pagesError)
+        assertTrue(state.logging)
+        assertNothingSaved()
+        verify(exactly = 0) { fireRepository.updateBook(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun onSaveSession_alreadyUnderwayWithNoSessions_setsThePageWithoutASitting() = runTest {
+        givenSessions(emptyList())
+        viewModel.onLoad()
+        viewModel.onStartLog()
+        viewModel.onBookSelected(TestData.readingBook.googleBookId!!)
+        viewModel.onLogByChanged(SessionLogBy.REACHED)
+        viewModel.onPagesChanged("80")
+        viewModel.onDayChanged("")
+        val updates = captureBookUpdate()
+
+        viewModel.onSaveSession()
+
+        assertNothingSaved()
+        assertEquals(80, updates.captured[StoredBook.CURRENT_PAGE])
+        assertFalse(state.logging)
+        assertFalse(state.dateError)
+        assertEquals(str(R.string.session_place_saved), mainViewModel.toastFlow.value)
     }
 
     @Test
@@ -634,13 +701,14 @@ class SessionViewModelTest : BaseViewModelTest() {
 
     @Test
     fun finishOffer_notYet_leavesBookAsReading() = runTest {
-        givenBookUpdate()
+        val updates = captureBookUpdate()
         logPagesOfBook(pageCount = 32, pages = 12)
 
         viewModel.onCancelFinish()
 
         assertNull(state.finishing)
-        verify(exactly = 0) { fireRepository.updateBook(any(), any(), any(), any()) }
+        assertEquals(32, updates.captured[StoredBook.CURRENT_PAGE])
+        assertFalse(StoredBook.FINISHED_READING in updates.captured)
         assertEquals(str(R.string.session_saved), mainViewModel.toastFlow.value)
     }
 
