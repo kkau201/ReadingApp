@@ -49,6 +49,7 @@ fun UserScreen(
             onRetryBooks = viewModel::onRetryBooksClick,
             readingGoal = uiState.user?.readingGoal ?: DEFAULT_READING_GOAL,
             reward = uiState.user?.rewardFor(Calendar.getInstance().get(Calendar.YEAR)),
+            onSaveGoalAndReward = viewModel::onSaveGoalAndReward,
             onUpdateClick = viewModel::navigateToUpdateUser,
             onLogoutClick = viewModel::onLogoutClick,
             onDeleteAccountClick = viewModel::onDeleteAccountClick,

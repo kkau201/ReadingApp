@@ -2,6 +2,7 @@ package com.kaylakautai.inkle.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
@@ -11,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -18,6 +20,13 @@ import com.kaylakautai.inkle.ui.theme.AppTheme
 import com.kaylakautai.inkle.ui.theme.Ink
 import com.kaylakautai.inkle.ui.theme.OnInk
 
+/** The app's button padding: a 46dp-tall pill with the label's line height. */
+val InkleButtonPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)
+
+/**
+ * The app's button: a full-width pill. [contentPadding] is only for tight spaces (like the
+ * business-card-sized stamp card); everything else keeps [InkleButtonPadding].
+ */
 @Composable
 fun InkleButton(
     modifier: Modifier = Modifier,
@@ -25,6 +34,7 @@ fun InkleButton(
     enabled: Boolean = true,
     backgroundColor: Color = Ink,
     contentColor: Color = OnInk,
+    contentPadding: PaddingValues = InkleButtonPadding,
     onClick: () -> Unit
 ) {
     val container = if (enabled) backgroundColor else backgroundColor.copy(alpha = 0.35f)
@@ -38,8 +48,8 @@ fun InkleButton(
             .fillMaxWidth()
             .clip(CircleShape)
             .background(container)
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 14.dp)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .padding(contentPadding)
     )
 }
 

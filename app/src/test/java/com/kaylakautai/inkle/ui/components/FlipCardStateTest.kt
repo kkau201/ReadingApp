@@ -1,6 +1,7 @@
 package com.kaylakautai.inkle.ui.components
 
 import androidx.compose.runtime.MonotonicFrameClock
+import androidx.compose.runtime.saveable.SaverScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -32,6 +33,41 @@ class FlipCardStateTest {
     @Test
     fun startsOnTheFront() = flipTest {
         assertFalse(showingBack)
+    }
+
+    // Surviving rotation: the side that's up is saved and restored.
+
+    private fun FlipCardState.savedAndRestored(): FlipCardState {
+        val saved = with(FlipCardState.Saver) { SaverScope { true }.save(this@savedAndRestored) }
+        return FlipCardState.Saver.restore(saved!!)!!
+    }
+
+    @Test
+    fun turnedOver_staysTurnedOverAfterRestoring() = flipTest {
+        flip()
+
+        val restored = savedAndRestored()
+
+        assertTrue(restored.showingBack)
+        assertEquals(180f, restored.angle)
+    }
+
+    @Test
+    fun front_staysOnTheFrontAfterRestoring() = flipTest {
+        val restored = savedAndRestored()
+
+        assertFalse(restored.showingBack)
+        assertEquals(0f, restored.angle)
+    }
+
+    @Test
+    fun restoredCard_canStillTurnBack() = flipTest {
+        flip()
+        val restored = savedAndRestored()
+
+        restored.flip()
+
+        assertFalse(restored.showingBack)
     }
 
     @Test

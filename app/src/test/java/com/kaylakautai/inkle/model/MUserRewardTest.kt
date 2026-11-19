@@ -1,6 +1,6 @@
 package com.kaylakautai.inkle.model
 
-import com.kaylakautai.inkle.ui.user.update.rewardUpdates
+import com.kaylakautai.inkle.ui.user.rewardUpdates
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test

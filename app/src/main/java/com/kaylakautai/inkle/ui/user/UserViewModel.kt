@@ -18,6 +18,12 @@ import com.kaylakautai.inkle.common.DependencyContextWrapper
 import com.kaylakautai.inkle.common.ErrorType
 import com.kaylakautai.inkle.common.LoadingState
 import com.kaylakautai.inkle.common.messageRes
+import com.kaylakautai.inkle.model.READING_GOAL
+import com.kaylakautai.inkle.model.REWARD
+import com.kaylakautai.inkle.model.REWARD_YEAR
+import com.kaylakautai.inkle.model.TextLimits
+import com.kaylakautai.inkle.model.asReadingGoal
+import com.kaylakautai.inkle.model.limitTo
 import com.kaylakautai.inkle.nav.NavigateTo
 import com.kaylakautai.inkle.repo.FireRepository
 import com.kaylakautai.inkle.ui.components.DialogPasswordInput
@@ -29,6 +35,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -101,6 +108,36 @@ class UserViewModel @Inject constructor(
 
     fun navigateToUpdateUser() {
         navigate(NavigateTo(UpdateUserScreenDestination))
+    }
+
+    /** Saves the year's goal and reward from the back of the stamp card. A blank reward removes it. */
+    fun onSaveGoalAndReward(goal: Int, reward: String) {
+        val userId = authRepository.currentUserId ?: return
+        viewModelScope.launch {
+            val result = try {
+                fireRepository.updateUser(
+                    userId = userId,
+                    userUpdates = mapOf(READING_GOAL to goal.asReadingGoal()) +
+                        rewardUpdates(reward.limitTo(TextLimits.REWARD))
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.d(TAG, "Saving goal and reward failed: $e")
+                showToast(getString(R.string.stamp_card_save_error))
+                return@launch
+            }
+            // Refresh the shared profile so the card shows the change; if this read fails,
+            // the next resume reloads it.
+            try {
+                fireRepository.fetchUser(userId)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.d(TAG, "Refreshing profile after save failed: $e")
+            }
+            showWriteToast(result, savedRes = R.string.stamp_card_saved)
+        }
     }
 
     private fun checkEmailVerification() {
@@ -281,3 +318,14 @@ class UserViewModel @Inject constructor(
         const val TAG = "UserViewModel"
     }
 }
+
+/**
+ * The reward fields to save: the reward for this year, or both removed (null) when it's left
+ * blank. Saved with the year, so a reward doesn't carry into the next year's goal.
+ */
+internal fun rewardUpdates(input: String, year: Int = currentYear()): Map<String, Any?> {
+    val reward = input.trim().takeIf { it.isNotEmpty() }
+    return mapOf(REWARD to reward, REWARD_YEAR to reward?.let { year })
+}
+
+private fun currentYear(): Int = Calendar.getInstance().get(Calendar.YEAR)

@@ -109,7 +109,7 @@ service cloud.firestore {
       let fields = ['user_id', 'display_name', 'avatar_url', 'quote', 'reading_goal'];
       return data.keys().hasAll(fields) &&
         data.keys().hasOnly(fields.concat(['reward', 'reward_year'])) &&
-        optionalString(data, 'reward', 1, 100) &&
+        optionalString(data, 'reward', 1, 25) &&
         optionalIntInRange(data, 'reward_year', 2000, 9999) &&
         data.user_id == userId &&
         data.display_name is string &&

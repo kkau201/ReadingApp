@@ -23,22 +23,11 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kaylakautai.inkle.R
 import com.kaylakautai.inkle.model.MBook
-import com.kaylakautai.inkle.model.asReadingGoal
-import com.kaylakautai.inkle.ui.components.rememberFlipCardState
-import com.kaylakautai.inkle.ui.components.rememberMotionEnabled
 import com.kaylakautai.inkle.ui.theme.InkBase
 import com.kaylakautai.inkle.ui.theme.PaperBase
 import com.kaylakautai.inkle.ui.user.StampAndRewardCard
 import com.kaylakautai.inkle.ui.user.rememberStampToLand
 import com.kaylakautai.inkle.ui.user.stampedThisYear
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
-
-/**
- * After the stamp that fills the card has landed (about 1.1 s in), a moment to take it in
- * before the card turns over to the reward.
- */
-private const val RevealRewardAfterMillis = 1_900L
 
 /** Shows the stamp card over the app while a just-finished book's stamp lands. */
 @Composable
@@ -73,16 +62,6 @@ private fun StampCelebrationDialog(
         LaunchedEffect(landingBookId) { onDismiss() }
         return
     }
-    val flipState = rememberFlipCardState()
-    val animate = rememberMotionEnabled()
-    // This stamp fills the card: once it's down, turn over to reveal what it has earned.
-    val completesGoal = stamped.size == goal.asReadingGoal()
-    if (completesGoal && reward != null) {
-        LaunchedEffect(landingBookId) {
-            if (animate) delay(RevealRewardAfterMillis.milliseconds)
-            flipState.showBack()
-        }
-    }
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -94,11 +73,11 @@ private fun StampCelebrationDialog(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Just the front: it names the reward, and says when it's been earned.
             StampAndRewardCard(
                 books = books,
                 goal = goal,
                 reward = reward,
-                flipState = flipState,
                 modifier = Modifier.fillMaxWidth()
             )
             Text(

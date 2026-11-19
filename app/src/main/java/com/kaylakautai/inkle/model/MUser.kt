@@ -11,7 +11,7 @@ const val READING_GOAL = "reading_goal"
 /** What the user treats themselves to on reaching their goal; for [REWARD_YEAR] only. */
 const val REWARD = "reward"
 const val REWARD_YEAR = "reward_year"
-const val DEFAULT_READING_GOAL = 8
+const val DEFAULT_READING_GOAL = 6
 const val MIN_READING_GOAL = 1
 const val MAX_READING_GOAL = 24
 

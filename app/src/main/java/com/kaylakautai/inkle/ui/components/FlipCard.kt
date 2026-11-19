@@ -16,6 +16,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -103,11 +105,23 @@ class FlipCardState internal constructor(showingBack: Boolean) {
     private fun restingAngle(): Float = (rotation.value / 180f).roundToInt() * 180f
 
     private fun normalised(degrees: Float): Float = ((degrees % 360f) + 360f) % 360f
+
+    companion object {
+        /**
+         * Keeps which side is up across rotation and other configuration changes (and process
+         * death), so a card turned over to a form stays on it. Mid-turn, it keeps the side
+         * facing more.
+         */
+        val Saver: Saver<FlipCardState, Boolean> = Saver(
+            save = { it.showingBack },
+            restore = { FlipCardState(showingBack = it) }
+        )
+    }
 }
 
 @Composable
 fun rememberFlipCardState(showingBack: Boolean = false): FlipCardState =
-    remember { FlipCardState(showingBack) }
+    rememberSaveable(saver = FlipCardState.Saver) { FlipCardState(showingBack) }
 
 /**
  * A card with two sides: drag it sideways to turn it over in 3D, or tap it. The card takes

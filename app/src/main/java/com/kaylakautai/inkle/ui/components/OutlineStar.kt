@@ -24,9 +24,10 @@ fun OutlineStar(
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.28f),
     filled: Boolean = false,
+    /** [Dp.Unspecified] to size it with [modifier] instead. */
     size: Dp = 42.dp
 ) {
-    Canvas(modifier = modifier.size(size)) {
+    Canvas(modifier = if (size == Dp.Unspecified) modifier else modifier.size(size)) {
         val path = starPath()
         if (filled) {
             drawPath(path = path, color = color)

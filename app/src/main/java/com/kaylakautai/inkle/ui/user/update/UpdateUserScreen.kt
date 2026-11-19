@@ -78,8 +78,6 @@ fun UpdateUserScreen(
                     uiState = uiState,
                     onDisplayNameInputChange = viewModel::onDisplayNameInputChange,
                     onBioInputChange = viewModel::onBioInputChange,
-                    onReadingGoalChange = viewModel::onReadingGoalChange,
-                    onRewardInputChange = viewModel::onRewardInputChange,
                     onAvatarChange = viewModel::onAvatarChange,
                     onSaveClick = {
                         keyboardController?.hide()

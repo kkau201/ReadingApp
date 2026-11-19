@@ -109,40 +109,44 @@
     <string name="profile_logout">Log out</string>
     <string name="profile_version">Version %1$s</string>
     <string name="profile_section_reading">Your reading</string>
-    <string name="profile_section_now">Now reading</string>
     <string name="profile_books_error">We couldn’t load your books, so your stats aren’t shown. Check your connection and try again.</string>
-    <string name="profile_stamp_title">Books I’ve read</string>
-    <plurals name="profile_stamp_goal">
-        <item quantity="one">%1$d book before the year ends</item>
-        <item quantity="other">%1$d books before the year ends</item>
-    </plurals>
-    <string name="profile_stamp_complete">This year’s card is full</string>
-    <string name="profile_stamp_progress">%1$d of %2$d</string>
-    <string name="reward_working_towards">Working towards</string>
-    <plurals name="reward_books_to_go">
-        <item quantity="one">%d more book to go</item>
-        <item quantity="other">%d more books to go</item>
-    </plurals>
-    <string name="reward_earned">You earned it!</string>
-    <string name="reward_earned_body">You reached this year’s goal. Enjoy your reward.</string>
-    <string name="reward_none_title">Set yourself a reward</string>
-    <plurals name="reward_none_body">
-        <item quantity="one">Pick a treat for reading %d book this year.</item>
-        <item quantity="other">Pick a treat for reading %d books this year.</item>
-    </plurals>
-    <string name="reward_none_body_popup">You can set one from your profile.</string>
-    <string name="reward_set">Set a reward</string>
-    <string name="reward_flip_hint">Swipe the card to see your reward</string>
-    <string name="reward_flip_action_show">Show reward</string>
-    <string name="reward_flip_action_hide">Show stamps</string>
+    <string name="profile_stamp_progress">%1$d of %2$d stamps</string>
     <plurals name="profile_stamp_more">
-        <item quantity="one">and %d more</item>
-        <item quantity="other">and %d more</item>
+        <item quantity="one">Plus %d more book past your goal</item>
+        <item quantity="other">Plus %d more books past your goal</item>
     </plurals>
-    <plurals name="profile_pages_finished">
-        <item quantity="one">%d page finished</item>
-        <item quantity="other">%d pages finished</item>
+
+    <!-- The stamp card. Front: -->
+    <string name="stamp_card_collect">Collect stamps for every book you read this year.</string>
+    <plurals name="stamp_card_goal">
+        <item quantity="one">Earn %1$d stamp before the year ends</item>
+        <item quantity="other">Earn %1$d stamps before the year ends</item>
     </plurals>
+    <plurals name="stamp_card_goal_reward">
+        <item quantity="one">Earn %1$d stamp and reward yourself with: %2$s</item>
+        <item quantity="other">Earn %1$d stamps and reward yourself with: %2$s</item>
+    </plurals>
+    <plurals name="stamp_card_done">
+        <item quantity="one">You’ve earned this year’s stamp!</item>
+        <item quantity="other">You’ve earned all %1$d stamps this year!</item>
+    </plurals>
+    <plurals name="stamp_card_done_reward">
+        <item quantity="one">You’ve earned this year’s stamp. Time for: %2$s</item>
+        <item quantity="other">You’ve earned all %1$d stamps. Time for: %2$s</item>
+    </plurals>
+    <string name="stamp_card_flip_note">* Flip card to edit goal &amp; reward</string>
+    <!-- Back: -->
+    <string name="stamp_card_edit_intro">Customize your reading goal and set a reward for finishing your card.</string>
+    <string name="stamp_card_edit_flip_back">Flip back anytime to stamp your progress.</string>
+    <string name="stamp_card_goal_label">Yearly book goal</string>
+    <string name="stamp_card_reward_label">Your reward (optional)</string>
+    <string name="stamp_card_reward_hint">e.g. a spa day</string>
+    <string name="stamp_card_update">Update card</string>
+    <!-- What tapping the card does, for accessibility services. -->
+    <string name="stamp_card_action_edit">Edit goal and reward</string>
+    <string name="stamp_card_action_stamps">Show stamps</string>
+    <string name="stamp_card_saved">Goal and reward updated</string>
+    <string name="stamp_card_save_error">Couldn’t save your goal and reward. Try again.</string>
     <string name="cont_desc_profile_image">Profile image</string>
     <string name="cont_desc_star_number">Star number %d</string>
     <string name="cont_desc_filled_star_icon">Filled star icon</string>
@@ -210,9 +214,6 @@
     <string name="update_user_name_error">Enter a name</string>
     <string name="update_user_bio_label">Bio</string>
     <string name="update_user_avatar_label">Avatar</string>
-    <string name="update_user_goal_label">Books this year</string>
-    <string name="update_user_reward_label">Reward for reaching your goal</string>
-    <string name="update_user_reward_hint">A new hardback, a spa day…</string>
     <string name="update_user_saved">Profile updated</string>
     <string name="update_user_error">Couldn’t update your profile</string>
     <string name="cont_desc_decrease_goal">Fewer books</string>

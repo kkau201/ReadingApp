@@ -24,7 +24,6 @@ import com.kaylakautai.inkle.R
 import com.kaylakautai.inkle.model.DEFAULT_READING_GOAL
 import com.kaylakautai.inkle.model.MBook
 import com.kaylakautai.inkle.ui.model.Avatar
-import com.kaylakautai.inkle.ui.model.BookStatus
 import com.kaylakautai.inkle.ui.theme.AppTheme
 import com.kaylakautai.inkle.ui.theme.Ink
 import com.kaylakautai.inkle.ui.theme.Muted
@@ -46,6 +45,7 @@ fun UserContent(
     onRetryBooks: () -> Unit = {},
     readingGoal: Int = DEFAULT_READING_GOAL,
     reward: String? = null,
+    onSaveGoalAndReward: (goal: Int, reward: String) -> Unit = { _, _ -> },
     onUpdateClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onDeleteAccountClick: () -> Unit = {},
@@ -58,7 +58,6 @@ fun UserContent(
 ) {
     val pagePadding = AppTheme.spacing.mdSpacing
     val name = userDisplayName.asProfileText()
-    val nowReading = books.filter { it.bookStatus == BookStatus.READING }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -92,32 +91,16 @@ fun UserContent(
                 modifier = Modifier.padding(horizontal = pagePadding)
             )
         } else {
-            val hint = rememberRewardHint()
-            Column(
-                modifier = Modifier.padding(horizontal = pagePadding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                StampAndRewardCard(
-                    books = books,
-                    goal = readingGoal,
-                    reward = reward,
-                    ready = booksLoaded,
-                    // The same screen as the edit button: the reward is set with the goal.
-                    onSetReward = onUpdateClick,
-                    onFlip = hint::cardFlipped
-                )
-                if (hint.shown) {
-                    Text(
-                        text = stringResource(R.string.reward_flip_hint),
-                        color = Muted,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
+            StampAndRewardCard(
+                books = books,
+                goal = readingGoal,
+                reward = reward,
+                ready = booksLoaded,
+                onSave = onSaveGoalAndReward,
+                modifier = Modifier.padding(horizontal = pagePadding)
+            )
             ReadingSummary(
                 books = books,
-                nowReading = nowReading,
                 modifier = Modifier.padding(horizontal = pagePadding)
             )
         }

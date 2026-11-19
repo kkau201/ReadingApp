@@ -3,19 +3,15 @@ package com.kaylakautai.inkle.ui.user
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kaylakautai.inkle.R
@@ -27,11 +23,9 @@ import com.kaylakautai.inkle.ui.theme.Muted
 @Composable
 internal fun ReadingSummary(
     books: List<MBook>,
-    nowReading: List<MBook>,
     modifier: Modifier = Modifier
 ) {
     val finished = books.count { it.bookStatus == BookStatus.FINISHED }
-    val pages = books.filter { it.bookStatus == BookStatus.FINISHED }.sumOf { it.pageCount ?: 0 }
     ProfileCard(modifier = modifier, spacing = 20.dp) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             ProfileSectionTitle(text = stringResource(R.string.profile_section_reading))
@@ -52,17 +46,6 @@ internal fun ReadingSummary(
                     modifier = Modifier.weight(1f)
                 )
             }
-            if (pages > 0) {
-                Text(
-                    text = pluralStringResource(R.plurals.profile_pages_finished, pages, pages),
-                    color = Muted,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-        if (nowReading.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(4.dp))
-            NowReading(books = nowReading)
         }
     }
 }
@@ -89,36 +72,6 @@ private fun ReadingStat(
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 2.dp)
         )
-    }
-}
-
-/** Up to three of the books being read, with their authors. */
-@Composable
-private fun NowReading(books: List<MBook>) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        ProfileSectionTitle(text = stringResource(R.string.profile_section_now))
-        books.take(3).forEach { book ->
-            Column {
-                Text(
-                    text = book.title.orEmpty(),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                val author = book.authors?.filter { it.isNotBlank() }?.joinToString(", ")
-                if (!author.isNullOrBlank()) {
-                    Text(
-                        text = author,
-                        color = Muted,
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
-            }
-        }
     }
 }
 

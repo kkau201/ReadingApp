@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.core.content.edit
@@ -59,12 +60,13 @@ internal class StampLedger(private val prefs: SharedPreferences) {
 
 /**
  * Whether [landing]'s stamp can land on the card, after getting the ledger ready for it (see
- * [StampLedger.prepareToLand]). Worked out once per [landing]. False in previews.
+ * [StampLedger.prepareToLand]). Worked out once per [landing], and kept across rotation: getting
+ * ready again would mark the stamp unseen and it would land a second time. False in previews.
  */
 @Composable
 internal fun rememberStampToLand(stamped: List<String>, landing: String): Boolean {
     val ledger = rememberStampLedger() ?: return false
-    return remember(landing) { ledger.prepareToLand(stamped, landing) }
+    return rememberSaveable(landing) { ledger.prepareToLand(stamped, landing) }
 }
 
 @Composable

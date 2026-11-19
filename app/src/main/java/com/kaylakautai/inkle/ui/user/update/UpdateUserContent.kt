@@ -20,11 +20,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Remove
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -32,22 +27,18 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.kaylakautai.inkle.R
-import com.kaylakautai.inkle.model.MAX_READING_GOAL
-import com.kaylakautai.inkle.model.MIN_READING_GOAL
 import com.kaylakautai.inkle.model.TextLimits
 import com.kaylakautai.inkle.ui.components.characterCounter
 import com.kaylakautai.inkle.ui.model.Avatar
@@ -68,8 +59,6 @@ fun UpdateUserContent(
     uiState: UpdateUserUiState,
     onDisplayNameInputChange: (String) -> Unit,
     onBioInputChange: (String) -> Unit,
-    onReadingGoalChange: (Int) -> Unit,
-    onRewardInputChange: (String) -> Unit,
     onAvatarChange: (Avatar) -> Unit,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit
@@ -109,19 +98,6 @@ fun UpdateUserContent(
                 onValueChange = onBioInputChange,
                 maxLength = TextLimits.QUOTE,
                 singleLine = false,
-                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp)
-            )
-            ReadingGoalField(
-                goal = uiState.readingGoal,
-                onGoalChange = onReadingGoalChange,
-                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp)
-            )
-            ProfileTextField(
-                label = stringResource(R.string.update_user_reward_label),
-                value = uiState.rewardInput,
-                onValueChange = onRewardInputChange,
-                maxLength = TextLimits.REWARD,
-                placeholder = stringResource(R.string.update_user_reward_hint),
                 modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp)
             )
         }
@@ -212,59 +188,6 @@ private fun ProfileTextField(
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
-    }
-}
-
-@Composable
-private fun ReadingGoalField(
-    goal: Int,
-    onGoalChange: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        ProfileFieldLabel(text = stringResource(R.string.update_user_goal_label))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-                .clip(FieldShape)
-                .background(CardBackground),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            IconButton(
-                onClick = { onGoalChange(goal - 1) },
-                enabled = goal > MIN_READING_GOAL
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Remove,
-                    contentDescription = stringResource(R.string.cont_desc_decrease_goal),
-                    tint = if (goal > MIN_READING_GOAL) Ink else Muted
-                )
-            }
-            Text(
-                text = goal.toString(),
-                color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(horizontal = 12.dp)
-            )
-            IconButton(
-                onClick = { onGoalChange(goal + 1) },
-                enabled = goal < MAX_READING_GOAL
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Add,
-                    contentDescription = stringResource(R.string.cont_desc_increase_goal),
-                    tint = if (goal < MAX_READING_GOAL) Ink else Muted
-                )
-            }
-        }
-        Text(
-            text = pluralStringResource(R.plurals.profile_stamp_goal, goal, goal),
-            color = Muted,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 8.dp)
-        )
     }
 }
 
