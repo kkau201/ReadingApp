@@ -51,7 +51,6 @@ import com.kaylakautai.inkle.ui.search.SearchScreen
 import com.kaylakautai.inkle.ui.session.SessionScreen
 import com.kaylakautai.inkle.ui.theme.AppTheme.spacing
 import com.kaylakautai.inkle.ui.theme.InkBase
-import com.kaylakautai.inkle.ui.theme.LightPink
 import com.kaylakautai.inkle.ui.theme.NavBar
 import com.kaylakautai.inkle.ui.theme.PaperBase
 import com.kaylakautai.inkle.ui.user.UserScreen
@@ -144,7 +143,7 @@ fun DashboardBottomNav(
                     .offset { IntOffset(indicatorOffset.roundToPx(), 0) }
                     .size(width = indicatorWidth, height = IndicatorHeight)
                     .clip(CircleShape)
-                    .background(LightPink)
+                    .background(PaperBase)
             )
 
             Row(
@@ -186,7 +185,7 @@ private fun DashboardNavItem(
             onClick = onClick,
             role = Role.Tab,
             interactionSource = null,
-            indication = ripple(bounded = false, radius = IndicatorHeight / 2, color = LightPink)
+            indication = ripple(bounded = false, radius = IndicatorHeight / 2, color = PaperBase)
         )
     ) {
         Icon(

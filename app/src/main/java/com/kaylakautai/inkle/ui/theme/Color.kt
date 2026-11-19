@@ -14,7 +14,6 @@ val Blue = Color(0xFF6698CC)
 val Green = Color(0xFF62823f)
 val Purple = Color(0xFFD9ADD1)
 val Orange = Color(0xFFF08C21)
-val LightPink = Color(0xFFfff0f5)
 
 val allColors = listOf(Orange, Purple, Green, Blue, Yellow)
 
