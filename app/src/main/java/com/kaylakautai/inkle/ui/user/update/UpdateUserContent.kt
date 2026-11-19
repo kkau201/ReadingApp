@@ -17,13 +17,10 @@ import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
@@ -39,19 +36,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.kaylakautai.inkle.R
+import com.kaylakautai.inkle.ui.components.InkleFieldLabel
+import com.kaylakautai.inkle.ui.components.InkleTextField
 import com.kaylakautai.inkle.model.TextLimits
-import com.kaylakautai.inkle.ui.components.characterCounter
 import com.kaylakautai.inkle.ui.model.Avatar
 import com.kaylakautai.inkle.ui.theme.CardBackground
 import com.kaylakautai.inkle.ui.theme.Cover
 import com.kaylakautai.inkle.ui.theme.Ink
-import com.kaylakautai.inkle.ui.theme.Muted
 import com.kaylakautai.inkle.ui.theme.OnInk
 import com.kaylakautai.inkle.ui.theme.PaperBase
 import kotlinx.coroutines.flow.drop
 import kotlin.math.absoluteValue
 
-private val FieldShape = RoundedCornerShape(20.dp)
 
 @Composable
 fun UpdateUserContent(
@@ -132,12 +128,7 @@ private fun ProfileFieldLabel(
     text: String,
     modifier: Modifier = Modifier
 ) {
-    Text(
-        text = text,
-        color = Muted,
-        style = MaterialTheme.typography.labelLarge,
-        modifier = modifier
-    )
+    InkleFieldLabel(text = text, modifier = modifier)
 }
 
 @Composable
@@ -149,46 +140,19 @@ private fun ProfileTextField(
     modifier: Modifier = Modifier,
     error: String? = null,
     singleLine: Boolean = true,
-    imeAction: ImeAction = ImeAction.Done,
-    placeholder: String? = null
+    imeAction: ImeAction = ImeAction.Done
 ) {
-    Column(modifier = modifier) {
-        ProfileFieldLabel(text = label)
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = placeholder?.let { hint ->
-                { Text(text = hint, color = Muted, style = MaterialTheme.typography.bodyLarge) }
-            },
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
-            shape = FieldShape,
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                cursorColor = MaterialTheme.colorScheme.onBackground,
-                focusedContainerColor = CardBackground,
-                unfocusedContainerColor = CardBackground,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent
-            ),
-            singleLine = singleLine,
-            minLines = if (singleLine) 1 else 3,
-            supportingText = characterCounter(value.length, maxLength),
-            keyboardOptions = KeyboardOptions(imeAction = imeAction),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        )
-        if (error != null) {
-            Text(
-                text = error,
-                color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
-    }
+    InkleTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = label,
+        error = error,
+        maxLength = maxLength,
+        singleLine = singleLine,
+        minLines = if (singleLine) 1 else 3,
+        keyboardOptions = KeyboardOptions(imeAction = imeAction),
+        modifier = modifier
+    )
 }
 
 @Composable

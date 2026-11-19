@@ -12,12 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,18 +25,17 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.kaylakautai.inkle.R
+import com.kaylakautai.inkle.ui.components.InkleFieldLabel
+import com.kaylakautai.inkle.ui.components.InkleTextField
 import com.kaylakautai.inkle.model.MBook
 import com.kaylakautai.inkle.model.TextLimits
 import com.kaylakautai.inkle.ui.model.BookStatus
 import com.kaylakautai.inkle.ui.components.OutlineStar
-import com.kaylakautai.inkle.ui.components.characterCounter
 import com.kaylakautai.inkle.ui.theme.CardBackground
 import com.kaylakautai.inkle.ui.theme.Cover
 import com.kaylakautai.inkle.ui.theme.Ink
-import com.kaylakautai.inkle.ui.theme.Muted
 import com.kaylakautai.inkle.ui.theme.OnInk
 
-private val FieldShape = RoundedCornerShape(20.dp)
 
 @Composable
 fun UpdateScreenContent(
@@ -136,7 +132,7 @@ private fun StatusField(
     onFinishedDayChanged: (String) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        FieldLabel(text = stringResource(R.string.update_book_status))
+        InkleFieldLabel(text = stringResource(R.string.update_book_status))
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -182,7 +178,7 @@ internal fun RatingField(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
-        FieldLabel(text = stringResource(R.string.update_book_rating))
+        InkleFieldLabel(text = stringResource(R.string.update_book_rating))
         Row(
             modifier = Modifier.padding(top = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -206,40 +202,16 @@ private fun NotesField(
     noteInput: String,
     onNoteInputChanged: (String) -> Unit
 ) {
-    Column {
-        FieldLabel(text = stringResource(R.string.update_book_notes))
-        TextField(
-            value = noteInput,
-            onValueChange = onNoteInputChanged,
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
-            shape = FieldShape,
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                cursorColor = MaterialTheme.colorScheme.onBackground,
-                focusedContainerColor = CardBackground,
-                unfocusedContainerColor = CardBackground,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent
-            ),
-            minLines = 5,
-            supportingText = characterCounter(noteInput.length, TextLimits.BOOK_NOTES),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        )
-    }
-}
-
-@Composable
-private fun FieldLabel(text: String) {
-    Text(
-        text = text,
-        color = Muted,
-        style = MaterialTheme.typography.labelLarge
+    InkleTextField(
+        value = noteInput,
+        onValueChange = onNoteInputChanged,
+        label = stringResource(R.string.update_book_notes),
+        maxLength = TextLimits.BOOK_NOTES,
+        singleLine = false,
+        minLines = 5
     )
 }
+
 
 @Composable
 private fun FormButton(

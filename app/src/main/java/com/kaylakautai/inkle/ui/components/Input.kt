@@ -1,9 +1,5 @@
 package com.kaylakautai.inkle.ui.components
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -11,24 +7,14 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.dp
 import com.kaylakautai.inkle.R
 import com.kaylakautai.inkle.common.LoadingState
-import com.kaylakautai.inkle.ui.theme.CardBackground
 import com.kaylakautai.inkle.ui.theme.Ink
-import com.kaylakautai.inkle.ui.theme.Muted
-
-private val FieldShape = RoundedCornerShape(20.dp)
 
 @Composable
 fun EmailInput(
@@ -104,38 +90,15 @@ private fun AuthField(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     trailingIcon: @Composable (() -> Unit)? = null
 ) {
-    Column(modifier = modifier) {
-        Text(
-            text = label,
-            color = Muted,
-            style = MaterialTheme.typography.labelLarge
-        )
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = Ink),
-            shape = FieldShape,
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = Ink,
-                unfocusedTextColor = Ink,
-                disabledTextColor = Ink.copy(alpha = 0.6f),
-                cursorColor = Ink,
-                focusedContainerColor = CardBackground,
-                unfocusedContainerColor = CardBackground,
-                disabledContainerColor = CardBackground,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent
-            ),
-            singleLine = true,
-            enabled = enabled,
-            visualTransformation = visualTransformation,
-            keyboardOptions = keyboardOptions,
-            keyboardActions = keyboardActions,
-            trailingIcon = trailingIcon,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        )
-    }
+    InkleTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = label,
+        enabled = enabled,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        visualTransformation = visualTransformation,
+        trailingIcon = trailingIcon,
+        modifier = modifier
+    )
 }

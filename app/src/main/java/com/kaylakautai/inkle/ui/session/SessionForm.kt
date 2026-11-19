@@ -16,13 +16,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
@@ -30,8 +27,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.kaylakautai.inkle.R
+import com.kaylakautai.inkle.ui.components.InkleFieldError
+import com.kaylakautai.inkle.ui.components.InkleFieldLabel
+import com.kaylakautai.inkle.ui.components.InkleTextField
 import com.kaylakautai.inkle.model.TextLimits
-import com.kaylakautai.inkle.ui.components.characterCounter
 import com.kaylakautai.inkle.ui.theme.CardBackground
 import com.kaylakautai.inkle.ui.theme.Cover
 import com.kaylakautai.inkle.ui.theme.Muted
@@ -39,7 +38,6 @@ import com.kaylakautai.inkle.ui.theme.Muted
 /** Building blocks shared by the Session screen's cards and forms. */
 
 internal val CardShape = RoundedCornerShape(20.dp)
-private val FieldShape = RoundedCornerShape(20.dp)
 
 /** A bordered card, as used for journal entries and the forms. */
 @Composable
@@ -109,29 +107,16 @@ internal fun NumberField(
     error: String?,
     onValueChange: (String) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        FieldLabel(text = label)
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    color = Muted,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            },
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            shape = FieldShape,
-            colors = sessionFieldColors(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Cover, FieldShape)
-        )
-        if (error != null) FieldError(text = error)
-    }
+    // Bordered: these forms sit on white cards, the same colour as the field.
+    InkleTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = label,
+        placeholder = placeholder,
+        error = error,
+        bordered = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+    )
 }
 
 @Composable
@@ -142,56 +127,25 @@ internal fun NoteField(
     hint: String = stringResource(R.string.session_note_hint),
     maxLength: Int = TextLimits.SESSION_NOTE
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        FieldLabel(text = label)
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = {
-                Text(
-                    text = hint,
-                    color = Muted,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            },
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
-            minLines = 2,
-            supportingText = characterCounter(value.length, maxLength),
-            shape = FieldShape,
-            colors = sessionFieldColors(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Cover, FieldShape)
-        )
-    }
+    InkleTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = label,
+        placeholder = hint,
+        maxLength = maxLength,
+        singleLine = false,
+        minLines = 2,
+        bordered = true
+    )
 }
 
+/** For the session form's non-text choices (like the book picker); text fields have their own. */
 @Composable
 internal fun FieldLabel(text: String) {
-    Text(
-        text = text,
-        color = Muted,
-        style = MaterialTheme.typography.labelLarge
-    )
+    InkleFieldLabel(text = text)
 }
 
 @Composable
 internal fun FieldError(text: String) {
-    Text(
-        text = text,
-        color = MaterialTheme.colorScheme.onBackground,
-        style = MaterialTheme.typography.bodySmall
-    )
+    InkleFieldError(text = text)
 }
-
-@Composable
-private fun sessionFieldColors() = TextFieldDefaults.colors(
-    focusedTextColor = MaterialTheme.colorScheme.onBackground,
-    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-    cursorColor = MaterialTheme.colorScheme.onBackground,
-    focusedContainerColor = CardBackground,
-    unfocusedContainerColor = CardBackground,
-    focusedIndicatorColor = Color.Transparent,
-    unfocusedIndicatorColor = Color.Transparent,
-    disabledIndicatorColor = Color.Transparent
-)

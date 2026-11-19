@@ -19,18 +19,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.kaylakautai.inkle.R
+import com.kaylakautai.inkle.ui.components.InkleFieldLabel
+import com.kaylakautai.inkle.ui.components.InkleTextField
 import com.kaylakautai.inkle.ui.theme.CardBackground
 import com.kaylakautai.inkle.ui.theme.Cover
 import com.kaylakautai.inkle.ui.theme.Ink
@@ -65,7 +64,7 @@ private fun YearField(
     onYearChanged: (Int) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        FieldLabel(text = stringResource(R.string.update_book_finished_year))
+        InkleFieldLabel(text = stringResource(R.string.update_book_finished_year))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -113,7 +112,7 @@ private fun MonthField(
     val months =
         DateFormatSymbols.getInstance(LocalLocale.current.platformLocale).shortMonths.take(12)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        FieldLabel(text = stringResource(R.string.update_book_finished_month))
+        InkleFieldLabel(text = stringResource(R.string.update_book_finished_month))
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -141,44 +140,15 @@ private fun DayField(
     dayError: Boolean,
     onDayChanged: (String) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        FieldLabel(text = stringResource(R.string.update_book_finished_day))
-        TextField(
-            value = day,
-            onValueChange = onDayChanged,
-            placeholder = {
-                Text(
-                    text = stringResource(R.string.update_book_finished_optional),
-                    color = Muted,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            },
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = Ink),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            shape = FieldShape,
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = Ink,
-                unfocusedTextColor = Ink,
-                cursorColor = Ink,
-                focusedContainerColor = CardBackground,
-                unfocusedContainerColor = CardBackground,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Cover, FieldShape)
-        )
-        if (dayError) {
-            Text(
-                text = stringResource(R.string.update_book_finished_error),
-                color = Ink,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-    }
+    InkleTextField(
+        value = day,
+        onValueChange = onDayChanged,
+        label = stringResource(R.string.update_book_finished_day),
+        placeholder = stringResource(R.string.update_book_finished_optional),
+        error = if (dayError) stringResource(R.string.update_book_finished_error) else null,
+        bordered = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+    )
 }
 
 @Composable
@@ -204,11 +174,3 @@ private fun ChoiceChip(
     )
 }
 
-@Composable
-private fun FieldLabel(text: String) {
-    Text(
-        text = text,
-        color = Muted,
-        style = MaterialTheme.typography.labelLarge
-    )
-}

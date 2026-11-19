@@ -2,6 +2,7 @@ package com.kaylakautai.inkle.ui.user
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -17,23 +18,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -42,6 +46,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -54,13 +59,21 @@ import com.kaylakautai.inkle.model.asReadingGoal
 import com.kaylakautai.inkle.model.limitTo
 import com.kaylakautai.inkle.ui.components.FlipCard
 import com.kaylakautai.inkle.ui.components.InkleButton
+import com.kaylakautai.inkle.ui.components.InkleTextFieldDefaults
 import com.kaylakautai.inkle.ui.components.rememberFlipCardState
 import com.kaylakautai.inkle.ui.theme.AppTheme
 import com.kaylakautai.inkle.ui.theme.InkBase
 import com.kaylakautai.inkle.ui.theme.MutedBase
 import kotlinx.coroutines.launch
 
-private val FieldShape = RoundedCornerShape(28.dp)
+/** The app's text-field corners. */
+private val FieldShape = InkleTextFieldDefaults.Shape
+
+/**
+ * The app's text-field fill in light theme (`CardBackground`, white). Fixed rather than
+ * theme-aware, because the card is green in both themes.
+ */
+private val FieldFill = Color.White
 
 /** Below this content width, the edit side stacks instead of sitting side-by-side. */
 private val EditSideBySideMinWidth = 300.dp
@@ -267,7 +280,7 @@ private fun EditFields(
     }
 }
 
-/** Cream pill with − / goal / + , as on the mockups. */
+/** − / goal / + , styled like the app's text fields so it matches the reward field below. */
 @Composable
 private fun GoalStepper(
     goal: Int,
@@ -280,7 +293,7 @@ private fun GoalStepper(
         modifier = modifier
             .height(FieldHeight)
             .clip(FieldShape)
-            .background(StampCardInk)
+            .background(FieldFill)
             .padding(horizontal = 4.dp)
     ) {
         GoalStep(
@@ -305,7 +318,13 @@ private fun GoalStepper(
     }
 }
 
-/** Cream pill text field for the optional reward. */
+/**
+ * The optional reward, styled like the app's other text fields (Material's text-field
+ * decoration: same corners, fill, font and placeholder) in the light-theme colours. Built on
+ * [BasicTextField] only so it can be [FieldHeight] tall: a Material `TextField` is at least
+ * 56dp, too tall for the business-card-sized card.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RewardField(
     value: String,
@@ -313,37 +332,51 @@ private fun RewardField(
     onDone: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    // The app's field colours, fixed to their light-theme values (the card is always green).
+    val colors = InkleTextFieldDefaults.colors(
+        text = InkBase,
+        container = FieldFill,
+        placeholder = MutedBase
+    )
     BasicTextField(
         value = value,
         onValueChange = { onValueChange(it.limitTo(TextLimits.REWARD)) },
         singleLine = true,
-        textStyle = stampCardText().copy(color = InkBase),
+        textStyle = MaterialTheme.typography.bodyLarge.copy(color = InkBase),
         cursorBrush = SolidColor(InkBase),
         keyboardOptions = KeyboardOptions(
             capitalization = KeyboardCapitalization.Sentences,
             imeAction = ImeAction.Done
         ),
         keyboardActions = KeyboardActions(onDone = { onDone() }),
+        interactionSource = interactionSource,
         modifier = modifier.height(FieldHeight),
         decorationBox = { field ->
-            Box(
-                contentAlignment = Alignment.CenterStart,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(FieldShape)
-                    .background(StampCardInk)
-                    .padding(horizontal = 14.dp)
-            ) {
-                if (value.isEmpty()) {
+            TextFieldDefaults.DecorationBox(
+                value = value,
+                innerTextField = field,
+                enabled = true,
+                singleLine = true,
+                visualTransformation = VisualTransformation.None,
+                interactionSource = interactionSource,
+                placeholder = {
                     Text(
                         text = stringResource(R.string.stamp_card_reward_hint),
-                        color = MutedBase,
-                        style = stampCardText(),
+                        style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1
                     )
-                }
-                field()
-            }
+                },
+                shape = FieldShape,
+                colors = colors,
+                // Same sides as the app's fields; less top and bottom, to fit the card.
+                contentPadding = TextFieldDefaults.contentPaddingWithoutLabel(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 6.dp,
+                    bottom = 6.dp
+                )
+            )
         }
     )
 }

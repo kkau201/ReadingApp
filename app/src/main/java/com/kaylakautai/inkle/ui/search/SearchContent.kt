@@ -28,8 +28,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kaylakautai.inkle.R
+import com.kaylakautai.inkle.ui.components.InkleTextField
 import com.kaylakautai.inkle.common.ErrorType
 import com.kaylakautai.inkle.model.MBook
 import com.kaylakautai.inkle.ui.components.InkleButton
@@ -52,7 +51,6 @@ import com.kaylakautai.inkle.ui.components.ShelfSpineShape
 import com.kaylakautai.inkle.ui.components.shelfKey
 import com.kaylakautai.inkle.ui.components.shelfSwatches
 import com.kaylakautai.inkle.ui.theme.AppTheme
-import com.kaylakautai.inkle.ui.theme.CardBackground
 import com.kaylakautai.inkle.ui.theme.Ink
 import com.kaylakautai.inkle.ui.theme.Muted
 
@@ -64,40 +62,18 @@ fun SearchInput(
     onDoneClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    TextField(
+    InkleTextField(
         value = currentInput,
         onValueChange = onInputChange,
-        textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
         leadingIcon = {
             Icon(
                 imageVector = Icons.Rounded.Search,
-                contentDescription = stringResource(id = R.string.cont_desc_search_icon),
-                tint = MaterialTheme.colorScheme.onBackground
+                contentDescription = stringResource(id = R.string.cont_desc_search_icon)
             )
         },
-        placeholder = {
-            Text(
-                text = stringResource(R.string.start_searching_here),
-                color = Muted,
-                style = MaterialTheme.typography.bodyLarge
-            )
-        },
+        placeholder = stringResource(R.string.start_searching_here),
+        // The search bar is the one pill-shaped field.
         shape = CircleShape,
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-            disabledTextColor = MaterialTheme.colorScheme.onBackground,
-            cursorColor = MaterialTheme.colorScheme.onBackground,
-            focusedContainerColor = CardBackground,
-            unfocusedContainerColor = CardBackground,
-            disabledContainerColor = CardBackground,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            focusedPlaceholderColor = Muted,
-            unfocusedPlaceholderColor = Muted
-        ),
-        singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(
             onSearch = {

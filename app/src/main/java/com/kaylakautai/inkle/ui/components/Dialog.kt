@@ -19,8 +19,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -205,49 +203,20 @@ private fun DialogPasswordField(
     input: DialogPasswordInput,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = input.label,
-            color = Muted,
-            style = MaterialTheme.typography.labelLarge
-        )
-        TextField(
-            value = input.value,
-            onValueChange = input.onValueChange,
-            singleLine = true,
-            isError = input.error != null,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
-            ),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = Ink),
-            shape = RoundedCornerShape(16.dp),
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = Ink,
-                unfocusedTextColor = Ink,
-                cursorColor = Ink,
-                focusedContainerColor = CardBackground,
-                unfocusedContainerColor = CardBackground,
-                errorContainerColor = CardBackground,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                errorIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-                .border(1.dp, if (input.error != null) Ink else Cover, RoundedCornerShape(16.dp))
-        )
-        input.error?.let {
-            Text(
-                text = it,
-                color = Ink,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
-    }
+    // Bordered: the dialog is the same colour as the field.
+    InkleTextField(
+        value = input.value,
+        onValueChange = input.onValueChange,
+        label = input.label,
+        error = input.error,
+        bordered = true,
+        visualTransformation = PasswordVisualTransformation(),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Done
+        ),
+        modifier = modifier.fillMaxWidth()
+    )
 }
 
 @Composable
