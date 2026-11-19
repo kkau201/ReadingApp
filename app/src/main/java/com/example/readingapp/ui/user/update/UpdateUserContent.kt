@@ -69,6 +69,7 @@ fun UpdateUserContent(
     onDisplayNameInputChange: (String) -> Unit,
     onBioInputChange: (String) -> Unit,
     onReadingGoalChange: (Int) -> Unit,
+    onRewardInputChange: (String) -> Unit,
     onAvatarChange: (Avatar) -> Unit,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit
@@ -113,6 +114,14 @@ fun UpdateUserContent(
             ReadingGoalField(
                 goal = uiState.readingGoal,
                 onGoalChange = onReadingGoalChange,
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp)
+            )
+            ProfileTextField(
+                label = stringResource(R.string.update_user_reward_label),
+                value = uiState.rewardInput,
+                onValueChange = onRewardInputChange,
+                maxLength = TextLimits.REWARD,
+                placeholder = stringResource(R.string.update_user_reward_hint),
                 modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp)
             )
         }
@@ -164,13 +173,17 @@ private fun ProfileTextField(
     modifier: Modifier = Modifier,
     error: String? = null,
     singleLine: Boolean = true,
-    imeAction: ImeAction = ImeAction.Done
+    imeAction: ImeAction = ImeAction.Done,
+    placeholder: String? = null
 ) {
     Column(modifier = modifier) {
         ProfileFieldLabel(text = label)
         TextField(
             value = value,
             onValueChange = onValueChange,
+            placeholder = placeholder?.let { hint ->
+                { Text(text = hint, color = Muted, style = MaterialTheme.typography.bodyLarge) }
+            },
             textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
             shape = FieldShape,
             colors = TextFieldDefaults.colors(

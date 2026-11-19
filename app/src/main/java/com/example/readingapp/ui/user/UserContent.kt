@@ -45,6 +45,7 @@ fun UserContent(
     booksLoaded: Boolean = true,
     onRetryBooks: () -> Unit = {},
     readingGoal: Int = DEFAULT_READING_GOAL,
+    reward: String? = null,
     onUpdateClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onDeleteAccountClick: () -> Unit = {},
@@ -91,12 +92,29 @@ fun UserContent(
                 modifier = Modifier.padding(horizontal = pagePadding)
             )
         } else {
-            ReadingStampCard(
-                books = books,
-                goal = readingGoal,
-                ready = booksLoaded,
-                modifier = Modifier.padding(horizontal = pagePadding)
-            )
+            val hint = rememberRewardHint()
+            Column(
+                modifier = Modifier.padding(horizontal = pagePadding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                StampAndRewardCard(
+                    books = books,
+                    goal = readingGoal,
+                    reward = reward,
+                    ready = booksLoaded,
+                    // The same screen as the edit button: the reward is set with the goal.
+                    onSetReward = onUpdateClick,
+                    onFlip = hint::cardFlipped
+                )
+                if (hint.shown) {
+                    Text(
+                        text = stringResource(R.string.reward_flip_hint),
+                        color = Muted,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
             ReadingSummary(
                 books = books,
                 nowReading = nowReading,

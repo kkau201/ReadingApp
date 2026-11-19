@@ -43,6 +43,11 @@ class StampCelebrationViewModel @Inject constructor(
         .map { it?.readingGoal ?: DEFAULT_READING_GOAL }
         .stateIn(viewModelScope, SharingStarted.Eagerly, DEFAULT_READING_GOAL)
 
+    /** This year's reward for reaching the goal, shown on the back of the card. */
+    val reward: StateFlow<String?> = fireRepository.user
+        .map { it?.rewardFor(Calendar.getInstance().get(Calendar.YEAR)) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     /** How long to wait for the finished book to show on the shelf before giving up. */
     internal var shelfWait: Duration = 5.seconds
 

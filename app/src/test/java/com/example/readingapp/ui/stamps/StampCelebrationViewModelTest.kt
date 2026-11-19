@@ -99,6 +99,16 @@ class StampCelebrationViewModelTest {
     }
 
     @Test
+    fun reward_isThisYearsOnly() = runTest(mainDispatcherRule.testDispatcher) {
+        val year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+        user.value = TestData.profile.copy(reward = "A spa day", rewardYear = year)
+        assertEquals("A spa day", viewModel.reward.value)
+
+        user.value = TestData.profile.copy(reward = "A spa day", rewardYear = year - 1)
+        assertNull(viewModel.reward.value)
+    }
+
+    @Test
     fun readingGoal_followsTheProfile() = runTest(mainDispatcherRule.testDispatcher) {
         user.value = TestData.profile.copy(readingGoal = 20)
         assertEquals(20, viewModel.readingGoal.value)

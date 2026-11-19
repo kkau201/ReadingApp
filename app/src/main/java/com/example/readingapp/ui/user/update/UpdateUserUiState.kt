@@ -10,6 +10,8 @@ data class UpdateUserUiState(
     val displayNameError: Boolean = false,
     val bioInput: String = "",
     val readingGoal: Int = DEFAULT_READING_GOAL,
+    /** This year's reward for reaching the goal; blank for none. */
+    val rewardInput: String = "",
     val selectedAvatar: Avatar? = null,
     val avatarImgList: List<Avatar> = Avatar.entries
 )

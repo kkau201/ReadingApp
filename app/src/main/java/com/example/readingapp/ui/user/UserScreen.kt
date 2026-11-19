@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.readingapp.common.ViewModelBinding
 import com.example.readingapp.common.observeLifecycle
 import com.example.readingapp.model.DEFAULT_READING_GOAL
+import java.util.Calendar
 
 @Composable
 fun UserScreen(
@@ -47,6 +48,7 @@ fun UserScreen(
             booksLoaded = uiState.booksLoaded,
             onRetryBooks = viewModel::onRetryBooksClick,
             readingGoal = uiState.user?.readingGoal ?: DEFAULT_READING_GOAL,
+            reward = uiState.user?.rewardFor(Calendar.getInstance().get(Calendar.YEAR)),
             onUpdateClick = viewModel::navigateToUpdateUser,
             onLogoutClick = viewModel::onLogoutClick,
             onDeleteAccountClick = viewModel::onDeleteAccountClick,

@@ -254,7 +254,12 @@ class FireRepository @Inject constructor(
             .onWriteDone(isOnline(), onSaved, onError)
     }
 
-    /** Updates fields of users/{userId}. Throws if the server rejects it. */
-    suspend fun updateUser(userId: String, userUpdates: Map<String, Any?>): WriteResult =
-        queryUser.document(userId).update(userUpdates).awaitWrite(isOnline())
+    /**
+     * Updates fields of users/{userId}; a null value removes the field (as optional fields
+     * must be absent rather than null). Throws if the server rejects it.
+     */
+    suspend fun updateUser(userId: String, userUpdates: Map<String, Any?>): WriteResult {
+        val updates = userUpdates.mapValues { (_, value) -> value ?: FieldValue.delete() }
+        return queryUser.document(userId).update(updates).awaitWrite(isOnline())
+    }
 }

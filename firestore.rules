@@ -9,12 +9,15 @@ rules_version = '2';
 //
 // Collection: users
 // Document ID: the owner's Firebase Auth uid (users/{uid})
-// Fields (all required, no others allowed):
+// Fields (required unless marked optional, no others allowed):
 //   - user_id: string (== document ID, immutable)
 //   - display_name: string (1-16 chars, required)
 //   - avatar_url: string | null ('' or 'avatar_1'..'avatar_7')
 //   - quote: string (0-100 chars)
 //   - reading_goal: int (1-24)
+//   - reward: string (optional, 1-100 chars): treat for reaching the goal
+//   - reward_year: int (optional, 2000-9999): the year the reward is for
+//   The optional fields are removed (not set to null) when the reward is cleared.
 //
 // Collection: books
 // Document ID: auto-generated
@@ -105,7 +108,9 @@ service cloud.firestore {
     function isValidUser(data, userId) {
       let fields = ['user_id', 'display_name', 'avatar_url', 'quote', 'reading_goal'];
       return data.keys().hasAll(fields) &&
-        data.keys().hasOnly(fields) &&
+        data.keys().hasOnly(fields.concat(['reward', 'reward_year'])) &&
+        optionalString(data, 'reward', 1, 100) &&
+        optionalIntInRange(data, 'reward_year', 2000, 9999) &&
         data.user_id == userId &&
         data.display_name is string &&
           data.display_name.size() >= 1 && data.display_name.size() <= 16 &&

@@ -7,6 +7,7 @@ package com.example.readingapp.model
 object TextLimits {
     const val DISPLAY_NAME = 16
     const val QUOTE = 100
+    const val REWARD = 100
     const val BOOK_NOTES = 1000
     const val SESSION_NOTE = 500
 }

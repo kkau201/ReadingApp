@@ -14,6 +14,8 @@ import com.example.readingapp.model.DISPLAY_NAME
 import com.example.readingapp.model.MUser
 import com.example.readingapp.model.QUOTE
 import com.example.readingapp.model.READING_GOAL
+import com.example.readingapp.model.REWARD
+import com.example.readingapp.model.REWARD_YEAR
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.model.asReadingGoal
 import com.example.readingapp.model.limitTo
@@ -25,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -77,6 +80,7 @@ class UpdateUserViewModel @Inject constructor(
                 displayNameInput = user.displayName.limitTo(TextLimits.DISPLAY_NAME),
                 bioInput = user.quote.limitTo(TextLimits.QUOTE),
                 readingGoal = user.readingGoal.asReadingGoal(),
+                rewardInput = user.rewardFor(currentYear()).orEmpty().limitTo(TextLimits.REWARD),
                 selectedAvatar = Avatar.entries.find { it.id == user.avatarUrl } ?: Avatar.AVATAR_1
             )
         }
@@ -97,6 +101,10 @@ class UpdateUserViewModel @Inject constructor(
 
     fun onReadingGoalChange(goal: Int) {
         uiState.update { it.copy(readingGoal = goal.asReadingGoal()) }
+    }
+
+    fun onRewardInputChange(input: String) {
+        uiState.update { it.copy(rewardInput = input.limitTo(TextLimits.REWARD)) }
     }
 
     fun onAvatarChange(avatar: Avatar) {
@@ -123,9 +131,10 @@ class UpdateUserViewModel @Inject constructor(
                     userUpdates = mapOf(
                         DISPLAY_NAME to displayName,
                         QUOTE to state.bioInput,
-                        AVATAR_URL to state.selectedAvatar?.id,
+                        // Required, so never null (null removes a field).
+                        AVATAR_URL to state.selectedAvatar?.id.orEmpty(),
                         READING_GOAL to state.readingGoal.asReadingGoal()
-                    )
+                    ) + rewardUpdates(state.rewardInput)
                 )
             } catch (e: CancellationException) {
                 throw e
@@ -161,3 +170,14 @@ class UpdateUserViewModel @Inject constructor(
  * left (a name is required, and firestore.rules rejects an empty one).
  */
 internal fun displayNameForSave(input: String): String? = input.trim().takeIf { it.isNotEmpty() }
+
+/**
+ * The reward fields to save: the reward for this year, or both removed (null) when it's left
+ * blank. Saved with the year, so a reward doesn't carry into the next year's goal.
+ */
+internal fun rewardUpdates(input: String, year: Int = currentYear()): Map<String, Any?> {
+    val reward = input.trim().takeIf { it.isNotEmpty() }
+    return mapOf(REWARD to reward, REWARD_YEAR to reward?.let { year })
+}
+
+private fun currentYear(): Int = Calendar.getInstance().get(Calendar.YEAR)

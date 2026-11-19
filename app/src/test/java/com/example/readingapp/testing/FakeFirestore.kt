@@ -6,6 +6,8 @@ import com.example.readingapp.model.MBook
 import com.example.readingapp.model.MUser
 import com.example.readingapp.model.QUOTE
 import com.example.readingapp.model.READING_GOAL
+import com.example.readingapp.model.REWARD
+import com.example.readingapp.model.REWARD_YEAR
 import com.example.readingapp.model.StoredBook
 import com.example.readingapp.model.USER_ID
 import com.example.readingapp.repo.FireRepository
@@ -275,11 +277,18 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
             )
         }
 
+        /** As Firestore applies it: fields sent are set, and FieldValue.delete() removes one. */
         private fun MUser.withUpdates(updates: Map<String, Any?>) = copy(
             displayName = updates[DISPLAY_NAME] as? String ?: displayName,
             quote = updates[QUOTE] as? String ?: quote,
             avatarUrl = updates[AVATAR_URL] as? String ?: avatarUrl,
-            readingGoal = (updates[READING_GOAL] as? Number)?.toInt() ?: readingGoal
+            readingGoal = (updates[READING_GOAL] as? Number)?.toInt() ?: readingGoal,
+            reward = if (REWARD in updates) updates[REWARD] as? String else reward,
+            rewardYear = if (REWARD_YEAR in updates) {
+                (updates[REWARD_YEAR] as? Number)?.toInt()
+            } else {
+                rewardYear
+            }
         )
 
         fun unavailable(message: String = "Firestore unavailable") =
@@ -300,6 +309,8 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
                 every { doc.get(AVATAR_URL) } returns user.avatarUrl
                 every { doc.get(QUOTE) } returns user.quote
                 every { doc.get(READING_GOAL) } returns user.readingGoal.toLong()
+                every { doc.get(REWARD) } returns user.reward
+                every { doc.get(REWARD_YEAR) } returns user.rewardYear?.toLong()
             }
 
         private fun bookSnapshot(book: MBook): DocumentSnapshot =

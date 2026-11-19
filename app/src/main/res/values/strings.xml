@@ -118,6 +118,23 @@
     </plurals>
     <string name="profile_stamp_complete">This year’s card is full</string>
     <string name="profile_stamp_progress">%1$d of %2$d</string>
+    <string name="reward_working_towards">Working towards</string>
+    <plurals name="reward_books_to_go">
+        <item quantity="one">%d more book to go</item>
+        <item quantity="other">%d more books to go</item>
+    </plurals>
+    <string name="reward_earned">You earned it!</string>
+    <string name="reward_earned_body">You reached this year’s goal. Enjoy your reward.</string>
+    <string name="reward_none_title">Set yourself a reward</string>
+    <plurals name="reward_none_body">
+        <item quantity="one">Pick a treat for reading %d book this year.</item>
+        <item quantity="other">Pick a treat for reading %d books this year.</item>
+    </plurals>
+    <string name="reward_none_body_popup">You can set one from your profile.</string>
+    <string name="reward_set">Set a reward</string>
+    <string name="reward_flip_hint">Swipe the card to see your reward</string>
+    <string name="reward_flip_action_show">Show reward</string>
+    <string name="reward_flip_action_hide">Show stamps</string>
     <plurals name="profile_stamp_more">
         <item quantity="one">and %d more</item>
         <item quantity="other">and %d more</item>
@@ -194,6 +211,8 @@
     <string name="update_user_bio_label">Bio</string>
     <string name="update_user_avatar_label">Avatar</string>
     <string name="update_user_goal_label">Books this year</string>
+    <string name="update_user_reward_label">Reward for reaching your goal</string>
+    <string name="update_user_reward_hint">A new hardback, a spa day…</string>
     <string name="update_user_saved">Profile updated</string>
     <string name="update_user_error">Couldn’t update your profile</string>
     <string name="cont_desc_decrease_goal">Fewer books</string>

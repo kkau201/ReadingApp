@@ -10,6 +10,8 @@ import com.example.readingapp.model.MAX_READING_GOAL
 import com.example.readingapp.model.MIN_READING_GOAL
 import com.example.readingapp.model.QUOTE
 import com.example.readingapp.model.READING_GOAL
+import com.example.readingapp.model.REWARD
+import com.example.readingapp.model.REWARD_YEAR
 import com.example.readingapp.model.TextLimits
 import com.example.readingapp.nav.NavigateBack
 import com.example.readingapp.nav.NavigationEvent
@@ -21,6 +23,7 @@ import com.example.readingapp.testing.fakeContext
 import com.example.readingapp.testing.str
 import com.example.readingapp.ui.model.Avatar
 import com.google.android.gms.tasks.TaskCompletionSource
+import com.google.firebase.firestore.FieldValue
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -30,6 +33,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.util.Calendar
 
 class UpdateUserViewModelTest : BaseViewModelTest() {
 
@@ -39,6 +43,7 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
     private lateinit var viewModel: UpdateUserViewModel
 
     private val state get() = viewModel.uiState.value
+    private val thisYear = Calendar.getInstance().get(Calendar.YEAR)
 
     @Before
     fun setUp() {
@@ -196,6 +201,7 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
 
         viewModel.onUpdateClick()
 
+        val saved = firestore.userUpdates.single()
         assertEquals(
             mapOf(
                 DISPLAY_NAME to TestData.EDITED_DISPLAY_NAME,
@@ -203,9 +209,65 @@ class UpdateUserViewModelTest : BaseViewModelTest() {
                 AVATAR_URL to Avatar.AVATAR_5.id,
                 READING_GOAL to 15
             ),
-            firestore.userUpdates.single()
+            saved - REWARD - REWARD_YEAR
         )
+        // No reward set: both fields removed rather than saved empty (the rules need that).
+        assertTrue(saved[REWARD] is FieldValue)
+        assertTrue(saved[REWARD_YEAR] is FieldValue)
     }
+
+    // Reward
+
+    @Test
+    fun onLoad_fillsThisYearsReward() = runTest {
+        firestore.profile = TestData.profile.copy(reward = "A spa day", rewardYear = thisYear)
+
+        viewModel.onLoad()
+
+        assertEquals("A spa day", state.rewardInput)
+    }
+
+    @Test
+    fun onLoad_rewardFromLastYear_startsBlank() = runTest {
+        firestore.profile = TestData.profile.copy(reward = "A spa day", rewardYear = thisYear - 1)
+
+        viewModel.onLoad()
+
+        assertEquals("", state.rewardInput)
+    }
+
+    @Test
+    fun reward_isLimited() {
+        viewModel.onRewardInputChange("r".repeat(TextLimits.REWARD + 5))
+
+        assertEquals(TextLimits.REWARD, state.rewardInput.length)
+    }
+
+    @Test
+    fun save_withReward_savesItTrimmedForThisYear() = runTest {
+        viewModel.onLoad()
+        viewModel.onRewardInputChange("  New hiking boots ")
+
+        viewModel.onUpdateClick()
+
+        val saved = firestore.userUpdates.single()
+        assertEquals("New hiking boots", saved[REWARD])
+        assertEquals(thisYear, saved[REWARD_YEAR])
+        assertEquals("New hiking boots", fireRepository.user.value?.rewardFor(thisYear))
+    }
+
+    @Test
+    fun save_rewardCleared_removesIt() = runTest {
+        firestore.profile = TestData.profile.copy(reward = "A spa day", rewardYear = thisYear)
+        viewModel.onLoad()
+        viewModel.onRewardInputChange("   ")
+
+        viewModel.onUpdateClick()
+
+        assertNull(fireRepository.user.value?.reward)
+        assertNull(fireRepository.user.value?.rewardYear)
+    }
+
 
     @Test
     fun save_succeeds_confirmsRefreshesProfileAndGoesBackStraightAway() = runTest {
