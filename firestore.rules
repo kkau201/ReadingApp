@@ -15,7 +15,7 @@ rules_version = '2';
 //   - avatar_url: string | null ('' or 'avatar_1'..'avatar_7')
 //   - quote: string (0-100 chars)
 //   - reading_goal: int (1-24)
-//   - reward: string (optional, 1-100 chars): treat for reaching the goal
+//   - reward: string (optional, 1-25 chars): treat for reaching the goal
 //   - reward_year: int (optional, 2000-9999): the year the reward is for
 //   The optional fields are removed (not set to null) when the reward is cleared.
 //
