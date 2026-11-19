@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Blot, the inkle mascot, reading a book.
+    Traced from Inkle-Blot/svg/inkle-reading.svg, keeping its units. The outer group shifts the
+    artwork's bounds (x 17..197, y 26..194) to the viewport's origin.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="90dp"
+    android:height="84dp"
+    android:viewportWidth="180"
+    android:viewportHeight="168">
+    <group
+        android:translateX="-17"
+        android:translateY="-26">
+        <!-- Body. -->
+        <path
+            android:fillColor="#111111"
+            android:pathData="M60,60C70,34 110,30 128,44C146,34 172,48 168,74C188,86 186,120 166,132C170,156 146,172 122,164C104,180 72,176 64,156C40,152 30,126 42,108C26,92 38,64 60,60Z" />
+        <!-- Feet. -->
+        <group
+            android:scaleY="1.711111"
+            android:translateX="-0.4"
+            android:translateY="-126.355556">
+            <path
+                android:fillColor="#111111"
+                android:pathData="M67,176a15,9 0,1 0,30 0a15,9 0,1 0,-30 0Z" />
+        </group>
+        <group
+            android:scaleY="1.788889"
+            android:translateX="-0.4"
+            android:translateY="-140.744444">
+            <path
+                android:fillColor="#111111"
+                android:pathData="M105,176a15,9 0,1 0,30 0a15,9 0,1 0,-30 0Z" />
+        </group>
+        <!-- Ink spot on the left. -->
+        <path
+            android:fillColor="#111111"
+            android:pathData="M20,114.6a4,4 0,1 0,8 0a4,4 0,1 0,-8 0Z" />
+        <!-- Eyes, looking down at the book. -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M74,96a14,15 0,1 0,28 0a14,15 0,1 0,-28 0ZM106,96a14,15 0,1 0,28 0a14,15 0,1 0,-28 0Z" />
+        <path
+            android:fillColor="#111111"
+            android:pathData="M82.5,104a7.5,7.5 0,1 0,15 0a7.5,7.5 0,1 0,-15 0ZM114.5,104a7.5,7.5 0,1 0,15 0a7.5,7.5 0,1 0,-15 0Z" />
+        <!-- The open book and its spine. -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:strokeColor="#111111"
+            android:strokeLineJoin="round"
+            android:strokeWidth="4"
+            android:pathData="M60,136C80,128 96,130 104,136C112,130 128,128 148,136L148,164C128,156 112,158 104,164C96,158 80,156 60,164L60,136Z" />
+        <path
+            android:strokeColor="#111111"
+            android:strokeWidth="3"
+            android:pathData="M104,136L104,164" />
+        <!-- Hands holding the book. -->
+        <path
+            android:fillColor="#111111"
+            android:pathData="M51,148a7,6 0,1 0,14 0a7,6 0,1 0,-14 0ZM143,148a7,6 0,1 0,14 0a7,6 0,1 0,-14 0Z" />
+        <!-- Ink spots on the right. -->
+        <group
+            android:scaleX="0.68"
+            android:scaleY="0.68"
+            android:translateX="174.08"
+            android:translateY="-19.8">
+            <path
+                android:fillColor="#111111"
+                android:pathData="M4,128a8,8 0,1 0,16 0a8,8 0,1 0,-16 0ZM22,146a4,4 0,1 0,8 0a4,4 0,1 0,-8 0Z" />
+        </group>
+    </group>
+</vector>

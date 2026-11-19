@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Reading App</string>
+    <string name="app_name">inkle</string>
     <string name="nav_home">Home</string>
     <string name="nav_session">Session</string>
     <string name="nav_search">Search</string>
@@ -100,7 +100,7 @@
     <string name="error_ok">OK</string>
     <string name="error_try_again">Try Again</string>
 
-    <string name="cont_desc_book_logo">Book logo</string>
+    <string name="cont_desc_logo">inkle</string>
     <string name="cont_desc_hide_password">Hide password</string>
     <string name="cont_desc_show_password">Show password</string>
     <string name="cont_desc_add_a_book">Add a book</string>

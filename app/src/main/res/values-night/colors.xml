@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Reversed, like Inkle-Blot/logo/inkle-icon-dark: a paper wordmark and Blot with dark eyes. -->
+    <color name="logo_ink">#F7F4EF</color>
+    <color name="logo_paper">#222222</color>
+</resources>

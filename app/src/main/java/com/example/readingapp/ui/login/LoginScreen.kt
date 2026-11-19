@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -25,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -41,8 +40,6 @@ import com.example.readingapp.ui.components.InputForm
 import com.example.readingapp.ui.components.LibraryPageTitle
 import com.example.readingapp.ui.components.ReadingAppButton
 import com.example.readingapp.ui.theme.Muted
-import com.example.readingapp.ui.theme.PaperBase
-import com.example.readingapp.ui.theme.isAppInDarkTheme
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -73,23 +70,12 @@ fun LoginScreen(
             .padding(top = 36.dp, bottom = 24.dp)
     ) {
         Image(
-            painter = painterResource(id = R.drawable.book_logo),
-            contentDescription = stringResource(R.string.cont_desc_book_logo),
+            painter = painterResource(id = R.drawable.inkle_logo_blot_dot),
+            contentDescription = stringResource(R.string.cont_desc_logo),
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .then(
-                    // The mascot is solid black: give it a paper circle so it shows in dark theme.
-                    if (isAppInDarkTheme()) {
-                        Modifier
-                            .size(96.dp)
-                            .clip(CircleShape)
-                            .background(PaperBase)
-                            .padding(12.dp)
-                    } else {
-                        Modifier.size(72.dp)
-                    }
-                )
+                .width(200.dp)
         )
         Spacer(modifier = Modifier.height(24.dp))
         LibraryPageTitle(

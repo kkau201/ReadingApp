@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The inkle logo: dark ink on paper. values-night swaps them so it shows on the dark background. -->
+    <color name="logo_ink">#222222</color>
+    <color name="logo_paper">#FFFFFF</color>
+</resources>

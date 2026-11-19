@@ -1,4 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
-    android:gravity="fill"
-    android:src="@drawable/ic_launcher_logo" />
+<!--
+    The inkle icon: the wordmark's "i", with Blot as its dot.
+    Traced from Inkle-Blot/logo/inkle-icon-light.svg. The artwork keeps that file's units and
+    is centred in the 108dp adaptive-icon layer, sized to sit inside the 66dp safe zone.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="556"
+    android:viewportHeight="556">
+    <group
+        android:translateX="213"
+        android:translateY="137">
+        <!-- The stem of the "i". -->
+        <path
+            android:fillColor="#222222"
+            android:pathData="M39,240L39,186L4,186L4,94L122,94L122,294L39,294Z" />
+        <!-- Blot, the dot. -->
+        <group
+            android:scaleX="0.7"
+            android:scaleY="0.7"
+            android:translateX="-5.3"
+            android:translateY="-32.8">
+            <path
+                android:fillColor="#222222"
+                android:pathData="M60,60C70,34 110,30 128,44C146,34 172,48 168,74C188,86 186,120 166,132C170,156 146,172 122,164C104,180 72,176 64,156C40,152 30,126 42,108C26,92 38,64 60,60Z" />
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M72,100a16,18 0,1 0,32 0a16,18 0,1 0,-32 0ZM104,100a16,18 0,1 0,32 0a16,18 0,1 0,-32 0Z" />
+            <path
+                android:fillColor="#222222"
+                android:pathData="M86.5,97a8.5,8.5 0,1 0,17 0a8.5,8.5 0,1 0,-17 0ZM118.5,97a8.5,8.5 0,1 0,17 0a8.5,8.5 0,1 0,-17 0Z" />
+        </group>
+    </group>
+</vector>

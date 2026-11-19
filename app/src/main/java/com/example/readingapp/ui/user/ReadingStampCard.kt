@@ -183,7 +183,7 @@ private fun ReadingStamp(stamped: Boolean, landing: Boolean = false, delayMillis
         if (stamped) {
             val scale = rememberStampPress(landing = landing, delayMillis = delayMillis)
             Image(
-                painter = painterResource(R.drawable.book_logo),
+                painter = painterResource(R.drawable.blot_reading),
                 contentDescription = null,
                 modifier = Modifier
                     .size(52.dp)
