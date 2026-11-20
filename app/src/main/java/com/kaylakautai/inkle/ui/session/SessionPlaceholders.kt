@@ -1,5 +1,6 @@
 package com.kaylakautai.inkle.ui.session
 
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
@@ -20,17 +21,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kaylakautai.inkle.R
+import com.kaylakautai.inkle.ui.theme.AppTheme
 import com.kaylakautai.inkle.ui.theme.CardBackground
 import com.kaylakautai.inkle.ui.theme.Ink
 import com.kaylakautai.inkle.ui.theme.Muted
 import com.kaylakautai.inkle.ui.theme.OnInk
+import com.kaylakautai.inkle.ui.theme.isAppInDarkTheme
 
 /** What the Session screen shows instead of books: a load error, or nothing being read. */
 
@@ -73,7 +75,7 @@ private fun LoadErrorCardPreview() {
     LoadErrorCard(onRetry = {}, modifier = Modifier.padding(24.dp))
 }
 
-/** Empty state when no book is marked as reading: the diver illustration plus a hint. */
+/** Empty state when no book is marked as reading: the peeking illustration plus a hint. */
 @Composable
 internal fun NoReadingBooks(modifier: Modifier = Modifier) {
     // Fade in when first shown, so it eases in after loading instead of popping in.
@@ -90,11 +92,13 @@ private fun NoReadingBooksContent(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(R.drawable.illustration_dive_into_book),
+            painter = painterResource(
+                if (isAppInDarkTheme()) R.drawable.illustration_dive_into_book_night
+                else R.drawable.illustration_dive_into_book
+            ),
             // Decorative: the text below says what this screen needs.
             contentDescription = null,
-            colorFilter = ColorFilter.tint(Ink),
-            modifier = Modifier.width(150.dp)
+            modifier = Modifier.width(200.dp)
         )
         Text(
             text = stringResource(R.string.session_no_books_title),
@@ -116,9 +120,15 @@ private fun NoReadingBooksContent(modifier: Modifier = Modifier) {
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFFF7F4EF)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun NoReadingBooksPreview() {
-    NoReadingBooksContent(modifier = Modifier
-        .fillMaxWidth()
-        .padding(24.dp))
+    AppTheme {
+        NoReadingBooksContent(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(24.dp)
+        )
+    }
 }
