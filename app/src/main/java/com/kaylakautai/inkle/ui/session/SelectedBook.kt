@@ -60,7 +60,8 @@ internal fun SelectedBook(
                 .clip(CircleShape)
                 .clickable(onClick = onMarkFinished)
                 // A comfortable tap target around the short label.
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 12.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         SessionJournal(sessions = sessions, onRemove = onRemove)
