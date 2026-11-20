@@ -24,6 +24,7 @@ import com.kaylakautai.inkle.ui.theme.AppTheme
 fun SessionContent(
     state: SessionUiState,
     onBookSelected: (String) -> Unit,
+    onBookClick: (String) -> Unit,
     onLogByChanged: (SessionLogBy) -> Unit,
     onPagesChanged: (String) -> Unit,
     onNoteChanged: (String) -> Unit,
@@ -77,7 +78,8 @@ fun SessionContent(
                 ReadingCarousel(
                     books = state.books,
                     selectedBookId = state.selectedBookId,
-                    onBookSelected = onBookSelected
+                    onBookSelected = onBookSelected,
+                    onBookClick = onBookClick
                 )
                 selected?.let { book ->
                     SelectedBook(

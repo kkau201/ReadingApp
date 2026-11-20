@@ -25,14 +25,16 @@ import com.kaylakautai.inkle.ui.components.shelfSwatches
 import kotlinx.coroutines.launch
 
 /**
- * The books being read, one centred at a time. Swiping or tapping a book selects it, and a
- * selection made elsewhere scrolls it into view.
+ * The books being read, one centred at a time. Swiping, or tapping a book at the side, selects
+ * it; tapping the centred book opens it ([onBookClick], with its Google Books id). A selection
+ * made elsewhere scrolls it into view.
  */
 @Composable
 internal fun ReadingCarousel(
     books: List<MBook>,
     selectedBookId: String?,
-    onBookSelected: (String) -> Unit
+    onBookSelected: (String) -> Unit,
+    onBookClick: (String) -> Unit
 ) {
     val start = books.indexOfFirst { it.shelfId() == selectedBookId }.coerceAtLeast(0)
     val pagerState = rememberPagerState(initialPage = start, pageCount = { books.size })
@@ -64,10 +66,17 @@ internal fun ReadingCarousel(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
+                val book = books[page]
                 PulledBook(
-                    book = books[page],
+                    book = book,
                     cloth = swatches[page].cloth,
-                    onClick = { scope.launch { pagerState.animateScrollToPage(page) } }
+                    onClick = {
+                        if (page == pagerState.currentPage) {
+                            book.googleBookId?.let(onBookClick)
+                        } else {
+                            scope.launch { pagerState.animateScrollToPage(page) }
+                        }
+                    }
                 )
             }
         }

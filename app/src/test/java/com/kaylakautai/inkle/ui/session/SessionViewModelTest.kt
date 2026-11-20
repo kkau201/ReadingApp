@@ -8,7 +8,11 @@ import com.kaylakautai.inkle.model.MBook
 import com.kaylakautai.inkle.model.MSession
 import com.kaylakautai.inkle.model.StoredBook
 import com.kaylakautai.inkle.model.TextLimits
+import com.kaylakautai.inkle.nav.NavigateTo
+import com.kaylakautai.inkle.nav.NavigationEvent
 import com.kaylakautai.inkle.repo.FireRepository
+import com.kaylakautai.inkle.testing.collectNavigation
+import com.kaylakautai.inkle.ui.destinations.DetailsScreenDestination
 import com.kaylakautai.inkle.repo.PageUpdate
 import com.kaylakautai.inkle.repo.WriteResult
 import com.kaylakautai.inkle.testing.BaseViewModelTest
@@ -261,6 +265,17 @@ class SessionViewModelTest : BaseViewModelTest() {
     }
 
     // endregion
+
+    @Test
+    fun onBookClick_opensThatBooksDetails() = runTest {
+        val events = mutableListOf<NavigationEvent?>()
+        collectNavigation(mainViewModel, into = events)
+
+        viewModel.onBookClick(TestData.readingBook.googleBookId!!)
+
+        val event = events.filterIsInstance<NavigateTo>().single()
+        assertEquals(DetailsScreenDestination(TestData.readingBook.googleBookId!!).route, event.to.route)
+    }
 
     // region Log form
 

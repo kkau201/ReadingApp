@@ -35,6 +35,7 @@ fun SessionScreen(
         SessionContent(
             state = uiState,
             onBookSelected = viewModel::onBookSelected,
+            onBookClick = viewModel::onBookClick,
             onLogByChanged = viewModel::onLogByChanged,
             onPagesChanged = viewModel::onPagesChanged,
             onNoteChanged = viewModel::onNoteChanged,

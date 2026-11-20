@@ -15,7 +15,9 @@ import com.kaylakautai.inkle.model.TextLimits
 import com.kaylakautai.inkle.model.limitTo
 import com.kaylakautai.inkle.auth.AuthRepository
 import com.kaylakautai.inkle.repo.FireRepository
+import com.kaylakautai.inkle.nav.NavigateTo
 import com.kaylakautai.inkle.repo.PageUpdate
+import com.kaylakautai.inkle.ui.destinations.DetailsScreenDestination
 import com.kaylakautai.inkle.ui.model.BookStatus
 import com.kaylakautai.inkle.ui.components.DialogState
 import com.kaylakautai.inkle.ui.components.shelfKey
@@ -134,6 +136,9 @@ class SessionViewModel @Inject constructor(
             it.copy(selectedBookId = bookId, bookError = false, pagesError = null).withUsableLogBy()
         }
     }
+
+    /** Opens the book's details, as tapping a book does on Home. [bookId] is its Google Books id. */
+    fun onBookClick(bookId: String) = navigate(NavigateTo(DetailsScreenDestination(bookId)))
 
     fun onLogByChanged(logBy: SessionLogBy) {
         uiState.update {
