@@ -83,11 +83,16 @@
     <string name="details_shelf_copy_body">The cover image, description and tags will load when you’re back online.</string>
 
     <string name="details_on_your_shelf">On your shelf</string>
+    <string name="details_progress">Progress</string>
     <string name="details_save">Save</string>
     <string name="details_edit">Edit</string>
     <string name="details_remove">Remove</string>
     <string name="details_add_shelf">Add to your shelf</string>
     <string name="details_update_status">Update status</string>
+    <string name="details_start_page">Starting page</string>
+    <string name="details_start_page_hint">Optional</string>
+    <string name="details_start_page_error">Enter a page from 1 to 100,000</string>
+    <string name="update_book_current_page">Page you’re on</string>
 
     <string name="error_title">Error</string>
     <string name="error_unknown">Something went wrong</string>
@@ -232,17 +237,28 @@
     <string name="session_pages">Pages</string>
     <string name="session_pages_hint">How many?</string>
     <string name="session_pages_error">Enter the pages you read</string>
-    <string name="session_record">Record</string>
+    <string name="session_pages_too_many">Enter up to 99,999 pages</string>
+    <!-- How progress is recorded: pages read, the page you're on, or how far through. -->
+    <string name="session_record">Track by</string>
     <string name="session_by_pages">Pages read</string>
-    <string name="session_by_reached">Page reached</string>
-    <string name="session_page">Page</string>
+    <string name="session_by_reached">Page I’m on</string>
+    <string name="session_by_percent">Percent</string>
+    <string name="session_page">Page you’re on</string>
     <string name="session_page_hint">Which page?</string>
-    <string name="session_page_error">Enter the page you reached</string>
-    <string name="session_page_behind">That page is before where you are</string>
+    <string name="session_page_error">Enter the page you’re on</string>
+    <string name="session_page_too_many">Enter a page up to 100,000</string>
+    <string name="session_percent">How far through</string>
+    <string name="session_percent_hint">0–100%</string>
+    <string name="session_percent_error">Enter how far through you are</string>
+    <string name="session_percent_too_many">Enter a percentage up to 100</string>
+    <string name="session_not_after">You’re already on page %1$d</string>
     <string name="session_on_page">You’re on page %1$d</string>
-    <string name="session_place_hint">This sets where you are. It isn’t counted as pages you read.</string>
-    <string name="session_reached_hint">The session is the pages since page %1$d.</string>
-    <string name="session_place_saved">Saved where you are</string>
+    <string name="session_on_page_percent">You’re on page %1$d (%2$d%%)</string>
+    <string name="session_partway_hint">Started partway through? Set the page you started on with Edit on the book’s page, so it isn’t counted as reading today.</string>
+    <plurals name="session_preview">
+        <item quantity="one">%1$d page, up to page %2$d</item>
+        <item quantity="other">%1$d pages, up to page %2$d</item>
+    </plurals>
     <string name="session_book_error">Choose a book</string>
     <string name="session_date_error">Choose the day</string>
     <string name="session_note">Note</string>
@@ -274,6 +290,10 @@
     <plurals name="session_pages_read">
         <item quantity="one">%d page</item>
         <item quantity="other">%d pages</item>
+    </plurals>
+    <plurals name="session_pages_read_to">
+        <item quantity="one">%1$d page · to page %2$d</item>
+        <item quantity="other">%1$d pages · to page %2$d</item>
     </plurals>
 
 </resources>

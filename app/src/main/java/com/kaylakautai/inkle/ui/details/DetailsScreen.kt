@@ -77,6 +77,7 @@ fun DetailsScreen(
             DetailsScreenContent(
                 book = it,
                 savedBook = uiState.savedBook,
+                readingPlace = uiState.readingPlace,
                 onStatusClick = viewModel::onChooseStatus,
                 modifier = Modifier.padding(padding),
                 showingShelfCopy = uiState.showingShelfCopy

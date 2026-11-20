@@ -3,7 +3,9 @@ package com.kaylakautai.inkle.testing
 import com.kaylakautai.inkle.model.AVATAR_URL
 import com.kaylakautai.inkle.model.DISPLAY_NAME
 import com.kaylakautai.inkle.model.MBook
+import com.kaylakautai.inkle.model.MSession
 import com.kaylakautai.inkle.model.MUser
+import com.kaylakautai.inkle.model.StoredSession
 import com.kaylakautai.inkle.model.QUOTE
 import com.kaylakautai.inkle.model.READING_GOAL
 import com.kaylakautai.inkle.model.REWARD
@@ -54,6 +56,9 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
     /** Every book document for the user. */
     var books: List<MBook> = TestData.books
 
+    /** Every reading session for the user. */
+    var sessions: List<MSession> = emptyList()
+
     /** When set, reading users fails with it. */
     var userError: FirebaseFirestoreException? = null
 
@@ -96,6 +101,7 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
 
     val users = mockk<CollectionReference>()
     private val bookQuery = mockk<Query>()
+    private val sessionQuery = mockk<CollectionReference>()
 
     private val userListeners = mutableListOf<Pair<String, EventListener<DocumentSnapshot>>>()
     private val bookListeners = mutableListOf<Pair<String, EventListener<QuerySnapshot>>>()
@@ -129,6 +135,24 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
         return mockk<ListenerRegistration>().also { every { it.remove() } answers { remove(entry) } }
     }
 
+    private fun sessionsSnapshot(uid: String): QuerySnapshot =
+        mockk<QuerySnapshot>().also { snapshot ->
+            every { snapshot.documents } returns sessions.filter { it.userId == uid }.map(::sessionSnapshot)
+        }
+
+    private fun sessionSnapshot(session: MSession): DocumentSnapshot =
+        mockk<DocumentSnapshot>().also { doc ->
+            every { doc.id } returns session.id.orEmpty()
+            every { doc.getString(StoredSession.USER_ID) } returns session.userId
+            every { doc.getString(StoredSession.GOOGLE_BOOK_ID) } returns session.googleBookId
+            every { doc.getString(StoredSession.TITLE) } returns session.title
+            every { doc.getLong(StoredSession.PAGES) } returns session.pages?.toLong()
+        every { doc.getLong(StoredSession.END_PAGE) } returns session.endPage?.toLong()
+            every { doc.getString(StoredSession.NOTE) } returns session.note
+            every { doc.getString(StoredSession.READ_ON) } returns session.readOn
+            every { doc.getTimestamp(StoredSession.READ_AT) } returns session.readAt
+        }
+
     private fun booksSnapshot(uid: String, fromCache: Boolean = false): QuerySnapshot =
         mockk<QuerySnapshot>().also { snapshot ->
             every { snapshot.documents } returns books.filter { it.userId == uid }.map(::bookSnapshot)
@@ -143,7 +167,7 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
         FireRepository(
             queryBook = bookQuery,
             queryUser = users,
-            querySession = mockk(relaxed = true),
+            querySession = sessionQuery,
             currentUserId = currentUserId,
             hasConnection = { online }
         )
@@ -191,6 +215,15 @@ class FakeFirestore(currentUserId: () -> String? = { TestData.UID }) {
                 }
             }
             if (holdBookUpdates) heldBookUpdates += finish else finish()
+        }
+        every { sessionQuery.whereEqualTo(StoredSession.USER_ID, any()) } answers {
+            val uid = secondArg<String>()
+            mockk<Query>().also { query ->
+                every { query.get(any<Source>()) } answers {
+                    Tasks.forResult(sessionsSnapshot(uid))
+                }
+                every { query.addSnapshotListener(any<EventListener<QuerySnapshot>>()) } returns mockk(relaxed = true)
+            }
         }
         every { bookQuery.whereEqualTo(StoredBook.USER_ID, any()) } answers {
             val uid = secondArg<String>()

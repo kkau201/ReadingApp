@@ -40,6 +40,7 @@ rules_version = '2';
 // Fields:
 //   - user_id: string (required, == owner uid)
 //   - pages: int (required, 1-99999)
+//   - end_page: int (optional, 1-100000): the page reached by the end of the session
 //   - read_on: string (required, display date, 1-50 chars)
 //   - read_at: timestamp (required)
 //   - google_book_id: string (optional, 1-100 chars)
@@ -144,10 +145,11 @@ service cloud.firestore {
     function isValidSession(data) {
       return data.keys().hasAll(['user_id', 'pages', 'read_on', 'read_at']) &&
         data.keys().hasOnly([
-          'user_id', 'google_book_id', 'title', 'pages', 'note', 'read_on', 'read_at'
+          'user_id', 'google_book_id', 'title', 'pages', 'end_page', 'note', 'read_on', 'read_at'
         ]) &&
         data.user_id == request.auth.uid &&
         data.pages is int && data.pages >= 1 && data.pages <= 99999 &&
+        optionalIntInRange(data, 'end_page', 1, 100000) &&
         data.read_on is string && data.read_on.size() >= 1 && data.read_on.size() <= 50 &&
         data.read_at is timestamp &&
         optionalString(data, 'google_book_id', 1, 100) &&

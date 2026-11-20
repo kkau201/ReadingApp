@@ -19,11 +19,15 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SnapshotMetadata
 import com.google.firebase.firestore.Source
+import com.google.firebase.firestore.WriteBatch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+
+/** Where a book's reader has got to, saved alongside a session change. A null [page] removes it. */
+data class PageUpdate(val bookId: String, val page: Int?)
 
 class FireRepository @Inject constructor(
     private val queryBook: Query,
@@ -226,13 +230,34 @@ class FireRepository @Inject constructor(
 
     private fun List<MSession>.newestFirst() = sortedByDescending { it.readAt?.seconds ?: 0L }
 
-    /** Throws if the server rejects it. */
-    suspend fun addSession(session: MSession): WriteResult =
-        querySession.add(session.toStoredDocument()).awaitWrite(isOnline())
+    /**
+     * Adds [session] and, in the same batch, moves its book to [page] (see [PageUpdate]). Both
+     * are saved or neither is, so the journal and the book's progress can't disagree.
+     * Throws if the server rejects it.
+     */
+    suspend fun logSession(session: MSession, page: PageUpdate?): WriteResult {
+        val batch = querySession.firestore.batch()
+        batch.set(querySession.document(), session.toStoredDocument())
+        page?.let { batch.setPage(it) }
+        return batch.commit().awaitWrite(isOnline())
+    }
 
-    /** Throws if the server rejects it. */
-    suspend fun deleteSession(sessionId: String): WriteResult =
-        querySession.document(sessionId).delete().awaitWrite(isOnline())
+    /**
+     * Deletes the session and, in the same batch, moves its book back to [page] if given.
+     * Throws if the server rejects it.
+     */
+    suspend fun deleteSession(sessionId: String, page: PageUpdate? = null): WriteResult {
+        val batch = querySession.firestore.batch()
+        batch.delete(querySession.document(sessionId))
+        page?.let { batch.setPage(it) }
+        return batch.commit().awaitWrite(isOnline())
+    }
+
+    private fun WriteBatch.setPage(change: PageUpdate) {
+        val book = querySession.firestore.collection(BOOKS_COLLECTION).document(change.bookId)
+        // Optional fields are removed rather than stored empty (firestore.rules).
+        update(book, StoredBook.CURRENT_PAGE, change.page?.takeIf { it > 0 } ?: FieldValue.delete())
+    }
 
     /** Exactly one of [onSaved] or [onError] is called. */
     fun updateBook(

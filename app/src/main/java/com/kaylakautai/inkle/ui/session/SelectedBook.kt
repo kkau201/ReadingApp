@@ -202,7 +202,10 @@ private fun SessionCard(
         )
         session.pages?.let { pages ->
             Text(
-                text = pluralStringResource(R.plurals.session_pages_read, pages, pages),
+                // Older sessions don't know the page they ended on.
+                text = session.endPage?.let { end ->
+                    pluralStringResource(R.plurals.session_pages_read_to, pages, pages, end)
+                } ?: pluralStringResource(R.plurals.session_pages_read, pages, pages),
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyLarge
             )

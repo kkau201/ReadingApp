@@ -9,6 +9,7 @@ import com.kaylakautai.inkle.model.MSession
 import com.kaylakautai.inkle.model.StoredBook
 import com.kaylakautai.inkle.model.TextLimits
 import com.kaylakautai.inkle.repo.FireRepository
+import com.kaylakautai.inkle.repo.PageUpdate
 import com.kaylakautai.inkle.repo.WriteResult
 import com.kaylakautai.inkle.testing.BaseViewModelTest
 import com.kaylakautai.inkle.testing.TestData
@@ -60,8 +61,8 @@ class SessionViewModelTest : BaseViewModelTest() {
     fun setUp() {
         givenSavedBooks(TestData.books + TestData.otherReadingBook)
         givenSessions(listOf(TestData.session))
-        coEvery { fireRepository.addSession(any()) } returns WriteResult.SAVED
-        coEvery { fireRepository.deleteSession(any()) } returns WriteResult.SAVED
+        coEvery { fireRepository.logSession(any(), any()) } returns WriteResult.SAVED
+        coEvery { fireRepository.deleteSession(any(), any()) } returns WriteResult.SAVED
         every { fireRepository.updateBook(any(), any(), any(), any()) } answers {
             thirdArg<(WriteResult) -> Unit>()(WriteResult.SAVED)
         }
@@ -93,7 +94,15 @@ class SessionViewModelTest : BaseViewModelTest() {
         viewModel.onNoteChanged(note)
     }
 
-    private fun assertNothingSaved() = coVerify(exactly = 0) { fireRepository.addSession(any()) }
+    private fun assertNothingSaved() = coVerify(exactly = 0) { fireRepository.logSession(any(), any()) }
+
+    /** Captures what the next save logs (the session, and the book's new page), and reports it saved. */
+    private fun captureLog(): Pair<io.mockk.CapturingSlot<MSession>, io.mockk.CapturingSlot<PageUpdate>> {
+        val session = slot<MSession>()
+        val page = slot<PageUpdate>()
+        coEvery { fireRepository.logSession(capture(session), capture(page)) } returns WriteResult.SAVED
+        return session to page
+    }
 
     // region Initial state and loading
 
@@ -261,7 +270,7 @@ class SessionViewModelTest : BaseViewModelTest() {
         viewModel.onPagesChanged("0")
         viewModel.onNoteChanged("left over")
         viewModel.onSaveSession() // rejected: leaves a pages error behind
-        assertTrue(state.pagesError)
+        assertEquals(PagesError.MISSING, state.pagesError)
         viewModel.onYearChanged(2001)
 
         viewModel.onStartLog()
@@ -271,7 +280,8 @@ class SessionViewModelTest : BaseViewModelTest() {
         assertEquals("", state.pagesInput)
         assertEquals("", state.noteInput)
         assertEquals(todayYear, state.year)
-        assertFalse(state.bookError || state.pagesError || state.dateError)
+        assertFalse(state.bookError || state.dateError)
+        assertNull(state.pagesError)
     }
 
     @Test
@@ -289,8 +299,17 @@ class SessionViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun onPagesChanged_keepsOnlyDigitsUpToSix() {
+    fun onPagesChanged_pagesRead_keepsOnlyDigitsUpToFive() {
         viewModel.onPagesChanged("1a2-3 45678")
+
+        assertEquals("12345", state.pagesInput)
+    }
+
+    @Test
+    fun onPagesChanged_pageReached_allowsSixDigits() {
+        viewModel.onLogByChanged(SessionLogBy.REACHED)
+
+        viewModel.onPagesChanged("1234567")
 
         assertEquals("123456", state.pagesInput)
     }
@@ -350,7 +369,7 @@ class SessionViewModelTest : BaseViewModelTest() {
         fillValidLog(pages = "12", note = "  Chapter 3  ")
         givenSessions(listOf(newSession, TestData.session))
         val saved = slot<MSession>()
-        coEvery { fireRepository.addSession(capture(saved)) } returns WriteResult.SAVED
+        coEvery { fireRepository.logSession(capture(saved), any()) } returns WriteResult.SAVED
 
         viewModel.onSaveSession()
 
@@ -373,7 +392,7 @@ class SessionViewModelTest : BaseViewModelTest() {
     fun onSaveSession_blankNote_isSavedWithoutNote() = runTest {
         fillValidLog(note = "   ")
         val saved = slot<MSession>()
-        coEvery { fireRepository.addSession(capture(saved)) } returns WriteResult.SAVED
+        coEvery { fireRepository.logSession(capture(saved), any()) } returns WriteResult.SAVED
 
         viewModel.onSaveSession()
 
@@ -388,7 +407,7 @@ class SessionViewModelTest : BaseViewModelTest() {
         viewModel.onMonthChanged(2)
         viewModel.onDayChanged("29")
         val saved = slot<MSession>()
-        coEvery { fireRepository.addSession(capture(saved)) } returns WriteResult.SAVED
+        coEvery { fireRepository.logSession(capture(saved), any()) } returns WriteResult.SAVED
 
         viewModel.onSaveSession()
 
@@ -404,7 +423,7 @@ class SessionViewModelTest : BaseViewModelTest() {
         viewModel.onSaveSession()
 
         assertTrue(state.bookError)
-        assertTrue(state.pagesError)
+        assertEquals(PagesError.MISSING, state.pagesError)
         assertFalse(state.dateError)
         assertTrue(state.logging)
         assertNothingSaved()
@@ -416,23 +435,24 @@ class SessionViewModelTest : BaseViewModelTest() {
 
         viewModel.onSaveSession()
 
-        assertTrue(state.pagesError)
+        assertEquals(PagesError.MISSING, state.pagesError)
         assertFalse(state.bookError)
         assertNothingSaved()
     }
 
     @Test
-    fun onSaveSession_pagesRead_savesTheSittingAndThePageReached() = runTest {
+    fun onSaveSession_pagesRead_savesTheSittingAndThePageReachedTogether() = runTest {
         fillValidLog(pages = "12")
-        val updates = captureBookUpdate()
-        val saved = slot<MSession>()
-        coEvery { fireRepository.addSession(capture(saved)) } returns WriteResult.SAVED
+        val (saved, page) = captureLog()
 
         viewModel.onSaveSession()
 
-        // 20 pages were already logged for this book.
+        // 20 pages were already logged for this book, so it's now on page 32.
         assertEquals(12, saved.captured.pages)
-        assertEquals(32, updates.captured[StoredBook.CURRENT_PAGE])
+        assertEquals(32, saved.captured.endPage)
+        assertEquals(PageUpdate(TestData.readingBook.id!!, 32), page.captured)
+        // One batched write: the book isn't updated separately.
+        verify(exactly = 0) { fireRepository.updateBook(any(), any(), any(), any()) }
     }
 
     @Test
@@ -440,49 +460,123 @@ class SessionViewModelTest : BaseViewModelTest() {
         fillValidLog()
         viewModel.onLogByChanged(SessionLogBy.REACHED)
         viewModel.onPagesChanged("35")
-        val updates = captureBookUpdate()
-        val saved = slot<MSession>()
-        coEvery { fireRepository.addSession(capture(saved)) } returns WriteResult.SAVED
+        val (saved, page) = captureLog()
 
         viewModel.onSaveSession()
 
         assertEquals(15, saved.captured.pages)
-        assertEquals(35, updates.captured[StoredBook.CURRENT_PAGE])
+        assertEquals(35, saved.captured.endPage)
+        assertEquals(35, page.captured.page)
         assertEquals(str(R.string.session_saved), mainViewModel.toastFlow.value)
     }
 
     @Test
-    fun onSaveSession_pageReachedBeforeTheSavedPlace_flagsPages() = runTest {
+    fun onSaveSession_pageReachedIsWhereTheyAlreadyAre_flagsNotAfter() = runTest {
         fillValidLog()
         viewModel.onLogByChanged(SessionLogBy.REACHED)
         viewModel.onPagesChanged("20")
 
         viewModel.onSaveSession()
 
-        assertTrue(state.pagesError)
+        assertEquals(PagesError.NOT_AFTER, state.pagesError)
         assertTrue(state.logging)
         assertNothingSaved()
-        verify(exactly = 0) { fireRepository.updateBook(any(), any(), any(), any()) }
     }
 
     @Test
-    fun onSaveSession_alreadyUnderwayWithNoSessions_setsThePageWithoutASitting() = runTest {
+    fun onSaveSession_pageReachedPastTheLimit_flagsTooMany() = runTest {
+        fillValidLog()
+        viewModel.onLogByChanged(SessionLogBy.REACHED)
+        viewModel.onPagesChanged("100001")
+
+        viewModel.onSaveSession()
+
+        assertEquals(PagesError.TOO_MANY, state.pagesError)
+        assertNothingSaved()
+    }
+
+    @Test
+    fun onSaveSession_firstPageReached_countsAsReadingFromTheStart() = runTest {
+        // Starting partway is set on the book when it's added; here they began at page 1.
         givenSessions(emptyList())
         viewModel.onLoad()
         viewModel.onStartLog()
         viewModel.onBookSelected(TestData.readingBook.googleBookId!!)
         viewModel.onLogByChanged(SessionLogBy.REACHED)
-        viewModel.onPagesChanged("80")
-        viewModel.onDayChanged("")
-        val updates = captureBookUpdate()
+        viewModel.onPagesChanged("30")
+        val (saved, page) = captureLog()
 
         viewModel.onSaveSession()
 
-        assertNothingSaved()
-        assertEquals(80, updates.captured[StoredBook.CURRENT_PAGE])
+        assertEquals(30, saved.captured.pages)
+        assertEquals(30, page.captured.page)
         assertFalse(state.logging)
-        assertFalse(state.dateError)
-        assertEquals(str(R.string.session_place_saved), mainViewModel.toastFlow.value)
+    }
+
+    @Test
+    fun onSaveSession_startedPartway_countsOnlyThePagesSinceTheStartingPage() = runTest {
+        givenSavedBooks(listOf(TestData.readingBook.copy(currentPage = 120)))
+        givenSessions(emptyList())
+        viewModel.onLoad()
+        viewModel.onStartLog()
+        viewModel.onLogByChanged(SessionLogBy.REACHED)
+        viewModel.onPagesChanged("150")
+        val (saved, _) = captureLog()
+
+        viewModel.onSaveSession()
+
+        assertEquals(30, saved.captured.pages)
+        assertEquals(150, saved.captured.endPage)
+    }
+
+    @Test
+    fun onSaveSession_percent_turnsItIntoPages() = runTest {
+        givenSavedBooks(listOf(TestData.readingBook.copy(pageCount = 200)))
+        viewModel.onLoad()
+        viewModel.onStartLog()
+        viewModel.onLogByChanged(SessionLogBy.PERCENT)
+        viewModel.onPagesChanged("50")
+        val (saved, page) = captureLog()
+
+        viewModel.onSaveSession()
+
+        // Half of 200 is page 100; 20 pages were already logged.
+        assertEquals(80, saved.captured.pages)
+        assertEquals(100, page.captured.page)
+    }
+
+    @Test
+    fun percent_bookWithUnknownLength_fallsBackToPagesRead() = runTest {
+        viewModel.onLoad()
+        viewModel.onStartLog()
+        viewModel.onBookSelected(TestData.readingBook.googleBookId!!)
+
+        viewModel.onLogByChanged(SessionLogBy.PERCENT)
+
+        assertEquals(SessionLogBy.PAGES, state.logBy)
+    }
+
+    @Test
+    fun logBy_isRememberedForTheNextLog() = runTest {
+        fillValidLog()
+        viewModel.onLogByChanged(SessionLogBy.REACHED)
+        viewModel.onCancelLog()
+
+        viewModel.onStartLog()
+
+        assertEquals(SessionLogBy.REACHED, state.logBy)
+        assertEquals("", state.pagesInput)
+    }
+
+    @Test
+    fun onLogByChanged_clearsTheEntryAndItsError() = runTest {
+        fillValidLog(pages = "0")
+        viewModel.onSaveSession()
+
+        viewModel.onLogByChanged(SessionLogBy.REACHED)
+
+        assertEquals("", state.pagesInput)
+        assertNull(state.pagesError)
     }
 
     @Test
@@ -520,7 +614,8 @@ class SessionViewModelTest : BaseViewModelTest() {
         viewModel.onPagesChanged("5")
         viewModel.onDayChanged("1")
 
-        assertFalse(state.bookError || state.pagesError || state.dateError)
+        assertFalse(state.bookError || state.dateError)
+        assertNull(state.pagesError)
     }
 
     @Test
@@ -536,7 +631,7 @@ class SessionViewModelTest : BaseViewModelTest() {
     @Test
     fun onSaveSession_offline_savesAndSaysItWillSync() = runTest {
         fillValidLog(pages = "12")
-        coEvery { fireRepository.addSession(any()) } returns WriteResult.SAVED_OFFLINE
+        coEvery { fireRepository.logSession(any(), any()) } returns WriteResult.SAVED_OFFLINE
         givenSessions(listOf(newSession, TestData.session)) // read from the device cache
 
         viewModel.onSaveSession()
@@ -550,20 +645,21 @@ class SessionViewModelTest : BaseViewModelTest() {
     fun onSaveSession_tappedAgainWhileSaving_logsOnce() = runTest {
         fillValidLog(pages = "12")
         val confirmed = CompletableDeferred<WriteResult>()
-        coEvery { fireRepository.addSession(any()) } coAnswers { confirmed.await() }
+        coEvery { fireRepository.logSession(any(), any()) } coAnswers { confirmed.await() }
 
         viewModel.onSaveSession()
         viewModel.onSaveSession()
         confirmed.complete(WriteResult.SAVED)
 
-        coVerify(exactly = 1) { fireRepository.addSession(any()) }
+        coVerify(exactly = 1) { fireRepository.logSession(any(), any()) }
         assertEquals(str(R.string.session_saved), mainViewModel.toastFlow.value)
     }
 
     @Test
     fun onSaveSession_saveFails_showsErrorAndKeepsForm() = runTest {
         fillValidLog(pages = "12")
-        coEvery { fireRepository.addSession(any()) } throws IllegalStateException("rejected")
+        // The batch is all-or-nothing, so neither the session nor the page was saved.
+        coEvery { fireRepository.logSession(any(), any()) } throws IllegalStateException("rejected")
 
         viewModel.onSaveSession()
 
@@ -701,14 +797,12 @@ class SessionViewModelTest : BaseViewModelTest() {
 
     @Test
     fun finishOffer_notYet_leavesBookAsReading() = runTest {
-        val updates = captureBookUpdate()
         logPagesOfBook(pageCount = 32, pages = 12)
 
         viewModel.onCancelFinish()
 
         assertNull(state.finishing)
-        assertEquals(32, updates.captured[StoredBook.CURRENT_PAGE])
-        assertFalse(StoredBook.FINISHED_READING in updates.captured)
+        verify(exactly = 0) { fireRepository.updateBook(any(), any(), any(), any()) }
         assertEquals(str(R.string.session_saved), mainViewModel.toastFlow.value)
     }
 
@@ -858,7 +952,8 @@ class SessionViewModelTest : BaseViewModelTest() {
         assertEquals(str(R.string.session_remove_title), dialog().title)
         dialog().onPrimaryClick!!()
 
-        coVerify { fireRepository.deleteSession(TestData.session.id!!) }
+        // An older-style session (no end page): the book's place isn't touched.
+        coVerify { fireRepository.deleteSession(TestData.session.id!!, null) }
         assertTrue(state.sessions.isEmpty())
         assertNull(mainViewModel.dialogFlow.value)
         assertEquals(str(R.string.session_removed), mainViewModel.toastFlow.value)
@@ -867,7 +962,7 @@ class SessionViewModelTest : BaseViewModelTest() {
     @Test
     fun onRemoveSession_offline_removesAndSaysItWillSync() = runTest {
         viewModel.onLoad()
-        coEvery { fireRepository.deleteSession(any()) } returns WriteResult.SAVED_OFFLINE
+        coEvery { fireRepository.deleteSession(any(), any()) } returns WriteResult.SAVED_OFFLINE
         givenSessions(emptyList())
 
         viewModel.onRemoveSession(TestData.session)
@@ -883,7 +978,7 @@ class SessionViewModelTest : BaseViewModelTest() {
 
         dialog().onSecondaryClick!!()
 
-        coVerify(exactly = 0) { fireRepository.deleteSession(any()) }
+        coVerify(exactly = 0) { fireRepository.deleteSession(any(), any()) }
         assertNull(mainViewModel.dialogFlow.value)
     }
 
@@ -897,13 +992,47 @@ class SessionViewModelTest : BaseViewModelTest() {
     @Test
     fun onRemoveSession_deleteFails_showsErrorAndKeepsSessions() = runTest {
         viewModel.onLoad()
-        coEvery { fireRepository.deleteSession(any()) } throws IllegalStateException("rejected")
+        coEvery { fireRepository.deleteSession(any(), any()) } throws IllegalStateException("rejected")
 
         viewModel.onRemoveSession(TestData.session)
         dialog().onPrimaryClick!!()
 
         assertEquals(listOf(TestData.session), state.sessions)
         assertEquals(str(R.string.session_error), mainViewModel.toastFlow.value)
+    }
+
+    /** Two sittings: pages 1-20, then 21-32, with the book saved as on page 32. */
+    private val firstSitting = TestData.session.copy(endPage = 20)
+    private val latestSitting = newSession.copy(
+        id = "session-2",
+        googleBookId = TestData.readingBook.googleBookId,
+        pages = 12,
+        endPage = 32
+    )
+
+    private fun removeFromBookOnPage32(session: MSession) {
+        givenSavedBooks(listOf(TestData.readingBook.copy(currentPage = 32)))
+        givenSessions(listOf(latestSitting, firstSitting))
+        viewModel.onLoad()
+        viewModel.onRemoveSession(session)
+        dialog().onPrimaryClick!!()
+    }
+
+    @Test
+    fun onRemoveSession_latest_movesTheBookBackToWhereItBegan() = runTest {
+        removeFromBookOnPage32(latestSitting)
+
+        coVerify {
+            fireRepository.deleteSession(latestSitting.id!!, PageUpdate(TestData.readingBook.id!!, 20))
+        }
+    }
+
+    @Test
+    fun onRemoveSession_older_leavesTheBookWhereItIs() = runTest {
+        removeFromBookOnPage32(firstSitting)
+
+        // They're still on page 32: only the journal entry goes.
+        coVerify { fireRepository.deleteSession(firstSitting.id!!, null) }
     }
 
     // endregion

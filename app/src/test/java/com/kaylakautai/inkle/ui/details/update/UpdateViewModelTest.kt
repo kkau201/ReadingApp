@@ -384,6 +384,90 @@ class UpdateViewModelTest : BaseViewModelTest() {
         val updates = lastUpdate()
         assertNotNull(updates[StoredBook.STARTED_READING])
         assertFalse(StoredBook.FINISHED_READING in updates)
+        assertFalse(StoredBook.CURRENT_PAGE in updates)
+    }
+
+    @Test
+    fun save_wantToReadToReading_withPage_savesThatPage() = runTest {
+        firestore.books = listOf(TestData.libraryBook)
+        open(TestData.libraryBook.googleBookId!!)
+        viewModel.onStatusChanged(BookStatus.READING)
+        viewModel.onCurrentPageChanged("4a2")
+
+        assertEquals("42", state.currentPageInput)
+        viewModel.onSaveClick()
+
+        assertEquals(42, lastUpdate()[StoredBook.CURRENT_PAGE])
+    }
+
+    @Test
+    fun open_readingBook_showsThePageTheyreOn() = runTest {
+        firestore.books = listOf(TestData.readingBook.copy(currentPage = 140))
+
+        open(TestData.readingBook.googleBookId!!)
+
+        assertEquals("140", state.currentPageInput)
+    }
+
+    @Test
+    fun save_readingBook_correctedPage_savesIt() = runTest {
+        firestore.books = listOf(TestData.readingBook.copy(currentPage = 140))
+        open(TestData.readingBook.googleBookId!!)
+
+        viewModel.onCurrentPageChanged("152")
+        viewModel.onSaveClick()
+
+        assertEquals(152, lastUpdate()[StoredBook.CURRENT_PAGE])
+    }
+
+    @Test
+    fun save_readingBook_pageCleared_removesIt() = runTest {
+        firestore.books = listOf(TestData.readingBook.copy(currentPage = 140))
+        open(TestData.readingBook.googleBookId!!)
+
+        viewModel.onCurrentPageChanged("")
+        viewModel.onSaveClick()
+
+        // Removed rather than saved empty: progress then comes from the logged sessions.
+        val updates = lastUpdate()
+        assertTrue(StoredBook.CURRENT_PAGE in updates)
+        assertNull(updates[StoredBook.CURRENT_PAGE])
+    }
+
+    @Test
+    fun save_backToWantToRead_clearsThePage() = runTest {
+        firestore.books = listOf(TestData.readingBook.copy(currentPage = 140))
+        open(TestData.readingBook.googleBookId!!)
+
+        viewModel.onStatusChanged(BookStatus.LIBRARY)
+        viewModel.onSaveClick()
+
+        val updates = lastUpdate()
+        assertTrue(StoredBook.CURRENT_PAGE in updates)
+        assertNull(updates[StoredBook.CURRENT_PAGE])
+    }
+
+    @Test
+    fun currentPage_keepsDigitsOnly_upToTheHighestPage() = runTest {
+        firestore.books = listOf(TestData.readingBook)
+        open(TestData.readingBook.googleBookId!!)
+
+        viewModel.onCurrentPageChanged("1a2b3c4d5e6f7")
+
+        assertEquals("123456", state.currentPageInput)
+    }
+
+    @Test
+    fun save_wantToReadToReading_pageOutOfRange_writesNothing() = runTest {
+        firestore.books = listOf(TestData.libraryBook)
+        open(TestData.libraryBook.googleBookId!!)
+        viewModel.onStatusChanged(BookStatus.READING)
+        viewModel.onCurrentPageChanged("0")
+
+        viewModel.onSaveClick()
+
+        assertTrue(state.currentPageError)
+        assertTrue(firestore.bookUpdates.isEmpty())
     }
 
     @Test

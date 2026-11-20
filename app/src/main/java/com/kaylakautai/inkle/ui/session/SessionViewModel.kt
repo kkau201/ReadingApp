@@ -15,7 +15,7 @@ import com.kaylakautai.inkle.model.TextLimits
 import com.kaylakautai.inkle.model.limitTo
 import com.kaylakautai.inkle.auth.AuthRepository
 import com.kaylakautai.inkle.repo.FireRepository
-import com.kaylakautai.inkle.repo.WriteResult
+import com.kaylakautai.inkle.repo.PageUpdate
 import com.kaylakautai.inkle.ui.model.BookStatus
 import com.kaylakautai.inkle.ui.components.DialogState
 import com.kaylakautai.inkle.ui.components.shelfKey
@@ -31,11 +31,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class SessionViewModel @Inject constructor(
@@ -97,16 +95,15 @@ class SessionViewModel @Inject constructor(
             state.withToday().copy(
                 logging = true,
                 changingDate = false,
-                logBy = SessionLogBy.PAGES,
                 pagesInput = "",
                 noteInput = "",
                 bookError = false,
-                pagesError = false,
+                pagesError = null,
                 dateError = false,
                 selectedBookId = state.selectedBookId?.takeIf { id ->
                     state.books.any { it.shelfId() == id }
                 } ?: state.books.firstOrNull()?.shelfId()
-            )
+            ).withUsableLogBy()
         }
     }
 
@@ -115,11 +112,10 @@ class SessionViewModel @Inject constructor(
             it.withToday().copy(
                 logging = false,
                 changingDate = false,
-                logBy = SessionLogBy.PAGES,
                 pagesInput = "",
                 noteInput = "",
                 bookError = false,
-                pagesError = false,
+                pagesError = null,
                 dateError = false
             )
         }
@@ -134,18 +130,23 @@ class SessionViewModel @Inject constructor(
     }
 
     fun onBookSelected(bookId: String) {
-        uiState.update { it.copy(selectedBookId = bookId, bookError = false) }
+        uiState.update {
+            it.copy(selectedBookId = bookId, bookError = false, pagesError = null).withUsableLogBy()
+        }
     }
 
     fun onLogByChanged(logBy: SessionLogBy) {
         uiState.update {
-            it.copy(logBy = logBy, pagesInput = "", pagesError = false)
+            it.copy(logBy = logBy, pagesInput = "", pagesError = null).withUsableLogBy()
         }
     }
 
     fun onPagesChanged(input: String) {
         uiState.update {
-            it.copy(pagesInput = input.filter(Char::isDigit).take(6), pagesError = false)
+            it.copy(
+                pagesInput = input.filter(Char::isDigit).take(it.logBy.maxDigits()),
+                pagesError = null
+            )
         }
     }
 
@@ -183,45 +184,36 @@ class SessionViewModel @Inject constructor(
         val state = uiState.value
         val book = state.books.find { it.shelfId() == state.selectedBookId }
         val place = book?.readingPlace(state.sessions) ?: 0
-        val record = loggedReading(state.logBy, state.pagesInput.toIntOrNull(), place)
+        val entry = readingEntry(state.logBy, state.pagesInput, place, book?.pageCount)
         val readOn = FinishedParts(state.year, state.month, state.day).toFinishedOn()
             ?.takeIf { it.day != null }
-        val needsSession = record?.sessionPages != null
-        if (book == null || record == null || (needsSession && readOn == null)) {
+        if (book == null || entry !is ReadingEntry.Valid || readOn == null) {
             uiState.update {
                 it.copy(
                     bookError = book == null,
-                    pagesError = record == null,
-                    dateError = needsSession && readOn == null
+                    pagesError = (entry as? ReadingEntry.Invalid)?.error,
+                    dateError = readOn == null
                 )
             }
             return
         }
         val userId = authRepository.currentUserId ?: return
-        val session = readOn?.let { day ->
-            record.sessionPages?.let { pages ->
-                MSession(
-                    userId = userId,
-                    googleBookId = book.googleBookId ?: book.id,
-                    title = book.title,
-                    pages = pages,
-                    note = state.noteInput.trim().takeIf { it.isNotEmpty() },
-                    readOn = day.display,
-                    readAt = day.toTimestamp()
-                )
-            }
-        }
+        val session = MSession(
+            userId = userId,
+            googleBookId = book.shelfId(),
+            title = book.title,
+            pages = entry.pages,
+            endPage = entry.pageReached,
+            note = state.noteInput.trim().takeIf { it.isNotEmpty() },
+            readOn = readOn.display,
+            readAt = readOn.toTimestamp()
+        )
+        // Saved with the session, so the book's progress can't fall out of step with it.
+        val page = book.id?.let { PageUpdate(bookId = it, page = entry.pageReached) }
         saving = true
         viewModelScope.launch(dispatchers.getIo()) {
             try {
-                val result = session?.let { fireRepository.addSession(it) }
-                val pageResult = book.id?.let { writeCurrentPage(it, record.currentPage) }
-                if (session == null && pageResult == null) {
-                    withContext(dispatchers.getMain()) {
-                        showToast(getString(R.string.session_error))
-                    }
-                    return@launch
-                }
+                val result = fireRepository.logSession(session, page)
                 // Includes the new session even offline (Firestore's cache has it).
                 val sessions = fireRepository.fetchSessions(userId)
                 withContext(dispatchers.getMain()) {
@@ -230,46 +222,26 @@ class SessionViewModel @Inject constructor(
                             sessions = sessions,
                             logging = false,
                             changingDate = false,
-                            logBy = SessionLogBy.PAGES,
                             pagesInput = "",
                             noteInput = "",
                             bookError = false,
-                            pagesError = false,
+                            pagesError = null,
                             dateError = false
                         )
                     }
-                    showWriteToast(
-                        result ?: pageResult ?: WriteResult.SAVED,
-                        savedRes = if (session == null) R.string.session_place_saved else R.string.session_saved
-                    )
-                    val finishedOn = readOn ?: todaySessionParts().toFinishedOn()
-                    if (finishedOn != null && book.reachedTheEnd(record.currentPage)) {
-                        offerToFinish(book, finishedOn = finishedOn)
-                    }
+                    showWriteToast(result, savedRes = R.string.session_saved)
+                    if (book.reachedTheEnd(entry.pageReached)) offerToFinish(book, finishedOn = readOn)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e("Error", "onSaveSession: Error saving session", e)
-                showToast(getString(R.string.session_error))
+                withContext(dispatchers.getMain()) {
+                    showToast(getString(R.string.session_error))
+                }
             } finally {
                 saving = false
             }
-        }
-    }
-
-    /** Saves the page reached. A failure here doesn't undo a session that already saved. */
-    private suspend fun writeCurrentPage(bookId: String, page: Int): WriteResult? {
-        return try {
-            suspendCancellableCoroutine { cont ->
-                fireRepository.updateBook(
-                    bookId = bookId,
-                    bookUpdates = mapOf(StoredBook.CURRENT_PAGE to page.takeIf { it > 0 }),
-                    onSaved = { result -> if (cont.isActive) cont.resume(result) },
-                    onError = { error -> if (cont.isActive) cont.resumeWithException(error) }
-                )
-            }
-        } catch (e: Exception) {
-            Log.e("Error", "writeCurrentPage: Error saving the page reached", e)
-            null
         }
     }
 
@@ -380,7 +352,8 @@ class SessionViewModel @Inject constructor(
     }
 
     fun onRemoveSession(session: MSession) {
-        val sessionId = session.id ?: return
+        // Not saved yet (no id), so there's nothing to remove.
+        if (session.id == null) return
         showDialog(
             DialogState(
                 title = getString(R.string.session_remove_title),
@@ -401,13 +374,11 @@ class SessionViewModel @Inject constructor(
         val sessionId = session.id ?: return
         val book = uiState.value.books.find { it.shelfId() == session.googleBookId }
         val userId = authRepository.currentUserId ?: return
+        // Removed together, so the book's page and its journal stay in step.
+        val page = book?.pageAfterRemoving(session)
         viewModelScope.launch(dispatchers.getIo()) {
             try {
-                val result = fireRepository.deleteSession(sessionId)
-                val current = book?.currentPage
-                if (book?.id != null && current != null) {
-                    writeCurrentPage(book.id, (current - (session.pages ?: 0)).coerceAtLeast(0))
-                }
+                val result = fireRepository.deleteSession(sessionId, page)
                 val sessions = fireRepository.fetchSessions(userId)
                 withContext(dispatchers.getMain()) {
                     uiState.update { it.copy(sessions = sessions) }
@@ -429,6 +400,13 @@ class SessionViewModel @Inject constructor(
 private fun MBook.reachedTheEnd(place: Int): Boolean {
     val total = pageCount?.takeIf { it > 0 } ?: return false
     return bookStatus == BookStatus.READING && place >= total
+}
+
+/** Percentages need the book's length: without it, fall back to pages read. */
+private fun SessionUiState.withUsableLogBy(): SessionUiState {
+    if (logBy != SessionLogBy.PERCENT) return this
+    val book = books.find { it.shelfId() == selectedBookId }
+    return if (book?.pageCount?.takeIf { it > 0 } != null) this else copy(logBy = SessionLogBy.PAGES)
 }
 
 /** Offers the books being read from [shelf], keeping the selection if it's still one of them. */

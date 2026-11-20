@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -68,6 +69,7 @@ private fun DetailsShelfCopyPreview() {
         title = "A Room of One's Own",
         authors = listOf("Virginia Woolf"),
         pageCount = 160,
+        currentPage = 64,
         notes = "Re-reading for book club.",
         startedReading = Timestamp.now()
     )
@@ -75,6 +77,7 @@ private fun DetailsShelfCopyPreview() {
         DetailsScreenContent(
             book = shelfCopy,
             savedBook = shelfCopy,
+            readingPlace = 64,
             onStatusClick = {},
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
             showingShelfCopy = true
@@ -88,7 +91,8 @@ fun DetailsScreenContent(
     savedBook: MBook?,
     onStatusClick: () -> Unit,
     modifier: Modifier = Modifier,
-    showingShelfCopy: Boolean = false
+    showingShelfCopy: Boolean = false,
+    readingPlace: Int = 0
 ) {
     val cloth = shelfSwatches(listOf(book.shelfKey())).first().cloth
     Column(
@@ -105,7 +109,12 @@ fun DetailsScreenContent(
             if (showingShelfCopy) ShelfCopyCallout()
         }
         savedBook?.let { shelf ->
-            YourShelfCard(book = shelf, onStatusClick = onStatusClick)
+            YourShelfCard(
+                book = shelf,
+                pageCount = shelf.pageCount?.takeIf { it > 0 } ?: book.pageCount?.takeIf { it > 0 },
+                place = readingPlace,
+                onStatusClick = onStatusClick
+            )
         }
         book.description?.takeIf { it.isNotBlank() }?.let { description ->
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -211,6 +220,8 @@ private fun BookHeading(
 @Composable
 private fun YourShelfCard(
     book: MBook,
+    pageCount: Int?,
+    place: Int,
     onStatusClick: () -> Unit
 ) {
     val status = book.bookStatus
@@ -250,6 +261,9 @@ private fun YourShelfCard(
                 )
             }
         }
+        if (status != BookStatus.LIBRARY && (place > 0 || status == BookStatus.READING)) {
+            ShelfProgress(place = place, total = pageCount)
+        }
         if (rating != null) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 ShelfLabel(text = stringResource(R.string.update_book_rating))
@@ -275,6 +289,52 @@ private fun YourShelfCard(
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun ShelfProgress(place: Int, total: Int?) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        ShelfLabel(text = stringResource(R.string.details_progress))
+        if (total != null) {
+            val fraction = (place.toFloat() / total).coerceIn(0f, 1f)
+            Text(
+                text = stringResource(R.string.session_progress, fraction * 100f),
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .clip(CircleShape)
+                    .background(Cover)
+            ) {
+                if (fraction > 0f) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(fraction)
+                            .height(4.dp)
+                            .background(MaterialTheme.colorScheme.onBackground)
+                    )
+                }
+            }
+            Text(
+                text = stringResource(R.string.session_progress_of, place, total),
+                color = Muted,
+                style = MaterialTheme.typography.bodySmall
+            )
+        } else {
+            Text(
+                text = if (place > 0) {
+                    stringResource(R.string.session_on_page, place)
+                } else {
+                    stringResource(R.string.session_progress, 0f)
+                },
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
     }
 }

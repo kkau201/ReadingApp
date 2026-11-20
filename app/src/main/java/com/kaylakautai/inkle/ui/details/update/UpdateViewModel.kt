@@ -9,6 +9,7 @@ import com.kaylakautai.inkle.common.BaseViewModel
 import com.kaylakautai.inkle.common.DependencyContextWrapper
 import com.kaylakautai.inkle.common.LoadingState
 import com.kaylakautai.inkle.coroutines.CoroutineDispatcherProvider
+import com.kaylakautai.inkle.model.StoredBook
 import com.kaylakautai.inkle.model.TextLimits
 import com.kaylakautai.inkle.model.limitTo
 import com.kaylakautai.inkle.repo.FireRepository
@@ -62,7 +63,9 @@ class UpdateViewModel @Inject constructor(
                         finishedYear = parts.year,
                         finishedMonth = parts.month,
                         finishedDay = parts.day,
-                        finishedOnError = false
+                        finishedOnError = false,
+                        currentPageInput = savedBook?.currentPage?.takeIf { it > 0 }?.toString().orEmpty(),
+                        currentPageError = false
                     )
                 }
                 updateLoadingState(LoadingState.Success)
@@ -86,7 +89,21 @@ class UpdateViewModel @Inject constructor(
             } else {
                 state.finishedYear
             }
-            state.copy(selectedStatus = status, finishedYear = year, finishedOnError = false)
+            state.copy(
+                selectedStatus = status,
+                finishedYear = year,
+                finishedOnError = false,
+                currentPageError = false
+            )
+        }
+    }
+
+    fun onCurrentPageChanged(input: String) {
+        uiState.update { state ->
+            state.copy(
+                currentPageInput = input.filter(Char::isDigit).take(StoredBook.MAX_PAGE.toString().length),
+                currentPageError = false
+            )
         }
     }
 
@@ -127,7 +144,7 @@ class UpdateViewModel @Inject constructor(
 
             // Notes: no note is stored as missing, but shown as an empty field.
             if ((book.notes ?: "") != uiState.value.noteInput) {
-                updates = updates.plus("notes" to uiState.value.noteInput)
+                updates = updates.plus(StoredBook.NOTES to uiState.value.noteInput)
             }
 
             val selectedStatus: BookStatus = uiState.value.selectedStatus
@@ -144,6 +161,18 @@ class UpdateViewModel @Inject constructor(
                 uiState.update { it.copy(finishedOnError = true) }
                 return@let
             }
+            // Blank means no page saved: progress then comes from the logged sessions.
+            val currentPage = if (selectedStatus == BookStatus.READING) {
+                val typed = uiState.value.currentPageInput
+                val page = typed.toIntOrNull()?.takeIf { it in 1..StoredBook.MAX_PAGE }
+                if (typed.isNotEmpty() && page == null) {
+                    uiState.update { it.copy(currentPageError = true) }
+                    return@let
+                }
+                page
+            } else {
+                null
+            }
             val finishedTimeStamp = finished?.toTimestamp()
             val startedTimeStamp: Timestamp? = when {
                 selectedStatus == BookStatus.LIBRARY -> null
@@ -152,20 +181,26 @@ class UpdateViewModel @Inject constructor(
             }
 
             if (startedTimeStamp != book.startedReading) {
-                updates = updates.plus("started_reading" to startedTimeStamp)
+                updates = updates.plus(StoredBook.STARTED_READING to startedTimeStamp)
             }
             if (!sameLocalDay(finishedTimeStamp, book.finishedReading)) {
-                updates = updates.plus("finished_reading" to finishedTimeStamp)
+                updates = updates.plus(StoredBook.FINISHED_READING to finishedTimeStamp)
             }
             if (finished?.display != book.finishedOn) {
-                updates = updates.plus("finished_on" to finished?.display)
+                updates = updates.plus(StoredBook.FINISHED_ON to finished?.display)
             }
 
             // If book is not finished then ensure the rating is removed (so its reset if prev. set)
             val storedRating = if (selectedStatus != BookStatus.FINISHED) null
             else uiState.value.selectedRating.takeIf { it in 1..5 }?.toDouble()
             if (storedRating != book.rating) {
-                updates = updates.plus("rating" to storedRating)
+                updates = updates.plus(StoredBook.RATING to storedRating)
+            }
+
+            if (selectedStatus == BookStatus.LIBRARY && book.currentPage != null) {
+                updates = updates.plus(StoredBook.CURRENT_PAGE to null)
+            } else if (selectedStatus == BookStatus.READING && currentPage != book.currentPage?.takeIf { it > 0 }) {
+                updates = updates.plus(StoredBook.CURRENT_PAGE to currentPage)
             }
 
             if (updates.isNotEmpty()) {

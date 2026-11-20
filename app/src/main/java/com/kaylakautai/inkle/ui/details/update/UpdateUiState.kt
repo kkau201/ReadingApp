@@ -13,5 +13,11 @@ data class UpdateUiState(
     val finishedYear: Int = 0,
     val finishedMonth: Int? = null,
     val finishedDay: String = "",
-    val finishedOnError: Boolean = false
+    val finishedOnError: Boolean = false,
+    /**
+     * The page the reader is on, while the book is Reading. Blank means none is saved, so
+     * progress comes from the logged sessions.
+     */
+    val currentPageInput: String = "",
+    val currentPageError: Boolean = false
 )

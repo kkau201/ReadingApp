@@ -14,7 +14,10 @@ data class SessionUiState(
     val loadFailed: Boolean = false,
     val sessions: List<MSession> = emptyList(),
     val selectedBookId: String? = null,
-    /** Pages read in the sitting, or the page reached. See [SessionLogBy]. */
+    /**
+     * How progress is being recorded (see [SessionLogBy]). Kept from one log to the next, as
+     * readers tend to stick to one way.
+     */
     val logBy: SessionLogBy = SessionLogBy.PAGES,
     val pagesInput: String = "",
     val noteInput: String = "",
@@ -22,7 +25,8 @@ data class SessionUiState(
     val month: Int? = null,
     val day: String = "",
     val bookError: Boolean = false,
-    val pagesError: Boolean = false,
+    /** What's wrong with [pagesInput], once Save has been tapped. */
+    val pagesError: PagesError? = null,
     val dateError: Boolean = false,
     val logging: Boolean = false,
     val changingDate: Boolean = false,

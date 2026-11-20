@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -34,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.kaylakautai.inkle.R
 import com.kaylakautai.inkle.ui.details.update.FinishedDateField
 import com.kaylakautai.inkle.ui.theme.CardBackground
 import com.kaylakautai.inkle.ui.theme.Cover
@@ -50,6 +52,7 @@ data class DialogState(
     val content: Map<String, String> = emptyMap(),
     val choices: List<DialogChoice> = emptyList(),
     val finishedDate: DialogFinishedDate? = null,
+    val startPage: DialogStartPage? = null,
     val passwordInput: DialogPasswordInput? = null,
     val primaryButtonText: String? = null,
     val onPrimaryClick: (() -> Unit)? = null,
@@ -67,6 +70,13 @@ data class DialogChoice(
 /** A password field shown above the dialog's buttons (e.g. to confirm account deletion). */
 data class DialogPasswordInput(
     val label: String,
+    val value: String,
+    val error: String? = null,
+    val onValueChange: (String) -> Unit
+)
+
+/** An optional page for a book being added as Reading. Blank means they are at the start. */
+data class DialogStartPage(
     val value: String,
     val error: String? = null,
     val onValueChange: (String) -> Unit
@@ -170,6 +180,18 @@ fun InkleDialog(modifier: Modifier = Modifier, state: DialogState?) {
                                         onYearChanged = date.onYearChanged,
                                         onMonthChanged = date.onMonthChanged,
                                         onDayChanged = date.onDayChanged
+                                    )
+                                }
+                                startPage?.let { page ->
+                                    InkleTextField(
+                                        value = page.value,
+                                        onValueChange = page.onValueChange,
+                                        label = stringResource(R.string.details_start_page),
+                                        placeholder = stringResource(R.string.details_start_page_hint),
+                                        error = page.error,
+                                        bordered = true,
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        modifier = Modifier.fillMaxWidth()
                                     )
                                 }
                                 primaryButtonText?.let {

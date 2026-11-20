@@ -16,6 +16,9 @@ internal object StoredBook {
     /** Must match the authors list limit in firestore.rules. */
     const val MAX_AUTHORS = 10
 
+    /** The highest page a book can have, or be on. Must match firestore.rules. */
+    const val MAX_PAGE = 100_000
+
     val fields = listOf(
         TITLE,
         AUTHORS,

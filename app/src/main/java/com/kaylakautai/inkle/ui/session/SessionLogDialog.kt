@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -89,46 +90,55 @@ private fun ColumnScope.LogSessionForm(
     )
     val book = state.books.find { it.shelfId() == state.selectedBookId } ?: state.books.singleOrNull()
     val place = book?.readingPlace(state.sessions) ?: 0
-    val settingPlace = state.logBy == SessionLogBy.REACHED && place <= 0
     BookChoice(
         books = state.books,
         selectedBookId = state.selectedBookId,
         bookError = state.bookError,
         onBookSelected = onBookSelected
     )
-    RecordChoice(selected = state.logBy, onSelected = onLogByChanged)
+    RecordChoice(
+        selected = state.logBy,
+        percentAvailable = book?.pageCount?.takeIf { it > 0 } != null,
+        onSelected = onLogByChanged
+    )
     NumberField(
         label = stringResource(
-            if (state.logBy == SessionLogBy.REACHED) R.string.session_page else R.string.session_pages
+            when (state.logBy) {
+                SessionLogBy.PAGES -> R.string.session_pages
+                SessionLogBy.REACHED -> R.string.session_page
+                SessionLogBy.PERCENT -> R.string.session_percent
+            }
         ),
         value = state.pagesInput,
         placeholder = stringResource(
-            if (state.logBy == SessionLogBy.REACHED) R.string.session_page_hint else R.string.session_pages_hint
+            when (state.logBy) {
+                SessionLogBy.PAGES -> R.string.session_pages_hint
+                SessionLogBy.REACHED -> R.string.session_page_hint
+                SessionLogBy.PERCENT -> R.string.session_percent_hint
+            }
         ),
-        error = pagesErrorText(state, place),
+        error = state.pagesError?.let { pagesErrorText(it, state.logBy, place) },
         onValueChange = onPagesChanged
     )
-    recordHint(state.logBy, place)?.let { hint ->
+    progressHint(state, book, place)?.let { hint ->
         Text(
             text = hint,
             color = Muted,
             style = MaterialTheme.typography.bodyMedium
         )
     }
-    if (!settingPlace) {
-        NoteField(
-            value = state.noteInput,
-            onValueChange = onNoteChanged
-        )
-        SessionDay(
+    NoteField(
+        value = state.noteInput,
+        onValueChange = onNoteChanged
+    )
+    SessionDay(
         state = state,
         onYearChanged = onYearChanged,
         onMonthChanged = onMonthChanged,
         onDayChanged = onDayChanged,
-            onChangeDay = onChangeDay,
-            onUseToday = onUseToday
-        )
-    }
+        onChangeDay = onChangeDay,
+        onUseToday = onUseToday
+    )
     InkleButton(
         text = stringResource(R.string.update_save),
         onClick = onSave
@@ -136,11 +146,19 @@ private fun ColumnScope.LogSessionForm(
     FormCancelLink(text = stringResource(R.string.update_cancel), onClick = onCancel)
 }
 
+/** Pages read, the page you're on, or (when the book's length is known) a percentage. */
 @Composable
-private fun RecordChoice(selected: SessionLogBy, onSelected: (SessionLogBy) -> Unit) {
+private fun RecordChoice(
+    selected: SessionLogBy,
+    percentAvailable: Boolean,
+    onSelected: (SessionLogBy) -> Unit
+) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         FieldLabel(text = stringResource(R.string.session_record))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             ChoiceChip(
                 text = stringResource(R.string.session_by_pages),
                 selected = selected == SessionLogBy.PAGES,
@@ -151,31 +169,55 @@ private fun RecordChoice(selected: SessionLogBy, onSelected: (SessionLogBy) -> U
                 selected = selected == SessionLogBy.REACHED,
                 onClick = { onSelected(SessionLogBy.REACHED) }
             )
+            if (percentAvailable) {
+                ChoiceChip(
+                    text = stringResource(R.string.session_by_percent),
+                    selected = selected == SessionLogBy.PERCENT,
+                    onClick = { onSelected(SessionLogBy.PERCENT) }
+                )
+            }
         }
     }
 }
 
+/** The message for the [error] the view model found, worded for how progress is recorded. */
 @Composable
-private fun pagesErrorText(state: SessionUiState, place: Int): String? {
-    if (!state.pagesError) return null
-    val amount = state.pagesInput.toIntOrNull()
-    val behind = state.logBy == SessionLogBy.REACHED &&
-        place > 0 && amount != null && amount > 0 && amount <= place
-    return stringResource(
-        when {
-            behind -> R.string.session_page_behind
-            state.logBy == SessionLogBy.REACHED -> R.string.session_page_error
-            else -> R.string.session_pages_error
+private fun pagesErrorText(error: PagesError, by: SessionLogBy, place: Int): String = when (error) {
+    PagesError.NOT_AFTER -> stringResource(R.string.session_not_after, place)
+    PagesError.MISSING -> stringResource(
+        when (by) {
+            SessionLogBy.PAGES -> R.string.session_pages_error
+            SessionLogBy.REACHED -> R.string.session_page_error
+            SessionLogBy.PERCENT -> R.string.session_percent_error
+        }
+    )
+    PagesError.TOO_MANY -> stringResource(
+        when (by) {
+            SessionLogBy.PAGES -> R.string.session_pages_too_many
+            SessionLogBy.REACHED -> R.string.session_page_too_many
+            SessionLogBy.PERCENT -> R.string.session_percent_too_many
         }
     )
 }
 
+/**
+ * Below the field: what the entry adds up to as it's typed ("15 pages, up to page 35"), or
+ * else where the reader is now. For a book not yet started, how to begin partway through.
+ */
 @Composable
-private fun recordHint(by: SessionLogBy, place: Int): String? = when {
-    by == SessionLogBy.REACHED && place <= 0 -> stringResource(R.string.session_place_hint)
-    by == SessionLogBy.REACHED -> stringResource(R.string.session_reached_hint, place)
-    place > 0 -> stringResource(R.string.session_on_page, place)
-    else -> null
+private fun progressHint(state: SessionUiState, book: MBook?, place: Int): String? {
+    if (state.pagesError != null) return null
+    val entry = readingEntry(state.logBy, state.pagesInput, place, book?.pageCount)
+    if (entry is ReadingEntry.Valid) {
+        return pluralStringResource(R.plurals.session_preview, entry.pages, entry.pages, entry.pageReached)
+    }
+    if (place <= 0) return stringResource(R.string.session_partway_hint)
+    val percent = book?.percentAt(place)
+    return if (percent != null) {
+        stringResource(R.string.session_on_page_percent, place, percent)
+    } else {
+        stringResource(R.string.session_on_page, place)
+    }
 }
 
 @Composable

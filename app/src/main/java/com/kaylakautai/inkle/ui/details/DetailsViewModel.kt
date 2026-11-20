@@ -22,6 +22,7 @@ import com.kaylakautai.inkle.repo.onWriteDone
 import com.kaylakautai.inkle.ui.model.BookStatus
 import com.kaylakautai.inkle.ui.components.DialogChoice
 import com.kaylakautai.inkle.ui.components.DialogFinishedDate
+import com.kaylakautai.inkle.ui.components.DialogStartPage
 import com.kaylakautai.inkle.ui.components.DialogState
 import com.kaylakautai.inkle.ui.components.shelfKey
 import com.kaylakautai.inkle.ui.stamps.StampCelebrations
@@ -33,6 +34,8 @@ import com.kaylakautai.inkle.ui.details.update.finishedParts
 import com.kaylakautai.inkle.ui.details.update.maxFinishedYear
 import com.kaylakautai.inkle.ui.details.update.toFinishedOn
 import com.kaylakautai.inkle.ui.destinations.DetailsScreenDestination
+import com.kaylakautai.inkle.model.StoredBook
+import com.kaylakautai.inkle.ui.session.readingPlace
 import com.kaylakautai.inkle.ui.destinations.UpdateScreenDestination
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
@@ -41,6 +44,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
@@ -69,19 +73,28 @@ class DetailsViewModel @Inject constructor(
     private var shelfDay: String = ""
     private var shelfDayError: Boolean = false
     private var shelfPickingFinished: Boolean = false
+    private var shelfStartPage: String = ""
+    private var shelfStartPageError: Boolean = false
+    private var shelfPickingReading: Boolean = false
 
     fun loadBook() {
         if (!isWatchingSavedBooks) {
             isWatchingSavedBooks = true
             viewModelScope.launch {
                 fireRepository.fetchSavedBooksByUser()
-                fireRepository.savedBooks.collect { allSavedBooks ->
+                // Sessions are what make progress when no page is saved. The listener can still
+                // be empty here; the Session tab was the only place that fetched them.
+                fetchShelfSessions()
+                combine(fireRepository.savedBooks, fireRepository.sessions) { allSavedBooks, sessions ->
                     val savedBook = allSavedBooks.find { it.googleBookId == args.bookId }
+                    savedBook to (savedBook?.readingPlace(sessions) ?: 0)
+                }.collect { (savedBook, place) ->
                     uiState.update { state ->
                         state.copy(
                             bookId = savedBook?.id,
                             savedBook = savedBook,
-                            isSaved = savedBook != null
+                            isSaved = savedBook != null,
+                            readingPlace = place
                         )
                     }
                 }
@@ -115,6 +128,17 @@ class DetailsViewModel @Inject constructor(
             } catch (e: Exception) {
                 showWhatWeHaveOrError(e)
             }
+        }
+    }
+
+    private suspend fun fetchShelfSessions() {
+        val userId = authRepository.currentUserId ?: return
+        try {
+            fireRepository.fetchSessions(userId)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.d("DetailsViewModel", "No sessions to count progress from: $e")
         }
     }
 
@@ -183,12 +207,20 @@ class DetailsViewModel @Inject constructor(
         shelfDay = if (alreadyFinished) parts.day else ""
         shelfDayError = false
         shelfPickingFinished = alreadyFinished
+        shelfStartPage = ""
+        shelfStartPageError = false
+        shelfPickingReading = false
         publishStatusDialog()
     }
 
     private fun publishStatusDialog() {
         val saved = uiState.value.savedBook
-        val selected = if (shelfPickingFinished) BookStatus.FINISHED else saved?.bookStatus
+        val selected = when {
+            shelfPickingFinished -> BookStatus.FINISHED
+            shelfPickingReading -> BookStatus.READING
+            else -> saved?.bookStatus
+        }
+        val confirming = shelfPickingFinished || shelfPickingReading
         showDialog(
             DialogState(
                 title = getString(
@@ -200,8 +232,11 @@ class DetailsViewModel @Inject constructor(
                     statusChoice(BookStatus.FINISHED, R.string.home_filter_finished, selected)
                 ),
                 finishedDate = if (shelfPickingFinished) shelfFinishedDate() else null,
-                primaryButtonText = if (shelfPickingFinished) getString(R.string.update_save) else null,
-                onPrimaryClick = { confirmFinished() },
+                startPage = if (shelfPickingReading) shelfStartPageField() else null,
+                primaryButtonText = if (confirming) getString(R.string.update_save) else null,
+                onPrimaryClick = {
+                    if (shelfPickingReading) confirmReading() else confirmFinished()
+                },
                 secondaryButtonText = getString(R.string.update_cancel),
                 onSecondaryClick = { dismissDialog() },
                 onDismissRequest = { dismissDialog() }
@@ -221,25 +256,69 @@ class DetailsViewModel @Inject constructor(
         )
     }
 
+    private fun shelfStartPageField(): DialogStartPage {
+        return DialogStartPage(
+            value = shelfStartPage,
+            error = if (shelfStartPageError) getString(R.string.details_start_page_error) else null,
+            onValueChange = ::onShelfStartPageChanged
+        )
+    }
+
     private fun statusChoice(status: BookStatus, label: Int, current: BookStatus?): DialogChoice {
         return DialogChoice(
             text = getString(label),
             selected = status == current,
             onClick = {
-                if (status == BookStatus.FINISHED) {
-                    selectFinished()
-                } else {
-                    applyStatus(status)
+                when (status) {
+                    BookStatus.FINISHED -> selectFinished()
+                    BookStatus.READING -> selectReading()
+                    else -> applyStatus(status)
                 }
             }
         )
     }
 
+    private fun selectReading() {
+        shelfPickingReading = true
+        shelfPickingFinished = false
+        shelfStartPageError = false
+        publishStatusDialog()
+    }
+
     private fun selectFinished() {
         if (shelfYear == 0) shelfYear = maxFinishedYear()
         shelfPickingFinished = true
+        shelfPickingReading = false
         shelfDayError = false
         publishStatusDialog()
+    }
+
+    private fun onShelfStartPageChanged(input: String) {
+        shelfStartPage = input.filter(Char::isDigit).take(6)
+        shelfStartPageError = false
+        publishStatusDialog()
+    }
+
+    private fun confirmReading() {
+        val page = startPageOrNull()
+        if (shelfStartPage.isNotEmpty() && page == null) {
+            shelfStartPageError = true
+            publishStatusDialog()
+            return
+        }
+        dismissDialog()
+        val saved = uiState.value.savedBook
+        if (saved == null) {
+            saveBook(BookStatus.READING, startPage = page)
+        } else {
+            updateStatus(saved, BookStatus.READING, startPage = page)
+        }
+    }
+
+    /** A blank field is "at the beginning". A typed page must be inside the stored range. */
+    private fun startPageOrNull(): Int? {
+        if (shelfStartPage.isEmpty()) return null
+        return shelfStartPage.toIntOrNull()?.takeIf { it in 1..StoredBook.MAX_PAGE }
     }
 
     private fun onShelfYearChanged(year: Int) {
@@ -291,7 +370,11 @@ class DetailsViewModel @Inject constructor(
         }
     }
 
-    private fun saveBook(status: BookStatus, finishedOn: FinishedOn? = null) {
+    private fun saveBook(
+        status: BookStatus,
+        finishedOn: FinishedOn? = null,
+        startPage: Int? = null
+    ) {
         val book = uiState.value.book ?: return
         val userId = authRepository.currentUserId ?: return
         if (fireRepository.savedBooks.value.any { it.googleBookId == args.bookId }) return
@@ -304,6 +387,7 @@ class DetailsViewModel @Inject constructor(
             startedReading = started,
             finishedReading = finished,
             finishedOn = finishedOn?.display,
+            currentPage = startPage,
             rating = null,
             notes = null
         )
@@ -325,16 +409,29 @@ class DetailsViewModel @Inject constructor(
             )
     }
 
-    private fun updateStatus(saved: MBook, status: BookStatus, finishedOn: FinishedOn? = null) {
+    private fun updateStatus(
+        saved: MBook,
+        status: BookStatus,
+        finishedOn: FinishedOn? = null,
+        startPage: Int? = null
+    ) {
         val bookId = saved.id ?: return
         val (started, finished) = readingTimes(saved, status, finishedOn)
+        val updates = mutableMapOf<String, Any?>(
+            StoredBook.STARTED_READING to started,
+            StoredBook.FINISHED_READING to finished,
+            StoredBook.FINISHED_ON to finishedOn?.display
+        )
+        if (status == BookStatus.LIBRARY) {
+            // Back to Want to read: no progress, and no rating.
+            updates[StoredBook.CURRENT_PAGE] = null
+            updates[StoredBook.RATING] = null
+        } else if (startPage != null) {
+            updates[StoredBook.CURRENT_PAGE] = startPage
+        }
         fireRepository.updateBook(
             bookId = bookId,
-            bookUpdates = mapOf(
-                "started_reading" to started,
-                "finished_reading" to finished,
-                "finished_on" to finishedOn?.display
-            ),
+            bookUpdates = updates,
             onSaved = { result ->
                 showWriteToast(result, savedRes = R.string.update_book_success)
                 if (status == BookStatus.FINISHED && saved.bookStatus != BookStatus.FINISHED) {

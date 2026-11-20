@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -46,6 +48,8 @@ fun UpdateScreenContent(
     finishedMonth: Int?,
     finishedDay: String,
     finishedOnError: Boolean,
+    currentPageInput: String,
+    currentPageError: Boolean,
     selectedRating: Int,
     noteInput: String,
     onNoteInputChanged: (String) -> Unit,
@@ -53,6 +57,7 @@ fun UpdateScreenContent(
     onFinishedYearChanged: (Int) -> Unit,
     onFinishedMonthChanged: (Int?) -> Unit,
     onFinishedDayChanged: (String) -> Unit,
+    onCurrentPageChanged: (String) -> Unit,
     onRatingChanged: (Int) -> Unit,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit
@@ -80,7 +85,10 @@ fun UpdateScreenContent(
                 onStatusChanged = onStatusChanged,
                 onFinishedYearChanged = onFinishedYearChanged,
                 onFinishedMonthChanged = onFinishedMonthChanged,
-                onFinishedDayChanged = onFinishedDayChanged
+                onFinishedDayChanged = onFinishedDayChanged,
+                currentPageInput = currentPageInput,
+                currentPageError = currentPageError,
+                onCurrentPageChanged = onCurrentPageChanged
             )
             if (selectedStatus == BookStatus.FINISHED) {
                 RatingField(
@@ -129,7 +137,10 @@ private fun StatusField(
     onStatusChanged: (BookStatus) -> Unit,
     onFinishedYearChanged: (Int) -> Unit,
     onFinishedMonthChanged: (Int?) -> Unit,
-    onFinishedDayChanged: (String) -> Unit
+    onFinishedDayChanged: (String) -> Unit,
+    currentPageInput: String,
+    currentPageError: Boolean,
+    onCurrentPageChanged: (String) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         InkleFieldLabel(text = stringResource(R.string.update_book_status))
@@ -155,6 +166,18 @@ private fun StatusField(
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
+        }
+        if (selected == BookStatus.READING) {
+            // The page they're on now (sessions move it on): editable to correct it.
+            InkleTextField(
+                value = currentPageInput,
+                onValueChange = onCurrentPageChanged,
+                label = stringResource(R.string.update_book_current_page),
+                placeholder = stringResource(R.string.details_start_page_hint),
+                error = if (currentPageError) stringResource(R.string.details_start_page_error) else null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
         }
         if (selected == BookStatus.FINISHED) {
             FinishedDateField(

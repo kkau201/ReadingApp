@@ -20,6 +20,7 @@ import com.kaylakautai.inkle.testing.TestData.unsavedBook
 import com.kaylakautai.inkle.testing.fakeContext
 import com.kaylakautai.inkle.testing.str
 import com.kaylakautai.inkle.ui.destinations.UpdateScreenDestination
+import com.kaylakautai.inkle.ui.session.readingPlace
 import com.kaylakautai.inkle.ui.stamps.StampCelebrations
 import com.kaylakautai.inkle.ui.model.BookStatus
 import io.mockk.coEvery
@@ -115,6 +116,25 @@ class DetailsViewModelTest : BaseViewModelTest() {
         assertTrue(state.isSaved)
         assertEquals(TestData.readingBook, state.savedBook)
         assertEquals(TestData.readingBook.id, state.bookId)
+        assertEquals(0, state.readingPlace)
+    }
+
+    @Test
+    fun open_readingBookWithASavedPage_reportsThatPlace() = runTest {
+        val book = TestData.readingBook.copy(currentPage = 40, pageCount = 200)
+        firestore.books = TestData.books.map { if (it.id == book.id) book else it }
+        open(book.googleBookId!!)
+
+        assertEquals(40, state.readingPlace)
+    }
+
+    @Test
+    fun open_readingBook_countsLoggedSessionsOnFirstLoad() = runTest {
+        firestore.sessions = listOf(TestData.session)
+        open(TestData.readingBook.googleBookId!!)
+
+        viewModel.uiState.first { it.readingPlace == TestData.session.pages }
+        assertEquals(TestData.session.pages, state.readingPlace)
     }
 
     @Test
@@ -232,14 +252,24 @@ class DetailsViewModelTest : BaseViewModelTest() {
         )
         assertNull(selectedChoice())
         assertNull(dialog().finishedDate)
+        assertNull(dialog().startPage)
     }
 
     @Test
-    fun addAsReading_savesStartedBookAndConfirms() = runTest {
+    fun addAsReading_blankPage_savesStartedBookWithoutAPage() = runTest {
         open(unsavedBook.googleBookId!!)
         viewModel.toggleSavedBook()
 
         choose(R.string.home_filter_reading)
+
+        assertTrue(firestore.addedBooks.isEmpty())
+        assertNull(dialog().finishedDate)
+        assertEquals("", dialog().startPage!!.value)
+        assertNull(dialog().startPage!!.error)
+        assertEquals(str(R.string.update_save), dialog().primaryButtonText)
+        assertEquals(str(R.string.home_filter_reading), selectedChoice())
+
+        dialog().onPrimaryClick!!()
 
         val doc = firestore.addedBooks.single()
         assertEquals(UID, doc[StoredBook.USER_ID])
@@ -247,10 +277,49 @@ class DetailsViewModelTest : BaseViewModelTest() {
         assertEquals(unsavedBook.title, doc[StoredBook.TITLE])
         assertNotNull(doc[StoredBook.STARTED_READING])
         assertFalse(StoredBook.FINISHED_READING in doc)
+        assertFalse(StoredBook.CURRENT_PAGE in doc)
         assertEquals(str(R.string.book_saved_toast), mainViewModel.toastFlow.value)
         assertNull(mainViewModel.dialogFlow.value)
         assertTrue(state.isSaved)
         assertEquals(BookStatus.READING, state.savedBook?.bookStatus)
+    }
+
+    @Test
+    fun addAsReading_withPage_savesThatPage() = runTest {
+        open(unsavedBook.googleBookId!!)
+        viewModel.toggleSavedBook()
+        choose(R.string.home_filter_reading)
+
+        dialog().startPage!!.onValueChange("1a80")
+        assertEquals("180", dialog().startPage!!.value)
+        dialog().onPrimaryClick!!()
+
+        val doc = firestore.addedBooks.single()
+        assertEquals(180, doc[StoredBook.CURRENT_PAGE])
+        assertNotNull(doc[StoredBook.STARTED_READING])
+        assertFalse(StoredBook.FINISHED_READING in doc)
+        assertEquals(BookStatus.READING, state.savedBook?.bookStatus)
+        assertEquals(180, state.savedBook?.currentPage)
+    }
+
+    @Test
+    fun addAsReading_pageOutOfRange_flagsAndSavesNothing() = runTest {
+        open(unsavedBook.googleBookId!!)
+        viewModel.toggleSavedBook()
+        choose(R.string.home_filter_reading)
+
+        dialog().startPage!!.onValueChange("0")
+        dialog().onPrimaryClick!!()
+
+        assertEquals(str(R.string.details_start_page_error), dialog().startPage!!.error)
+        assertTrue(firestore.addedBooks.isEmpty())
+
+        dialog().startPage!!.onValueChange("100001")
+        dialog().onPrimaryClick!!()
+        assertEquals(str(R.string.details_start_page_error), dialog().startPage!!.error)
+
+        dialog().startPage!!.onValueChange("12")
+        assertNull(dialog().startPage!!.error)
     }
 
     @Test
@@ -323,6 +392,7 @@ class DetailsViewModelTest : BaseViewModelTest() {
         viewModel.toggleSavedBook()
 
         choose(R.string.home_filter_reading)
+        dialog().onPrimaryClick!!()
 
         assertNull(celebrations.pending.value)
     }
@@ -393,6 +463,7 @@ class DetailsViewModelTest : BaseViewModelTest() {
         viewModel.toggleSavedBook()
 
         choose(R.string.home_filter_reading)
+        dialog().onPrimaryClick!!()
 
         assertEquals(str(R.string.saved_offline_toast), mainViewModel.toastFlow.value)
         assertTrue(state.isSaved)
@@ -429,6 +500,7 @@ class DetailsViewModelTest : BaseViewModelTest() {
         viewModel.toggleSavedBook()
 
         choose(R.string.home_filter_reading)
+        dialog().onPrimaryClick!!()
 
         assertEquals(str(R.string.book_save_error), mainViewModel.toastFlow.value)
         assertFalse(state.isSaved)
@@ -452,6 +524,7 @@ class DetailsViewModelTest : BaseViewModelTest() {
         authRepository.current = null
 
         choose(R.string.home_filter_reading)
+        dialog().onPrimaryClick!!()
 
         assertTrue(firestore.addedBooks.isEmpty())
     }
@@ -551,14 +624,46 @@ class DetailsViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun chooseStatus_sameStatus_changesNothing() = runTest {
+    fun chooseStatus_sameStatus_savesStatus() = runTest {
         open(TestData.readingBook.googleBookId!!)
         viewModel.onChooseStatus()
 
         choose(R.string.home_filter_reading)
+        dialog().onPrimaryClick!!()
 
-        assertTrue(firestore.bookUpdates.isEmpty())
-        assertNull(mainViewModel.dialogFlow.value)
+        val id = firestore.bookUpdates.single().first
+        assertEquals(TestData.readingBook.id, id)
+        assertEquals(BookStatus.READING, state.savedBook?.bookStatus)
+    }
+
+    @Test
+    fun chooseStatus_wantToReadToReading_allowsSettingStartPage() = runTest {
+        val libraryBook = unsavedBook.copy(id = "lib-1", userId = UID)
+        firestore.books += libraryBook
+        open(libraryBook.googleBookId!!)
+
+        viewModel.onChooseStatus()
+        choose(R.string.home_filter_reading)
+
+        assertEquals("", dialog().startPage!!.value)
+        assertEquals(str(R.string.update_save), dialog().primaryButtonText)
+
+        dialog().startPage!!.onValueChange("42")
+        dialog().onPrimaryClick!!()
+
+        val (id, updates) = firestore.bookUpdates.single()
+        assertEquals(libraryBook.id, id)
+        assertEquals(42, updates[StoredBook.CURRENT_PAGE])
+        assertEquals(BookStatus.READING, state.savedBook?.bookStatus)
+    }
+
+    @Test
+    fun readingPlace_nullShelfId_returnsZero() {
+        val bookWithoutId = unsavedBook.copy(id = null, googleBookId = null)
+        val sessionsWithNullBookId = listOf(
+            TestData.session.copy(googleBookId = null, pages = 50)
+        )
+        assertEquals(0, bookWithoutId.readingPlace(sessionsWithNullBookId))
     }
 
     @Test
@@ -573,6 +678,7 @@ class DetailsViewModelTest : BaseViewModelTest() {
         assertNull(updates[StoredBook.STARTED_READING])
         assertNull(updates[StoredBook.FINISHED_READING])
         assertNull(updates[StoredBook.FINISHED_ON])
+        assertNull(updates[StoredBook.CURRENT_PAGE])
         assertEquals(str(R.string.update_book_success), mainViewModel.toastFlow.value)
         assertEquals(BookStatus.LIBRARY, state.savedBook?.bookStatus)
     }
