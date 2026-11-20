@@ -56,3 +56,28 @@ internal fun MBook.toStoredDocument(): Map<String, Any> = buildMap {
 private fun MutableMap<String, Any>.putText(key: String, value: String?) {
     value?.takeIf { it.isNotBlank() }?.let { put(key, it) }
 }
+
+/**
+ * The fields of a stored book ([data]) to remove so firestore.rules accept it again: ones the
+ * app no longer uses, and optional ones an older version stored as placeholders (null, empty
+ * text, a 0 rating or page). The rules check the whole document on every update, so while any
+ * of these remain, no change to the book can be saved, not even its page after a session.
+ * Required fields are never listed: removing them wouldn't make the book valid.
+ */
+internal fun invalidStoredBookFields(data: Map<String, Any?>): List<String> =
+    data.mapNotNull { (key, value) ->
+        key.takeIf { isUnusedOrPlaceholder(it, value) }
+    }
+
+private val requiredBookFields = setOf(StoredBook.USER_ID, StoredBook.GOOGLE_BOOK_ID)
+
+private fun isUnusedOrPlaceholder(key: String, value: Any?): Boolean = when {
+    key in requiredBookFields -> false
+    key !in StoredBook.fields -> true
+    value == null -> true
+    value is String -> value.isBlank()
+    key == StoredBook.RATING -> (value as? Number)?.toDouble()?.let { it !in 1.0..5.0 } ?: true
+    key == StoredBook.PAGE_COUNT || key == StoredBook.CURRENT_PAGE ->
+        (value as? Number)?.toLong()?.let { it !in 1..StoredBook.MAX_PAGE.toLong() } ?: true
+    else -> false
+}

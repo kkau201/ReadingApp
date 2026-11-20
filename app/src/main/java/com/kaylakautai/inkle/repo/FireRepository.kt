@@ -7,6 +7,7 @@ import com.kaylakautai.inkle.model.MSession
 import com.kaylakautai.inkle.model.MUser
 import com.kaylakautai.inkle.model.StoredBook
 import com.kaylakautai.inkle.model.StoredSession
+import com.kaylakautai.inkle.model.invalidStoredBookFields
 import com.kaylakautai.inkle.model.toModel
 import com.kaylakautai.inkle.model.toSession
 import com.kaylakautai.inkle.model.toStoredDocument
@@ -161,7 +162,7 @@ class FireRepository @Inject constructor(
                 .await()
                 .documents
                 .map { documentSnapshot ->
-                    documentSnapshot.removeUnusedFields()
+                    documentSnapshot.repairStoredFields()
                     documentSnapshot.toStoredBook()
                 }
         } catch (e: FirebaseFirestoreException) {
@@ -171,10 +172,15 @@ class FireRepository @Inject constructor(
         return dataOrException
     }
 
-    private fun DocumentSnapshot.removeUnusedFields() {
-        val extra = data?.keys?.filter { it !in StoredBook.fields }.orEmpty()
-        if (extra.isEmpty()) return
-        reference.update(extra.associateWith { FieldValue.delete() })
+    /**
+     * Removes fields that would make firestore.rules reject every update to this book (see
+     * [invalidStoredBookFields]), e.g. placeholders saved by an older version of the app.
+     */
+    private fun DocumentSnapshot.repairStoredFields() {
+        val invalid = invalidStoredBookFields(data.orEmpty())
+        if (invalid.isEmpty()) return
+        reference.update(invalid.associateWith { FieldValue.delete() })
+            .addOnFailureListener { Log.w(TAG, "Couldn't repair book $id", it) }
     }
 
     private fun DocumentSnapshot.toStoredBook(): MBook {
